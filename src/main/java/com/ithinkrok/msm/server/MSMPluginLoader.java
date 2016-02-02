@@ -153,7 +153,7 @@ public class MSMPluginLoader {
         //Absolute URI
         final URI uri = URI.create("jar:file:" + zipFile.toUri().getPath());
 
-        return FileSystems.newFileSystem(uri, new HashMap<String, Object>());
+        return FileSystems.newFileSystem(uri, new HashMap<>());
     }
 
 
