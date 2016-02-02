@@ -1,5 +1,7 @@
 package com.ithinkrok.msm.server;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
@@ -7,13 +9,32 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public abstract class MSMServerPlugin implements MSMServerListener {
 
+    //This field is accessed by reflection.
+    @SuppressWarnings({"unused", "FieldMayBeFinal"})
     private boolean configured = false;
 
+    //Accessed by reflection
+    @SuppressWarnings("unused")
     private String name;
+
+    //Accessed by reflection
+    @SuppressWarnings("unused")
     private FileConfiguration pluginYml;
 
-    public MSMServerPlugin() throws ReflectiveOperationException {
-        MSMPluginLoader.configurePlugin(this);
+    private Logger logger;
+
+    public MSMServerPlugin()  {
+        logger = LogManager.getLogger(getClass());
+
+        try {
+            MSMPluginLoader.configurePlugin(this);
+        } catch (ReflectiveOperationException e) {
+            logger.warn("Failed to configure plugin: " + name, e);
+        }
+    }
+
+    public Logger getLogger() {
+        return logger;
     }
 
     public String getVersion() {
