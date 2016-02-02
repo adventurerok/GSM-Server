@@ -107,7 +107,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.ithinkrok.minigames.controller.Program</mainClass>
+                            <mainClass>com.ithinkrok.msm.server.Program</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
