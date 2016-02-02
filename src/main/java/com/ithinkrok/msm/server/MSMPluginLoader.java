@@ -92,6 +92,11 @@ public class MSMPluginLoader {
     private List<Path> findPluginJarPaths() {
         List<Path> jarPaths = new ArrayList<>();
 
+        if (!Files.isDirectory(pluginDirectory)) {
+            log.warn("The plugin directory does not exist or is not a directory " + pluginDirectory.toAbsolutePath());
+            return jarPaths;
+        }
+
         try (DirectoryStream<Path> paths = Files.newDirectoryStream(pluginDirectory)) {
             for (Path path : paths) {
                 if (Files.isDirectory(path) || !path.endsWith(".jar")) continue;
