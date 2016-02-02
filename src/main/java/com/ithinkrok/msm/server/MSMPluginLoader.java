@@ -71,7 +71,7 @@ public class MSMPluginLoader {
 
                 pluginLoaderUrls.add(new URL("jar:file:" + path.toUri().getPath() + "!/"));
             } catch (IOException e) {
-                e.printStackTrace();
+                log.warn("Error while loading plugin jar " + path, e);
             }
         }
 
@@ -84,7 +84,7 @@ public class MSMPluginLoader {
             try {
                 loadPluginObject(pluginLoader, pluginYml);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("Error loading plugin " + pluginYml.getString("name"), e);
             }
         }
     }
