@@ -97,9 +97,12 @@ public class MSMPluginLoader {
             return jarPaths;
         }
 
+        //** is required to match across directory boundaries
+        PathMatcher jarMatcher = FileSystems.getDefault().getPathMatcher("glob:**.jar");
+
         try (DirectoryStream<Path> paths = Files.newDirectoryStream(pluginDirectory)) {
             for (Path path : paths) {
-                if (Files.isDirectory(path) || !path.endsWith(".jar")) continue;
+                if (Files.isDirectory(path) || !jarMatcher.matches(path)) continue;
                 jarPaths.add(path);
             }
         } catch (IOException e) {
