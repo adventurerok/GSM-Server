@@ -17,14 +17,11 @@ import org.apache.logging.log4j.Logger;
  *
  * The server class for MSM
  */
-@ChannelHandler.Sharable
-public class MSMServer extends ChannelInboundHandlerAdapter {
+public class MSMServer {
 
     private static final Logger log = LogManager.getLogger(MSMServer.class);
 
     private final int port;
-
-    private Channel channel;
 
     public MSMServer(int port) {
         this.port = port;
@@ -69,16 +66,7 @@ public class MSMServer extends ChannelInboundHandlerAdapter {
         pipeline.addLast("MSMFrameEncoder", new MSMFrameEncoder());
         pipeline.addLast("MSMPacketEncoder", new MSMPacketEncoder());
 
-        pipeline.addLast("MSMServer", this);
+        pipeline.addLast("MSMConnection", new MSMConnection());
     }
 
-    @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        channel = ctx.channel();
-    }
-
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println(msg);
-    }
 }
