@@ -13,6 +13,12 @@ public class Program {
     public static void main(String[] args) {
         log.info("Starting MSM Server");
 
+        MSMPluginLoader pluginLoader = new MSMPluginLoader();
+
+        log.info("Loading plugins...");
+        pluginLoader.loadPlugins();
+        log.info("Finished loading plugins");
+
         MSMServer server = new MSMServer(30824);
 
         server.start();
