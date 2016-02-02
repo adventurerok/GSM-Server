@@ -7,5 +7,8 @@ import com.ithinkrok.msm.common.Packet;
  */
 public interface MSMListener {
 
+    void connectionOpened(MSMConnection connection);
+    void connectionClosed(MSMConnection connection);
+
     void packetRecieved(MSMConnection connection, Packet packet);
 }
