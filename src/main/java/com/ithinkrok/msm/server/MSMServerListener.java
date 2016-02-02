@@ -5,7 +5,7 @@ import com.ithinkrok.msm.common.Packet;
 /**
  * Created by paul on 02/02/16.
  */
-public interface MSMListener {
+public interface MSMServerListener {
 
     void connectionOpened(MSMConnection connection);
     void connectionClosed(MSMConnection connection);
