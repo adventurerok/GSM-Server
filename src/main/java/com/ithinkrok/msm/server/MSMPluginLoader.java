@@ -71,7 +71,7 @@ public class MSMPluginLoader {
 
                 pluginLoaderUrls.add(new URL("jar:file:" + path.toUri().getPath() + "!/"));
             } catch (IOException e) {
-                log.warn("Error while loading plugin jar " + path, e);
+                log.warn("Error while loading plugin jar: " + path, e);
             }
         }
 
@@ -84,7 +84,7 @@ public class MSMPluginLoader {
             try {
                 loadPluginObject(pluginLoader, pluginYml);
             } catch (Exception e) {
-                log.warn("Error loading plugin " + pluginYml.getString("name"), e);
+                log.warn("Error loading plugin: " + pluginYml.getString("name"), e);
             }
         }
     }
@@ -93,7 +93,7 @@ public class MSMPluginLoader {
         List<Path> jarPaths = new ArrayList<>();
 
         if (!Files.isDirectory(pluginDirectory)) {
-            log.warn("The plugin directory does not exist or is not a directory " + pluginDirectory.toAbsolutePath());
+            log.warn("The plugin directory does not exist or is not a directory: " + pluginDirectory.toAbsolutePath());
             return jarPaths;
         }
 
