@@ -154,7 +154,7 @@ public class MSMPluginLoader {
 
     private FileSystem createZipFileSystem(Path zipFile) throws IOException {
         //Absolute URI
-        final URI uri = URI.create("jar:file:" + zipFile.toUri().getPath());
+        final URI uri = URI.create("jar:file:" + zipFile.toUri().getRawPath());
 
         return FileSystems.newFileSystem(uri, new HashMap<>());
     }
