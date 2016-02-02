@@ -1,5 +1,7 @@
 package com.ithinkrok.msm.server;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -22,6 +24,7 @@ import java.util.Map;
  */
 public class MSMPluginLoader {
 
+    private static final Logger log = LogManager.getLogger(MSMPluginLoader.class);
     private static final Map<Class<? extends MSMServerPlugin>, ConfigurationSection> configLookup = new HashMap<>();
 
     private final Path pluginDirectory = Paths.get("plugins");
@@ -34,7 +37,7 @@ public class MSMPluginLoader {
         //Ensure that we haven't already been called on this plugin
         Field configuredField = pluginClass.getDeclaredField("configured");
         configuredField.setAccessible(true);
-        if(configuredField.getBoolean(plugin)) throw new RuntimeException("Plugin is already configured");
+        if (configuredField.getBoolean(plugin)) throw new RuntimeException("Plugin is already configured");
         configuredField.setBoolean(plugin, true);
 
         //Set the plugin yml field
@@ -52,6 +55,11 @@ public class MSMPluginLoader {
 
     public void loadPlugins() {
         List<Path> jarPaths = findPluginJarPaths();
+
+        if (jarPaths.isEmpty()) {
+            log.warn("No plugin jars found in the plugin folder");
+            return;
+        }
 
         List<URL> pluginLoaderUrls = new ArrayList<>();
         List<FileConfiguration> pluginYmls = new ArrayList<>();
@@ -126,6 +134,10 @@ public class MSMPluginLoader {
         Class<? extends MSMServerPlugin> pluginClass = anyClass.asSubclass(MSMServerPlugin.class);
 
         configLookup.put(pluginClass, pluginYml);
+
+        String pluginName = pluginYml.getString("name");
+        String pluginVersion = pluginYml.getString("version");
+        log.info("Loading plugin " + pluginName + " version " + pluginVersion);
 
         MSMServerPlugin plugin = pluginClass.newInstance();
 
