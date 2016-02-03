@@ -41,6 +41,10 @@ public abstract class MSMServerPlugin implements MSMServerListener {
         return pluginYml.getString("version");
     }
 
+    public String getProtocol() {
+        return pluginYml.getString("protocol");
+    }
+
     public String getName() {
         return name;
     }
