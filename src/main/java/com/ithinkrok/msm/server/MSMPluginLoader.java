@@ -27,11 +27,9 @@ public class MSMPluginLoader {
     private static final Logger log = LogManager.getLogger(MSMPluginLoader.class);
     private static final Map<Class<? extends MSMServerPlugin>, ConfigurationSection> configLookup = new HashMap<>();
 
-    private final Path pluginDirectory = Paths.get("plugins");
+    private static final Path pluginDirectory = Paths.get("plugins");
 
-    private List<MSMServerPlugin> plugins = new ArrayList<>();
-
-    public static void configurePlugin(MSMServerPlugin plugin) throws ReflectiveOperationException {
+    static void configurePlugin(MSMServerPlugin plugin) throws ReflectiveOperationException {
         Class<MSMServerPlugin> pluginClass = MSMServerPlugin.class;
 
         //Ensure that we haven't already been called on this plugin
@@ -53,17 +51,24 @@ public class MSMPluginLoader {
 
     }
 
-    public void loadPlugins() {
+    /**
+     * Loads all the valid plugins in the plugins directory, logging errors about any invalid plugins it finds.
+     *
+     * @return A list of valid plugins loaded from the plugins directory.
+     */
+    public List<MSMServerPlugin> loadPlugins() {
+        List<MSMServerPlugin> plugins = new ArrayList<>();
         List<Path> jarPaths = findPluginJarPaths();
 
         if (jarPaths.isEmpty()) {
             log.warn("No plugin jars found in the plugin folder");
-            return;
+            return plugins;
         }
 
         List<URL> pluginLoaderUrls = new ArrayList<>();
         List<FileConfiguration> pluginYmls = new ArrayList<>();
 
+        //Load all the plugin ymls
         for (Path path : jarPaths) {
             try {
                 //If the plugin is invalid (throws exception) it will be skipped
@@ -80,13 +85,16 @@ public class MSMPluginLoader {
 
         URLClassLoader pluginLoader = new URLClassLoader(pluginLoaderUrlsArray);
 
+        //Load the plugin main classes from the plugin ymls
         for (FileConfiguration pluginYml : pluginYmls) {
             try {
-                loadPluginObject(pluginLoader, pluginYml);
+                plugins.add(loadPluginObject(pluginLoader, pluginYml));
             } catch (Exception e) {
                 log.warn("Error loading plugin: " + pluginYml.getString("name"), e);
             }
         }
+
+        return plugins;
     }
 
     private List<Path> findPluginJarPaths() {
@@ -141,11 +149,14 @@ public class MSMPluginLoader {
 
     }
 
-    private void loadPluginObject(ClassLoader pluginLoader, FileConfiguration pluginYml)
+    private MSMServerPlugin loadPluginObject(ClassLoader pluginLoader, FileConfiguration pluginYml)
             throws ReflectiveOperationException {
         String mainClassName = pluginYml.getString("main");
 
+        //Get the main class specified in the plugin yml
         Class<?> anyClass = pluginLoader.loadClass(mainClassName);
+
+        //Make it a subclass of MSMServerPlugin. Throws an exception if it doesn't work
         Class<? extends MSMServerPlugin> pluginClass = anyClass.asSubclass(MSMServerPlugin.class);
 
         configLookup.put(pluginClass, pluginYml);
@@ -154,9 +165,7 @@ public class MSMPluginLoader {
         String pluginVersion = pluginYml.getString("version");
         log.info("Loading plugin " + pluginName + " version " + pluginVersion);
 
-        MSMServerPlugin plugin = pluginClass.newInstance();
-
-        plugins.add(plugin);
+        return pluginClass.newInstance();
     }
 
     private FileSystem createZipFileSystem(Path zipFile) throws IOException {
