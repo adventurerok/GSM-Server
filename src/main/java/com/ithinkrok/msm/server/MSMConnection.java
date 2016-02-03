@@ -1,11 +1,13 @@
 package com.ithinkrok.msm.server;
 
+import com.ithinkrok.msm.common.MSMChannel;
 import com.ithinkrok.msm.common.Packet;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +23,7 @@ public class MSMConnection {
     private final HandlerAdapter handlerAdapter;
     private Channel channel;
 
-    private Map<Byte, String> idToProtocolMap = new HashMap<>();
+    private final Map<Byte, String> idToProtocolMap = new HashMap<>();
 
     public MSMConnection(MSMServer msmServer) {
         this.msmServer = msmServer;
@@ -34,10 +36,6 @@ public class MSMConnection {
 
     public HandlerAdapter getHandlerAdapter() {
         return handlerAdapter;
-    }
-
-    public void sendPacket(Packet packet) {
-        channel.writeAndFlush(packet);
     }
 
     private class HandlerAdapter extends ChannelInboundHandlerAdapter {
@@ -61,6 +59,20 @@ public class MSMConnection {
 
             //Send the packet to the listener for the specified protocol
             msmServer.getListenerForProtocol(protocol).packetRecieved(MSMConnection.this, packet);
+        }
+    }
+
+    private class MSMConnectionChannel implements MSMChannel {
+
+        private final byte id;
+
+        public MSMConnectionChannel(byte id) {
+            this.id = id;
+        }
+
+        @Override
+        public void write(ConfigurationSection packet) {
+            channel.writeAndFlush(new Packet(id, packet));
         }
     }
 }
