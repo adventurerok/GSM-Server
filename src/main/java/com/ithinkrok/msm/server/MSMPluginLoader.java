@@ -117,16 +117,23 @@ public class MSMPluginLoader {
         try (FileSystem jar = createZipFileSystem(path)) {
 
             //The plugin yml path is msm_plugin.yml
-            Path pluginYml = jar.getPath("/msm_plugin.yml");
+            Path pluginYmlPath = jar.getPath("/msm_plugin.yml");
 
-            if (!Files.exists(pluginYml)) throw new IOException("Plugin jar does not contain plugin.yml");
+            if (!Files.exists(pluginYmlPath)) throw new IOException("Plugin jar does not contain msm_plugin.yml");
 
-            YamlConfiguration config = new YamlConfiguration();
+            YamlConfiguration pluginYml = new YamlConfiguration();
 
-            try (Reader reader = Files.newBufferedReader(pluginYml)) {
-                config.load(reader);
+            try (Reader reader = Files.newBufferedReader(pluginYmlPath)) {
+                pluginYml.load(reader);
 
-                return config;
+                //Loop over the keys required in the msm_plugin.yml and check they are there
+                for(String required : new String[]{"name", "main", "version", "protocol"}) {
+                    if(pluginYml.contains(required)) continue;
+
+                    throw new InvalidConfigurationException("msm_plugin.yml missing required key: " + required);
+                }
+
+                return pluginYml;
             } catch (InvalidConfigurationException e) {
                 throw new IOException("plugin.yml is invalid", e);
             }
