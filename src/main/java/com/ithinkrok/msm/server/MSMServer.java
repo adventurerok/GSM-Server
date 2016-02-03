@@ -80,7 +80,7 @@ public class MSMServer {
         pipeline.addLast("MSMFrameEncoder", new MSMFrameEncoder());
         pipeline.addLast("MSMPacketEncoder", new MSMPacketEncoder());
 
-        pipeline.addLast("MSMConnection", new MSMConnection(this));
+        pipeline.addLast("MSMConnection", new MSMConnection(this).getHandlerAdapter());
     }
 
 }

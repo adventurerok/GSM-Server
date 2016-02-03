@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Created by paul on 02/02/16.
  */
-public class MSMConnection extends ChannelInboundHandlerAdapter {
+public class MSMConnection {
 
     private static final Logger log = LogManager.getLogger(MSMServer.class);
 
