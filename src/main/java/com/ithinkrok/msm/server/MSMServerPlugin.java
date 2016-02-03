@@ -59,4 +59,7 @@ public abstract class MSMServerPlugin implements MSMServerListener {
 
     }
 
+    public boolean hasProtocol() {
+        return pluginYml.contains("protocol");
+    }
 }

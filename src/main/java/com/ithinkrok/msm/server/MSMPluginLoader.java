@@ -135,7 +135,7 @@ public class MSMPluginLoader {
                 pluginYml.load(reader);
 
                 //Loop over the keys required in the msm_plugin.yml and check they are there
-                for(String required : new String[]{"name", "main", "version", "protocol"}) {
+                for(String required : new String[]{"name", "main", "version"}) {
                     if(pluginYml.contains(required)) continue;
 
                     throw new InvalidConfigurationException("msm_plugin.yml missing required key: " + required);

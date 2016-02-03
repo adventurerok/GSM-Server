@@ -12,6 +12,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.*;
+
 /**
  * Created by paul on 01/02/16.
  *
@@ -23,8 +25,20 @@ public class MSMServer {
 
     private final int port;
 
-    public MSMServer(int port) {
+    private final Map<String, MSMServerListener> protocolToPluginMap = new HashMap<>();
+
+    public MSMServer(int port, Map<String, ? extends MSMServerListener> listeners) {
         this.port = port;
+
+        protocolToPluginMap.putAll(listeners);
+    }
+
+    public MSMServerListener getListenerForProtocol(String protocol) {
+        return protocolToPluginMap.get(protocol);
+    }
+
+    public Set<String> getSupportedProtocols(){
+        return new HashSet<>(protocolToPluginMap.keySet());
     }
 
     public void start() {
@@ -66,7 +80,7 @@ public class MSMServer {
         pipeline.addLast("MSMFrameEncoder", new MSMFrameEncoder());
         pipeline.addLast("MSMPacketEncoder", new MSMPacketEncoder());
 
-        pipeline.addLast("MSMConnection", new MSMConnection());
+        pipeline.addLast("MSMConnection", new MSMConnection(this));
     }
 
 }
