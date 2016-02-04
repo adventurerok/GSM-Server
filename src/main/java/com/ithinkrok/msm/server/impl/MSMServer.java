@@ -39,6 +39,7 @@ public class MSMServer implements Server {
         return protocolToPluginMap.get(protocol);
     }
 
+    @Override
     public Set<String> getSupportedProtocols() {
         return new HashSet<>(protocolToPluginMap.keySet());
     }

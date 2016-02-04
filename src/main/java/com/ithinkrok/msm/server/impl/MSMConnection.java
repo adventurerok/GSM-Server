@@ -1,5 +1,7 @@
 package com.ithinkrok.msm.server.impl;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.Packet;
 import com.ithinkrok.msm.server.Connection;
@@ -20,7 +22,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     private static final Logger log = LogManager.getLogger(MSMServer.class);
 
     private final MSMServer msmServer;
-    private final Map<Byte, String> idToProtocolMap = new HashMap<>();
+    private final BiMap<Byte, String> idToProtocolMap = HashBiMap.create();
     private final Map<Byte, MSMConnectionChannel> channelMap = new HashMap<>();
     private io.netty.channel.Channel channel;
 
@@ -29,6 +31,11 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
 
         //Add to the protocol map to make logins work
         idToProtocolMap.put((byte) 0, "MSMLogin");
+    }
+
+    @Override
+    public Channel getChannel(String protocol) {
+        return channelMap.get(idToProtocolMap.inverse().get(protocol));
     }
 
     @Override
