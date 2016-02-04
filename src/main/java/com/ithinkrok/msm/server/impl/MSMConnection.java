@@ -55,7 +55,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
         log.info("Received packet for protocol " + protocol);
 
         //Send the packet to the listener for the specified protocol
-        msmServer.getListenerForProtocol(protocol).packetRecieved(MSMConnection.this, packet);
+        msmServer.getListenerForProtocol(protocol).packetRecieved(MSMConnection.this, packet.getPayload());
     }
 
     private class MSMConnectionChannel implements MSMChannel {
