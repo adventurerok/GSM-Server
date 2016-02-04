@@ -1,9 +1,8 @@
 package com.ithinkrok.msm.server.impl;
 
-import com.ithinkrok.msm.common.MSMChannel;
+import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.Packet;
 import com.ithinkrok.msm.server.Connection;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.logging.log4j.LogManager;
@@ -22,7 +21,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
 
     private final MSMServer msmServer;
     private final Map<Byte, String> idToProtocolMap = new HashMap<>();
-    private Channel channel;
+    private io.netty.channel.Channel channel;
 
     public MSMConnection(MSMServer msmServer) {
         this.msmServer = msmServer;
@@ -58,7 +57,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
         msmServer.getListenerForProtocol(protocol).packetRecieved(MSMConnection.this, packet.getPayload());
     }
 
-    private class MSMConnectionChannel implements MSMChannel {
+    private class MSMConnectionChannel implements Channel {
 
         private final byte id;
 
