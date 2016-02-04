@@ -1,5 +1,6 @@
 package com.ithinkrok.msm.server.impl;
 
+import com.ithinkrok.msm.common.util.FIleUtil;
 import com.ithinkrok.msm.server.MSMServerPlugin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -123,7 +124,7 @@ public class MSMPluginLoader {
 
     private FileConfiguration loadPluginYml(Path path) throws IOException {
         //Open the jar as a file system
-        try (FileSystem jar = createZipFileSystem(path)) {
+        try (FileSystem jar = FIleUtil.createZipFileSystem(path)) {
 
             //The plugin yml path is msm_plugin.yml
             Path pluginYmlPath = jar.getPath("/msm_plugin.yml");
@@ -169,12 +170,7 @@ public class MSMPluginLoader {
         return pluginClass.newInstance();
     }
 
-    private FileSystem createZipFileSystem(Path zipFile) throws IOException {
-        //Absolute URI
-        final URI uri = URI.create("jar:file:" + zipFile.toUri().getRawPath());
 
-        return FileSystems.newFileSystem(uri, new HashMap<>());
-    }
 
 
 }
