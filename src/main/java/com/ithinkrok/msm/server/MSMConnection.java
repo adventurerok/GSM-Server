@@ -28,6 +28,9 @@ public class MSMConnection {
     public MSMConnection(MSMServer msmServer) {
         this.msmServer = msmServer;
         handlerAdapter = new HandlerAdapter();
+
+        //Add to the protocol map to make logins work
+        idToProtocolMap.put((byte) 0, "MSMLogin");
     }
 
     public MSMServer getServer() {
