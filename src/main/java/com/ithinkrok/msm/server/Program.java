@@ -1,5 +1,7 @@
 package com.ithinkrok.msm.server;
 
+import com.ithinkrok.msm.server.impl.MSMPluginLoader;
+import com.ithinkrok.msm.server.impl.MSMServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,7 +25,7 @@ public class Program {
         List<MSMServerPlugin> plugins = pluginLoader.loadPlugins();
         log.info("Finished loading plugins");
 
-        Map<String, MSMServerListener> listenerMap = new HashMap<>();
+        Map<String, ServerListener> listenerMap = new HashMap<>();
 
         for(MSMServerPlugin plugin : plugins) {
             if(plugin.hasProtocol()) listenerMap.put(plugin.getProtocol(), plugin);

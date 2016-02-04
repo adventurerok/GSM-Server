@@ -1,9 +1,11 @@
-package com.ithinkrok.msm.server;
+package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
+import com.ithinkrok.msm.server.Server;
+import com.ithinkrok.msm.server.ServerListener;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -16,28 +18,28 @@ import java.util.*;
 
 /**
  * Created by paul on 01/02/16.
- *
+ * <p>
  * The server class for MSM
  */
-public class MSMServer {
+public class MSMServer implements Server {
 
     private static final Logger log = LogManager.getLogger(MSMServer.class);
 
     private final int port;
 
-    private final Map<String, MSMServerListener> protocolToPluginMap = new HashMap<>();
+    private final Map<String, ServerListener> protocolToPluginMap = new HashMap<>();
 
-    public MSMServer(int port, Map<String, ? extends MSMServerListener> listeners) {
+    public MSMServer(int port, Map<String, ? extends ServerListener> listeners) {
         this.port = port;
 
         protocolToPluginMap.putAll(listeners);
     }
 
-    public MSMServerListener getListenerForProtocol(String protocol) {
+    public ServerListener getListenerForProtocol(String protocol) {
         return protocolToPluginMap.get(protocol);
     }
 
-    public Set<String> getSupportedProtocols(){
+    public Set<String> getSupportedProtocols() {
         return new HashSet<>(protocolToPluginMap.keySet());
     }
 
@@ -80,7 +82,7 @@ public class MSMServer {
         pipeline.addLast("MSMFrameEncoder", new MSMFrameEncoder());
         pipeline.addLast("MSMPacketEncoder", new MSMPacketEncoder());
 
-        pipeline.addLast("MSMConnection", new MSMConnection(this).getHandlerAdapter());
+        pipeline.addLast("MSMConnection", new MSMConnection(this));
     }
 
 }

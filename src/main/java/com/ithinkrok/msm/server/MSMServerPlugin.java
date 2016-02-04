@@ -1,5 +1,7 @@
 package com.ithinkrok.msm.server;
 
+import com.ithinkrok.msm.server.impl.MSMConnection;
+import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -7,7 +9,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 /**
  * Created by paul on 02/02/16.
  */
-public abstract class MSMServerPlugin implements MSMServerListener {
+public abstract class MSMServerPlugin implements ServerListener {
 
     //This field is accessed by reflection.
     @SuppressWarnings({"unused", "FieldMayBeFinal"})

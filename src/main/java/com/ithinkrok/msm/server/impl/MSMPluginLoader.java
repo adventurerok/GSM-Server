@@ -1,5 +1,6 @@
-package com.ithinkrok.msm.server;
+package com.ithinkrok.msm.server.impl;
 
+import com.ithinkrok.msm.server.MSMServerPlugin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
