@@ -21,6 +21,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
 
     private final MSMServer msmServer;
     private final Map<Byte, String> idToProtocolMap = new HashMap<>();
+    private final Map<Byte, MSMConnectionChannel> channelMap = new HashMap<>();
     private io.netty.channel.Channel channel;
 
     public MSMConnection(MSMServer msmServer) {
@@ -53,8 +54,21 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
 
         log.info("Received packet for protocol " + protocol);
 
+        MSMConnectionChannel channel = getChannel(packet.getId());
+
         //Send the packet to the listener for the specified protocol
-        msmServer.getListenerForProtocol(protocol).packetRecieved(MSMConnection.this, packet.getPayload());
+        msmServer.getListenerForProtocol(protocol).packetRecieved(MSMConnection.this, channel, packet.getPayload());
+    }
+
+    private MSMConnectionChannel getChannel(byte id) {
+        MSMConnectionChannel channel = channelMap.get(id);
+
+        if (channel == null) {
+            channel = new MSMConnectionChannel(id);
+            channelMap.put(id, channel);
+        }
+
+        return channel;
     }
 
     private class MSMConnectionChannel implements Channel {
