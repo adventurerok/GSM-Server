@@ -34,7 +34,7 @@ public class ServerLoginProtocol implements ServerListener {
         if(version != 0) throw new RuntimeException("Unsupported version: " + version);
 
         List<String> clientProtocols = payload.getStringList("protocols");
-        Set<String> serverProtocols = connection.getServer().getSupportedProtocols();
+        Set<String> serverProtocols = connection.getServer().getAvailableProtocols();
 
         //Get the protocols supported by both the server and the client
         Set<String> sharedProtocols = new LinkedHashSet<>();

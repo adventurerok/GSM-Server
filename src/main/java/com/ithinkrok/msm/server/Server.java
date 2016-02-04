@@ -7,5 +7,5 @@ import java.util.Set;
  */
 public interface Server {
 
-    Set<String> getSupportedProtocols();
+    Set<String> getAvailableProtocols();
 }
