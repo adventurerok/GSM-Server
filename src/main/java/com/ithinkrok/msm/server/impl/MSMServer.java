@@ -6,6 +6,7 @@ import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
+import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -31,6 +32,9 @@ public class MSMServer implements Server {
 
     public MSMServer(int port, Map<String, ? extends ServerListener> listeners) {
         this.port = port;
+
+        //Add the ServerLoginProtocol
+        protocolToPluginMap.put("MSMLogin", new ServerLoginProtocol());
 
         protocolToPluginMap.putAll(listeners);
     }

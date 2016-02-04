@@ -4,6 +4,8 @@ import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.impl.MSMConnection;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 
@@ -16,6 +18,8 @@ import java.util.Set;
  * Created by paul on 04/02/16.
  */
 public class ServerLoginProtocol implements ServerListener {
+
+    private static final Logger log = LogManager.getLogger(ServerLoginProtocol.class);
 
     @Override
     public void connectionOpened(Connection connection, Channel channel) {
@@ -40,6 +44,8 @@ public class ServerLoginProtocol implements ServerListener {
         for(String protocol : clientProtocols) {
             if(serverProtocols.contains(protocol)) sharedProtocols.add(protocol);
         }
+
+        log.info("New client connected with protocols: " + sharedProtocols);
 
         ConfigurationSection replyPayload = new MemoryConfiguration();
         replyPayload.set("protocols", new ArrayList<>(sharedProtocols));
