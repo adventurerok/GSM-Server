@@ -9,10 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by paul on 04/02/16.
@@ -40,12 +37,14 @@ public class ServerLoginProtocol implements ServerListener {
         Set<String> serverProtocols = connection.getServer().getSupportedProtocols();
 
         //Get the protocols supported by both the server and the client
-        Set<String> sharedProtocols = new HashSet<>();
+        Set<String> sharedProtocols = new LinkedHashSet<>();
         for(String protocol : clientProtocols) {
             if(serverProtocols.contains(protocol)) sharedProtocols.add(protocol);
         }
 
         log.info("New client connected with protocols: " + sharedProtocols);
+
+        ((MSMConnection)connection).setSupportedProtocols(new ArrayList<>(sharedProtocols));
 
         ConfigurationSection replyPayload = new MemoryConfiguration();
         replyPayload.set("protocols", new ArrayList<>(sharedProtocols));

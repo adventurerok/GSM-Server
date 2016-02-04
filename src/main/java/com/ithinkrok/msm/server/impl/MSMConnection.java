@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,6 +47,16 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         channel = ctx.channel();
+    }
+
+    public void setSupportedProtocols(List<String> supportedProtocols) {
+        idToProtocolMap.clear();
+
+        byte counter = 0;
+
+        for(String protocol : supportedProtocols) {
+            idToProtocolMap.put(counter++, protocol);
+        }
     }
 
     @Override
