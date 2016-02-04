@@ -1,9 +1,11 @@
 package com.ithinkrok.msm.server;
 
+import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.impl.MSMConnection;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
@@ -11,21 +13,18 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public abstract class MSMServerPlugin implements ServerListener {
 
+    private final Logger logger;
     //This field is accessed by reflection.
     @SuppressWarnings({"unused", "FieldMayBeFinal"})
     private boolean configured = false;
-
     //Accessed by reflection
     @SuppressWarnings("unused")
     private String name;
-
     //Accessed by reflection
     @SuppressWarnings("unused")
     private FileConfiguration pluginYml;
 
-    private Logger logger;
-
-    public MSMServerPlugin()  {
+    public MSMServerPlugin() {
         logger = LogManager.getLogger(getClass());
 
         try {
@@ -52,12 +51,17 @@ public abstract class MSMServerPlugin implements ServerListener {
     }
 
     @Override
-    public void connectionOpened(MSMConnection connection) {
+    public void connectionOpened(Connection connection, Channel channel) {
 
     }
 
     @Override
-    public void connectionClosed(MSMConnection connection) {
+    public void connectionClosed(Connection connection, Channel channel) {
+
+    }
+
+    @Override
+    public void packetRecieved(Connection connection, Channel channel, ConfigurationSection payload) {
 
     }
 

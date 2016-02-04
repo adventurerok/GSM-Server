@@ -30,7 +30,7 @@ public class MSMPluginLoader {
 
     private static final Path pluginDirectory = Paths.get("plugins");
 
-    static void configurePlugin(MSMServerPlugin plugin) throws ReflectiveOperationException {
+    public static void configurePlugin(MSMServerPlugin plugin) throws ReflectiveOperationException {
         Class<MSMServerPlugin> pluginClass = MSMServerPlugin.class;
 
         //Ensure that we haven't already been called on this plugin
