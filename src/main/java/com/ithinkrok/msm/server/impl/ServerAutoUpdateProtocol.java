@@ -1,23 +1,93 @@
 package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.common.Channel;
+import com.ithinkrok.msm.common.util.FIleUtil;
+import com.ithinkrok.msm.common.util.io.DirectoryListener;
+import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.ServerListener;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.nio.file.Path;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.*;
+import java.time.Instant;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by paul on 05/02/16.
  */
-public class ServerAutoUpdateProtocol implements ServerListener {
+public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListener {
 
+    private final Logger log = LogManager.getLogger(ServerAutoUpdateProtocol.class);
+
+    private final Map<String, ServerVersionInfo> updatesMap = new ConcurrentHashMap<>();
     private final Path updatedPluginsPath;
 
     public ServerAutoUpdateProtocol(Path updatedPluginsPath) {
         this.updatedPluginsPath = updatedPluginsPath;
+        try {
+            DirectoryWatcher directoryWatcher = new DirectoryWatcher(updatedPluginsPath.getFileSystem());
 
+            directoryWatcher.registerListener(updatedPluginsPath, this);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create directory watcher");
+        }
 
+        updatePluginVersions(updatedPluginsPath);
+    }
+
+    private void updatePluginVersions(Path updatedPluginsPath) {
+        try(DirectoryStream<Path> directoryStream = Files.newDirectoryStream(updatedPluginsPath, "**.jar")) {
+            for(Path pluginPath : directoryStream) {
+                updatePluginVersion(pluginPath);
+            }
+        } catch (IOException e) {
+            log.warn("Failed to do full plugin updates folder check", e);
+        }
+    }
+
+    private void updatePluginVersion(Path pluginPath) {
+
+        try(FileSystem jarFile = FIleUtil.createZipFileSystem(pluginPath)) {
+            Path pluginYmlPath = jarFile.getPath("/plugin.yml");
+
+            if (!Files.exists(pluginYmlPath)) return;
+
+            YamlConfiguration pluginYml = new YamlConfiguration();
+
+            try (Reader reader = Files.newBufferedReader(pluginYmlPath)) {
+                pluginYml.load(reader);
+            }
+
+            String name = pluginYml.getString("name");
+            if(name == null) return;
+
+            Instant dateModified = Files.getLastModifiedTime(pluginPath).toInstant();
+
+            ServerVersionInfo versionInfo = updatesMap.get(name);
+
+            if(versionInfo == null) versionInfo = new ServerVersionInfo();
+            else if(!versionInfo.pluginPath.equals(pluginPath)) {
+
+                //Skip if we already have a more up to date version of this plugin with a different path.
+                if(versionInfo.dateModified.isAfter(dateModified)) return;
+            }
+
+            versionInfo.dateModified = dateModified;
+            versionInfo.pluginPath = pluginPath;
+
+            updatesMap.put(name, versionInfo);
+
+        } catch (IOException |InvalidConfigurationException e ) {
+            log.warn("Failed to update version info for plugin: " + pluginPath, e);
+        }
     }
 
     @Override
@@ -34,7 +104,7 @@ public class ServerAutoUpdateProtocol implements ServerListener {
     public void packetRecieved(Connection connection, Channel channel, ConfigurationSection payload) {
 
         String mode = payload.getString("mode");
-        if(mode == null) return;
+        if (mode == null) return;
 
         switch (mode) {
             case "PluginInfo":
@@ -45,5 +115,29 @@ public class ServerAutoUpdateProtocol implements ServerListener {
 
     private void handlePluginInfo(ConfigurationSection payload) {
 
+    }
+
+    @Override
+    public void fileChanged(Path changed, WatchEvent.Kind<?> event) {
+
+
+        if(event == StandardWatchEventKinds.ENTRY_DELETE) {
+            Iterator<ServerVersionInfo> versionInfoIterator = updatesMap.values().iterator();
+
+            while(versionInfoIterator.hasNext()) {
+                ServerVersionInfo versionInfo = versionInfoIterator.next();
+
+                if(versionInfo.pluginPath.equals(changed)) versionInfoIterator.remove();
+            }
+
+            updatePluginVersions(updatedPluginsPath);
+        }
+
+        updatePluginVersion(changed);
+    }
+
+    private static class ServerVersionInfo {
+        private Instant dateModified;
+        private Path pluginPath;
     }
 }
