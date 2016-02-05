@@ -9,5 +9,13 @@ public interface Connection {
 
     Channel getChannel(String protocol);
 
+    /**
+     * @return The Server that this Connection is connected to
+     */
     Server getServer();
+
+    /**
+     * @return The MinecraftServer this Connection is representing.
+     */
+    MinecraftServer getMinecraftServer();
 }
