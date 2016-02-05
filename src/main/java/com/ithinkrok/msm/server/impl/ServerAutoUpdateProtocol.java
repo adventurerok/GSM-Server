@@ -37,6 +37,16 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
 
     public ServerAutoUpdateProtocol(Path updatedPluginsPath) {
         this.updatedPluginsPath = updatedPluginsPath;
+
+        if (!Files.exists(updatedPluginsPath)) {
+            try {
+                Files.createDirectories(updatedPluginsPath);
+            } catch (IOException e) {
+                log.warn("Failed to create missing updated plugins directory", e);
+                return;
+            }
+        }
+
         try {
             DirectoryWatcher directoryWatcher = new DirectoryWatcher(updatedPluginsPath.getFileSystem());
 
@@ -49,8 +59,8 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
     }
 
     private void updatePluginVersions(Path updatedPluginsPath) {
-        try(DirectoryStream<Path> directoryStream = Files.newDirectoryStream(updatedPluginsPath, "**.jar")) {
-            for(Path pluginPath : directoryStream) {
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(updatedPluginsPath, "**.jar")) {
+            for (Path pluginPath : directoryStream) {
                 updatePluginVersion(pluginPath);
             }
         } catch (IOException e) {
@@ -60,7 +70,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
 
     private void updatePluginVersion(Path pluginPath) {
 
-        try(FileSystem jarFile = FIleUtil.createZipFileSystem(pluginPath)) {
+        try (FileSystem jarFile = FIleUtil.createZipFileSystem(pluginPath)) {
             Path pluginYmlPath = jarFile.getPath("/plugin.yml");
 
             if (!Files.exists(pluginYmlPath)) return;
@@ -72,17 +82,17 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
             }
 
             String name = pluginYml.getString("name");
-            if(name == null) return;
+            if (name == null) return;
 
             Instant dateModified = Files.getLastModifiedTime(pluginPath).toInstant();
 
             ServerVersionInfo versionInfo = updatesMap.get(name);
 
-            if(versionInfo == null) versionInfo = new ServerVersionInfo();
-            else if(!versionInfo.pluginPath.equals(pluginPath)) {
+            if (versionInfo == null) versionInfo = new ServerVersionInfo();
+            else if (!versionInfo.pluginPath.equals(pluginPath)) {
 
                 //Skip if we already have a more up to date version of this plugin with a different path.
-                if(versionInfo.dateModified.isAfter(dateModified)) return;
+                if (versionInfo.dateModified.isAfter(dateModified)) return;
             }
 
             versionInfo.dateModified = dateModified;
@@ -91,17 +101,53 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
             updatesMap.put(name, versionInfo);
 
             checkUpdates(name);
-        } catch (IOException |InvalidConfigurationException e ) {
+        } catch (IOException | InvalidConfigurationException e) {
             log.warn("Failed to update version info for plugin: " + pluginPath, e);
         }
     }
 
     private void checkUpdates(String name) {
-        for(MinecraftServer minecraftServer : clientVersionsMap.keySet()) {
-            if(!minecraftServer.isConnected()) continue;
+        for (MinecraftServer minecraftServer : clientVersionsMap.keySet()) {
+            if (!minecraftServer.isConnected()) continue;
 
             checkUpdate(minecraftServer, name);
         }
+    }
+
+    private void checkUpdate(MinecraftServer minecraftServer, String plugin) {
+        if (!updatesMap.containsKey(plugin)) return;
+
+        Map<String, Instant> clientVersions = clientVersionsMap.get(minecraftServer);
+        if (clientVersions == null || !clientVersions.containsKey(plugin)) return;
+
+        ServerVersionInfo serverVersionInfo = updatesMap.get(plugin);
+
+        Instant serverVersion = serverVersionInfo.dateModified;
+        Instant clientVersion = clientVersions.get(plugin);
+
+        if (!clientVersion.isBefore(serverVersion)) return;
+
+        clientVersions.put(plugin, serverVersion);
+
+        doUpdate(minecraftServer.getConnection().getChannel("MSMAutoUpdate"), plugin, serverVersionInfo.pluginPath);
+    }
+
+    private void doUpdate(Channel channel, String plugin, Path pluginPath) {
+        ConfigurationSection payload = new MemoryConfiguration();
+
+        payload.set("mode", "PluginInstall");
+        payload.set("name", plugin);
+        payload.set("append", false);
+        payload.set("final", true);
+
+        try {
+            payload.set("bytes", Files.readAllBytes(pluginPath));
+        } catch (IOException e) {
+            log.warn("Failed to read plugin update file: " + pluginPath, e);
+            return;
+        }
+
+        channel.write(payload);
     }
 
     @Override
@@ -130,7 +176,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
     private void handlePluginInfo(Connection connection, ConfigurationSection payload) {
         Map<String, Instant> newPlugins = new ConcurrentHashMap<>();
 
-        for(ConfigurationSection pluginInfo : ConfigUtils.getConfigList(payload, "plugins")) {
+        for (ConfigurationSection pluginInfo : ConfigUtils.getConfigList(payload, "plugins")) {
             String name = pluginInfo.getString("name");
 
             Instant modified = Instant.ofEpochMilli(pluginInfo.getLong("modified"));
@@ -141,53 +187,17 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
         clientVersionsMap.put(connection.getMinecraftServer(), newPlugins);
     }
 
-    private void checkUpdate(MinecraftServer minecraftServer, String plugin) {
-        if(!updatesMap.containsKey(plugin)) return;
-
-        Map<String, Instant> clientVersions = clientVersionsMap.get(minecraftServer);
-        if(clientVersions == null || !clientVersions.containsKey(plugin)) return;
-
-        ServerVersionInfo serverVersionInfo = updatesMap.get(plugin);
-
-        Instant serverVersion = serverVersionInfo.dateModified;
-        Instant clientVersion = clientVersions.get(plugin);
-
-        if(!clientVersion.isBefore(serverVersion)) return;
-
-        clientVersions.put(plugin, serverVersion);
-
-        doUpdate(minecraftServer.getConnection().getChannel("MSMAutoUpdate"), plugin, serverVersionInfo.pluginPath);
-    }
-
-    private void doUpdate(Channel channel, String plugin, Path pluginPath) {
-        ConfigurationSection payload = new MemoryConfiguration();
-
-        payload.set("mode", "PluginInstall");
-        payload.set("name", plugin);
-        payload.set("append", false);
-        payload.set("final", true);
-
-        try {
-            payload.set("bytes", Files.readAllBytes(pluginPath));
-        } catch (IOException e) {
-            log.warn("Failed to read plugin update file: " + pluginPath, e);
-            return;
-        }
-
-        channel.write(payload);
-    }
-
     @Override
     public void fileChanged(Path changed, WatchEvent.Kind<?> event) {
 
 
-        if(event == StandardWatchEventKinds.ENTRY_DELETE) {
+        if (event == StandardWatchEventKinds.ENTRY_DELETE) {
             Iterator<ServerVersionInfo> versionInfoIterator = updatesMap.values().iterator();
 
-            while(versionInfoIterator.hasNext()) {
+            while (versionInfoIterator.hasNext()) {
                 ServerVersionInfo versionInfo = versionInfoIterator.next();
 
-                if(versionInfo.pluginPath.equals(changed)) versionInfoIterator.remove();
+                if (versionInfo.pluginPath.equals(changed)) versionInfoIterator.remove();
             }
 
             updatePluginVersions(updatedPluginsPath);

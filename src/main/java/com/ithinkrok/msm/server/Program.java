@@ -2,9 +2,11 @@ package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.msm.server.impl.MSMServer;
+import com.ithinkrok.msm.server.impl.ServerAutoUpdateProtocol;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,10 @@ public class Program {
 
         Map<String, ServerListener> listenerMap = new HashMap<>();
 
+        //Add all default protocols (except MSMLogin)
+        listenerMap.put("MSMAutoUpdate", new ServerAutoUpdateProtocol(Paths.get("updates/bukkit_plugins")));
+
+        //Add plugin protocols
         for(MSMServerPlugin plugin : plugins) {
             if(plugin.hasProtocol()) listenerMap.put(plugin.getProtocol(), plugin);
         }
