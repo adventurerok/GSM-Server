@@ -1,15 +1,18 @@
 package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.common.Channel;
+import com.ithinkrok.msm.common.util.ConfigUtils;
 import com.ithinkrok.msm.common.util.FIleUtil;
 import com.ithinkrok.msm.common.util.io.DirectoryListener;
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.Connection;
+import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.ServerListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
@@ -28,6 +31,8 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
     private final Logger log = LogManager.getLogger(ServerAutoUpdateProtocol.class);
 
     private final Map<String, ServerVersionInfo> updatesMap = new ConcurrentHashMap<>();
+    private final Map<MinecraftServer, Map<String, Instant>> clientVersionsMap = new ConcurrentHashMap<>();
+
     private final Path updatedPluginsPath;
 
     public ServerAutoUpdateProtocol(Path updatedPluginsPath) {
@@ -85,8 +90,17 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
 
             updatesMap.put(name, versionInfo);
 
+            checkUpdates(name);
         } catch (IOException |InvalidConfigurationException e ) {
             log.warn("Failed to update version info for plugin: " + pluginPath, e);
+        }
+    }
+
+    private void checkUpdates(String name) {
+        for(MinecraftServer minecraftServer : clientVersionsMap.keySet()) {
+            if(!minecraftServer.isConnected()) continue;
+
+            checkUpdate(minecraftServer, name);
         }
     }
 
@@ -108,13 +122,59 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
 
         switch (mode) {
             case "PluginInfo":
-                handlePluginInfo(payload);
+                handlePluginInfo(connection, payload);
                 break;
         }
     }
 
-    private void handlePluginInfo(ConfigurationSection payload) {
+    private void handlePluginInfo(Connection connection, ConfigurationSection payload) {
+        Map<String, Instant> newPlugins = new ConcurrentHashMap<>();
 
+        for(ConfigurationSection pluginInfo : ConfigUtils.getConfigList(payload, "plugins")) {
+            String name = pluginInfo.getString("name");
+
+            Instant modified = Instant.ofEpochMilli(pluginInfo.getLong("modified"));
+
+            newPlugins.put(name, modified);
+        }
+
+        clientVersionsMap.put(connection.getMinecraftServer(), newPlugins);
+    }
+
+    private void checkUpdate(MinecraftServer minecraftServer, String plugin) {
+        if(!updatesMap.containsKey(plugin)) return;
+
+        Map<String, Instant> clientVersions = clientVersionsMap.get(minecraftServer);
+        if(clientVersions == null || !clientVersions.containsKey(plugin)) return;
+
+        ServerVersionInfo serverVersionInfo = updatesMap.get(plugin);
+
+        Instant serverVersion = serverVersionInfo.dateModified;
+        Instant clientVersion = clientVersions.get(plugin);
+
+        if(!clientVersion.isBefore(serverVersion)) return;
+
+        clientVersions.put(plugin, serverVersion);
+
+        doUpdate(minecraftServer.getConnection().getChannel("MSMAutoUpdate"), plugin, serverVersionInfo.pluginPath);
+    }
+
+    private void doUpdate(Channel channel, String plugin, Path pluginPath) {
+        ConfigurationSection payload = new MemoryConfiguration();
+
+        payload.set("mode", "PluginInstall");
+        payload.set("name", plugin);
+        payload.set("append", false);
+        payload.set("final", true);
+
+        try {
+            payload.set("bytes", Files.readAllBytes(pluginPath));
+        } catch (IOException e) {
+            log.warn("Failed to read plugin update file: " + pluginPath, e);
+            return;
+        }
+
+        channel.write(payload);
     }
 
     @Override
