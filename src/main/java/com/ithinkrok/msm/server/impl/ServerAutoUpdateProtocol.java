@@ -129,6 +129,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
 
         clientVersions.put(plugin, serverVersion);
 
+        log.info("Updating plugin \"" + plugin + "\" on bukkit/spigot server: " + minecraftServer);
         doUpdate(minecraftServer.getConnection().getChannel("MSMAutoUpdate"), plugin, serverVersionInfo.pluginPath);
     }
 
