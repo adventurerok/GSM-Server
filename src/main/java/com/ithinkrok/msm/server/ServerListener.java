@@ -10,7 +10,7 @@ public interface ServerListener {
 
     void connectionOpened(Connection connection, Channel channel);
 
-    void connectionClosed(Connection connection, Channel channel);
+    void connectionClosed(Connection connection);
 
     void packetRecieved(Connection connection, Channel channel, ConfigurationSection payload);
 }

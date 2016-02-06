@@ -56,7 +56,7 @@ public abstract class MSMServerPlugin implements ServerListener {
     }
 
     @Override
-    public void connectionClosed(Connection connection, Channel channel) {
+    public void connectionClosed(Connection connection) {
 
     }
 

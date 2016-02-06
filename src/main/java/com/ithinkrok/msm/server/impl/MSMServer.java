@@ -1,9 +1,12 @@
 package com.ithinkrok.msm.server.impl;
 
+import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
+import com.ithinkrok.msm.server.Connection;
+import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
@@ -14,8 +17,10 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by paul on 01/02/16.
@@ -29,6 +34,8 @@ public class MSMServer implements Server {
     private final int port;
 
     private final Map<String, ServerListener> protocolToPluginMap = new HashMap<>();
+
+    private final Map<String, MSMMinecraftServer> minecraftServerMap = new ConcurrentHashMap<>();
 
     public MSMServer(int port, Map<String, ? extends ServerListener> listeners) {
         this.port = port;
@@ -46,6 +53,24 @@ public class MSMServer implements Server {
     @Override
     public Set<String> getAvailableProtocols() {
         return new HashSet<>(protocolToPluginMap.keySet());
+    }
+
+    @Override
+    public MSMMinecraftServer getMinecraftServer(String name) {
+        return minecraftServerMap.get(name);
+    }
+
+    public MSMMinecraftServer assignMinecraftServerToConnection(ConfigurationSection config, MSMConnection connection) {
+        MSMMinecraftServer server = getMinecraftServer(config.getString("name"));
+
+        if(server == null) {
+            server = new MSMMinecraftServer(new MinecraftServerInfo(config));
+            minecraftServerMap.put(config.getString("name"), server);
+        } else server.getServerInfo().fromConfig(config);
+
+        server.setConnection(connection);
+
+        return server;
     }
 
     public void start() {

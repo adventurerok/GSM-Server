@@ -157,7 +157,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
     }
 
     @Override
-    public void connectionClosed(Connection connection, Channel channel) {
+    public void connectionClosed(Connection connection) {
 
     }
 

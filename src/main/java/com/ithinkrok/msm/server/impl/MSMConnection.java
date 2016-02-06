@@ -6,8 +6,12 @@ import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.Packet;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.MinecraftServer;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,7 +24,7 @@ import java.util.Map;
 /**
  * Created by paul on 02/02/16.
  */
-public class MSMConnection extends ChannelInboundHandlerAdapter implements Connection {
+public class MSMConnection extends ChannelInboundHandlerAdapter implements Connection, ChannelFutureListener {
 
     private static final Logger log = LogManager.getLogger(MSMServer.class);
 
@@ -66,6 +70,8 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         channel = ctx.channel();
+
+        channel.closeFuture().addListener(this);
     }
 
     @Override
@@ -109,6 +115,15 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
 
         for (String protocol : supportedProtocols) {
             idToProtocolMap.put(counter++, protocol);
+        }
+    }
+
+    @Override
+    public void operationComplete(ChannelFuture future) throws Exception {
+        log.info("MinecraftServer " + minecraftServer.getName() + " disconnected");
+
+        for(Map.Entry<Integer, String> entry : idToProtocolMap.entrySet()) {
+            msmServer.getListenerForProtocol(entry.getValue()).connectionClosed(this);
         }
     }
 

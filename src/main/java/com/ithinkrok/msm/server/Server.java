@@ -8,4 +8,6 @@ import java.util.Set;
 public interface Server {
 
     Set<String> getAvailableProtocols();
+
+    MinecraftServer getMinecraftServer(String name);
 }

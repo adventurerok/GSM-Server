@@ -6,6 +6,7 @@ import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.impl.MSMConnection;
 import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
+import com.ithinkrok.msm.server.impl.MSMServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
@@ -26,8 +27,8 @@ public class ServerLoginProtocol implements ServerListener {
     }
 
     @Override
-    public void connectionClosed(Connection connection, Channel channel) {
-
+    public void connectionClosed(Connection connection) {
+        ((MSMMinecraftServer)connection.getServer()).setConnection(null);
     }
 
     @Override
@@ -38,9 +39,8 @@ public class ServerLoginProtocol implements ServerListener {
         ConfigurationSection serverInfoConfig = payload.getConfigurationSection("server_info");
         MinecraftServerInfo minecraftServerInfo = new MinecraftServerInfo(serverInfoConfig);
 
-        MSMMinecraftServer minecraftServer = new MSMMinecraftServer(minecraftServerInfo);
-
-        ((MSMConnection) connection).setMinecraftServer(minecraftServer);
+        ((MSMServer) connection.getServer())
+                .assignMinecraftServerToConnection(serverInfoConfig, (MSMConnection) connection);
 
         List<String> clientProtocols = payload.getStringList("protocols");
         Set<String> serverProtocols = connection.getServer().getAvailableProtocols();
