@@ -68,7 +68,7 @@ public class MSMServer implements Server {
             minecraftServerMap.put(config.getString("name"), server);
         } else server.getServerInfo().fromConfig(config);
 
-        server.setConnection(connection);
+        connection.setMinecraftServer(server);
 
         return server;
     }
