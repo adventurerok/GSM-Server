@@ -28,7 +28,7 @@ public class ServerLoginProtocol implements ServerListener {
 
     @Override
     public void connectionClosed(Connection connection) {
-        ((MSMMinecraftServer)connection.getServer()).setConnection(null);
+        ((MSMMinecraftServer)connection.getMinecraftServer()).setConnection(null);
     }
 
     @Override
@@ -39,11 +39,11 @@ public class ServerLoginProtocol implements ServerListener {
         ConfigurationSection serverInfoConfig = payload.getConfigurationSection("server_info");
         MinecraftServerInfo minecraftServerInfo = new MinecraftServerInfo(serverInfoConfig);
 
-        ((MSMServer) connection.getServer())
+        ((MSMServer) connection.getConnectedTo())
                 .assignMinecraftServerToConnection(serverInfoConfig, (MSMConnection) connection);
 
         List<String> clientProtocols = payload.getStringList("protocols");
-        Set<String> serverProtocols = connection.getServer().getAvailableProtocols();
+        Set<String> serverProtocols = connection.getConnectedTo().getAvailableProtocols();
 
         //Get the protocols supported by both the server and the client
         Set<String> sharedProtocols = new LinkedHashSet<>();
@@ -61,7 +61,7 @@ public class ServerLoginProtocol implements ServerListener {
         channel.write(replyPayload);
 
         for (String protocol : sharedProtocols) {
-            ServerListener listener = ((MSMConnection) connection).getServer().getListenerForProtocol(protocol);
+            ServerListener listener = ((MSMConnection) connection).getConnectedTo().getListenerForProtocol(protocol);
 
             Channel otherChannel = connection.getChannel(protocol);
 

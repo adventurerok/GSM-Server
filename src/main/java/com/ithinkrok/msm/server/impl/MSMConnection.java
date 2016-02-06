@@ -49,7 +49,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     }
 
     @Override
-    public MSMServer getServer() {
+    public MSMServer getConnectedTo() {
         return msmServer;
     }
 

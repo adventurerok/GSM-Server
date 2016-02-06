@@ -12,7 +12,7 @@ public interface Connection {
     /**
      * @return The Server that this Connection is connected to
      */
-    Server getServer();
+    Server getConnectedTo();
 
     /**
      * @return The MinecraftServer this Connection is representing.
