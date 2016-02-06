@@ -25,8 +25,8 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     private static final Logger log = LogManager.getLogger(MSMServer.class);
 
     private final MSMServer msmServer;
-    private final BiMap<Byte, String> idToProtocolMap = HashBiMap.create();
-    private final Map<Byte, MSMConnectionChannel> channelMap = new HashMap<>();
+    private final BiMap<Integer, String> idToProtocolMap = HashBiMap.create();
+    private final Map<Integer, MSMConnectionChannel> channelMap = new HashMap<>();
 
     private final MSMMinecraftServer minecraftServer;
 
@@ -39,7 +39,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
         minecraftServer.setConnection(this);
 
         //Add to the protocol map to make logins work
-        idToProtocolMap.put((byte) 0, "MSMLogin");
+        idToProtocolMap.put(0, "MSMLogin");
     }
 
     @Override
@@ -81,7 +81,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
         msmServer.getListenerForProtocol(protocol).packetRecieved(MSMConnection.this, channel, packet.getPayload());
     }
 
-    private MSMConnectionChannel getChannel(byte id) {
+    private MSMConnectionChannel getChannel(int id) {
         MSMConnectionChannel channel = channelMap.get(id);
 
         if (channel == null) {
@@ -99,7 +99,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     public void setSupportedProtocols(List<String> supportedProtocols) {
         idToProtocolMap.clear();
 
-        byte counter = 0;
+        int counter = 0;
 
         for (String protocol : supportedProtocols) {
             idToProtocolMap.put(counter++, protocol);
@@ -108,9 +108,9 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
 
     private class MSMConnectionChannel implements Channel {
 
-        private final byte id;
+        private final int id;
 
-        public MSMConnectionChannel(byte id) {
+        public MSMConnectionChannel(int id) {
             this.id = id;
         }
 
