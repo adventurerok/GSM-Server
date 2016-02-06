@@ -1,5 +1,7 @@
 package com.ithinkrok.msm.server;
 
+import com.ithinkrok.msm.common.MinecraftServerInfo;
+
 /**
  * Created by paul on 05/02/16.
  * <p>
@@ -19,4 +21,6 @@ public interface MinecraftServer {
      * @return The Connection representing this MinecraftServer, or {@code null} if none exists
      */
     Connection getConnection();
+
+    MinecraftServerInfo getServerInfo();
 }

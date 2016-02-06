@@ -1,9 +1,11 @@
 package com.ithinkrok.msm.server.protocol;
 
 import com.ithinkrok.msm.common.Channel;
+import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.impl.MSMConnection;
+import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
@@ -32,6 +34,11 @@ public class ServerLoginProtocol implements ServerListener {
     public void packetRecieved(Connection connection, Channel channel, ConfigurationSection payload) {
         int version = payload.getInt("version", -1);
         if(version != 0) throw new RuntimeException("Unsupported version: " + version);
+
+        ConfigurationSection serverInfoConfig = payload.getConfigurationSection("server_info");
+        MinecraftServerInfo minecraftServerInfo = new MinecraftServerInfo(serverInfoConfig);
+
+        ((MSMMinecraftServer)connection.getServer()).setServerInfo(minecraftServerInfo);
 
         List<String> clientProtocols = payload.getStringList("protocols");
         Set<String> serverProtocols = connection.getServer().getAvailableProtocols();
