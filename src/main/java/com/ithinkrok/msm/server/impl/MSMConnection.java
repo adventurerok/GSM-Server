@@ -28,15 +28,12 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     private final BiMap<Integer, String> idToProtocolMap = HashBiMap.create();
     private final Map<Integer, MSMConnectionChannel> channelMap = new HashMap<>();
 
-    private final MSMMinecraftServer minecraftServer;
+    private MSMMinecraftServer minecraftServer;
 
     private io.netty.channel.Channel channel;
 
     public MSMConnection(MSMServer msmServer) {
         this.msmServer = msmServer;
-
-        minecraftServer = new MSMMinecraftServer();
-        minecraftServer.setConnection(this);
 
         //Add to the protocol map to make logins work
         idToProtocolMap.put(0, "MSMLogin");
@@ -55,6 +52,15 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     @Override
     public MinecraftServer getMinecraftServer() {
         return minecraftServer;
+    }
+
+    public void setMinecraftServer(MSMMinecraftServer minecraftServer) {
+        if(minecraftServer.isConnected() && minecraftServer.getConnection() != this) {
+            throw new RuntimeException("Minecraft server " + minecraftServer + " is already connected");
+        }
+
+        this.minecraftServer = minecraftServer;
+        minecraftServer.setConnection(this);
     }
 
     @Override

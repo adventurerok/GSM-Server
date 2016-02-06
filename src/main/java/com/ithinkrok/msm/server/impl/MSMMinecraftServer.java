@@ -10,7 +10,11 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     private MSMConnection connection;
 
-    private MinecraftServerInfo serverInfo;
+    private final MinecraftServerInfo serverInfo;
+
+    public MSMMinecraftServer(MinecraftServerInfo serverInfo) {
+        this.serverInfo = serverInfo;
+    }
 
     @Override
     public MSMConnection getConnection() {
@@ -20,10 +24,6 @@ public class MSMMinecraftServer implements MinecraftServer {
     @Override
     public MinecraftServerInfo getServerInfo() {
         return serverInfo;
-    }
-
-    public void setServerInfo(MinecraftServerInfo serverInfo) {
-        this.serverInfo = serverInfo;
     }
 
     public void setConnection(MSMConnection connection) {

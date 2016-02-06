@@ -33,33 +33,35 @@ public class ServerLoginProtocol implements ServerListener {
     @Override
     public void packetRecieved(Connection connection, Channel channel, ConfigurationSection payload) {
         int version = payload.getInt("version", -1);
-        if(version != 0) throw new RuntimeException("Unsupported version: " + version);
+        if (version != 0) throw new RuntimeException("Unsupported version: " + version);
 
         ConfigurationSection serverInfoConfig = payload.getConfigurationSection("server_info");
         MinecraftServerInfo minecraftServerInfo = new MinecraftServerInfo(serverInfoConfig);
 
-        ((MSMMinecraftServer)connection.getServer()).setServerInfo(minecraftServerInfo);
+        MSMMinecraftServer minecraftServer = new MSMMinecraftServer(minecraftServerInfo);
+
+        ((MSMConnection) connection).setMinecraftServer(minecraftServer);
 
         List<String> clientProtocols = payload.getStringList("protocols");
         Set<String> serverProtocols = connection.getServer().getAvailableProtocols();
 
         //Get the protocols supported by both the server and the client
         Set<String> sharedProtocols = new LinkedHashSet<>();
-        for(String protocol : clientProtocols) {
-            if(serverProtocols.contains(protocol)) sharedProtocols.add(protocol);
+        for (String protocol : clientProtocols) {
+            if (serverProtocols.contains(protocol)) sharedProtocols.add(protocol);
         }
 
-        log.info("New client connected with protocols: " + sharedProtocols);
+        log.info("New client " + minecraftServerInfo + " connected with protocols: " + sharedProtocols);
 
-        ((MSMConnection)connection).setSupportedProtocols(new ArrayList<>(sharedProtocols));
+        ((MSMConnection) connection).setSupportedProtocols(new ArrayList<>(sharedProtocols));
 
         ConfigurationSection replyPayload = new MemoryConfiguration();
         replyPayload.set("protocols", new ArrayList<>(sharedProtocols));
 
         channel.write(replyPayload);
 
-        for(String protocol : sharedProtocols) {
-            ServerListener listener = ((MSMConnection)connection).getServer().getListenerForProtocol(protocol);
+        for (String protocol : sharedProtocols) {
+            ServerListener listener = ((MSMConnection) connection).getServer().getListenerForProtocol(protocol);
 
             Channel otherChannel = connection.getChannel(protocol);
 
