@@ -3,8 +3,12 @@ package com.ithinkrok.msm.server.impl;
 import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.MinecraftServerType;
 import com.ithinkrok.msm.server.MinecraftServer;
+import com.ithinkrok.msm.server.Player;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by paul on 05/02/16.
@@ -13,6 +17,8 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     private final MinecraftServerInfo serverInfo;
     private MSMConnection connection;
+
+    private final List<MSMPlayer> players = new ArrayList<>();
 
     public MSMMinecraftServer(MinecraftServerInfo serverInfo) {
         this.serverInfo = serverInfo;
@@ -53,6 +59,15 @@ public class MSMMinecraftServer implements MinecraftServer {
         return getServerInfo().getPlugins();
     }
 
+    @Override
+    public List<Player> getPlayers() {
+        return new ArrayList<>(players);
+    }
+
+    public void addPlayer(MSMPlayer player) {
+        players.add(player);
+    }
+
     public void setConnection(MSMConnection connection) {
         this.connection = connection;
     }
@@ -60,5 +75,20 @@ public class MSMMinecraftServer implements MinecraftServer {
     @Override
     public String toString() {
         return "MSMMinecraftServer{" + "name=" + serverInfo.getName() + "}";
+    }
+
+    public boolean removePlayer(UUID playerUUID) {
+        Iterator<MSMPlayer> playerIterator = players.iterator();
+
+        while(playerIterator.hasNext()){
+            MSMPlayer next = playerIterator.next();
+
+            if(!next.getUUID().equals(playerUUID)) continue;
+
+            playerIterator.remove();
+            return true;
+        }
+
+        return false;
     }
 }

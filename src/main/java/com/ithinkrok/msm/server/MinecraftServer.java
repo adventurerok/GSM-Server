@@ -37,4 +37,6 @@ public interface MinecraftServer {
     int getMaxPlayerCount();
 
     List<String> getPlugins();
+
+    List<Player> getPlayers();
 }
