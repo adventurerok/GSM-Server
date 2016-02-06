@@ -185,11 +185,14 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
             newPlugins.put(name, modified);
 
             log.trace("Client plugin: " + name + ", " + modified);
-
-            checkUpdate(connection.getMinecraftServer(), name);
         }
 
         clientVersionsMap.put(connection.getMinecraftServer(), newPlugins);
+
+        //Check for plugin updates. This cannot be done in the loop above as it uses the clientVersionsMap
+        for(String pluginName : newPlugins.keySet()) {
+            checkUpdate(connection.getMinecraftServer(), pluginName);
+        }
     }
 
     @Override

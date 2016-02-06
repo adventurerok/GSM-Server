@@ -11,9 +11,8 @@ import java.util.List;
  */
 public class MSMMinecraftServer implements MinecraftServer {
 
-    private MSMConnection connection;
-
     private final MinecraftServerInfo serverInfo;
+    private MSMConnection connection;
 
     public MSMMinecraftServer(MinecraftServerInfo serverInfo) {
         this.serverInfo = serverInfo;
@@ -56,5 +55,10 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     public void setConnection(MSMConnection connection) {
         this.connection = connection;
+    }
+
+    @Override
+    public String toString() {
+        return "MSMMinecraftServer{" + "name=" + serverInfo.getName() + "}";
     }
 }
