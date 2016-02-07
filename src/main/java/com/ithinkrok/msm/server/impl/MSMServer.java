@@ -9,6 +9,7 @@ import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
+import com.ithinkrok.msm.server.command.MSMCommandInfo;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
 import com.ithinkrok.util.event.CustomEventExecutor;
@@ -43,6 +44,8 @@ public class MSMServer implements Server {
     private final ScheduledThreadPoolExecutor mainThreadExecutor, asyncThreadExecutor;
 
     private final Map<CustomListener, HashSet<String>> listeners = new ConcurrentHashMap<>();
+
+    private final Map<String, MSMCommandInfo> commandMap = new ConcurrentHashMap<>();
 
     public MSMServer(int port, Map<String, ? extends ServerListener> listeners) {
         this.port = port;
@@ -137,6 +140,18 @@ public class MSMServer implements Server {
     @Override
     public void unregisterListener(CustomListener listener) {
         listeners.remove(listener);
+    }
+
+    @Override
+    public void registerCommand(MSMCommandInfo command) {
+        commandMap.put(command.getName(), command);
+    }
+
+    @Override
+    public MSMCommandInfo getCommand(String name) {
+        if(name == null) return null;
+
+        return commandMap.get(name);
     }
 
     public MSMMinecraftServer assignMinecraftServerToConnection(ConfigurationSection config, MSMConnection connection) {

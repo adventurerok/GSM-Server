@@ -1,6 +1,5 @@
 package com.ithinkrok.msm.server.event.player;
 
-import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
 
 /**
@@ -8,7 +7,7 @@ import com.ithinkrok.msm.server.Player;
  */
 public class PlayerJoinEvent extends PlayerEvent {
 
-    public PlayerJoinEvent(MinecraftServer minecraftServer, Player player) {
-        super(minecraftServer, player);
+    public PlayerJoinEvent(Player player) {
+        super(player);
     }
 }

@@ -3,11 +3,14 @@ package com.ithinkrok.msm.server.protocol;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.util.ConfigUtils;
 import com.ithinkrok.msm.server.*;
+import com.ithinkrok.msm.server.command.MSMCommandInfo;
+import com.ithinkrok.msm.server.event.player.PlayerCommandEvent;
 import com.ithinkrok.msm.server.event.player.PlayerJoinEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
 import com.ithinkrok.msm.server.impl.MSMPlayer;
-import io.netty.channel.EventLoop;
+import com.ithinkrok.util.command.CustomCommand;
+import com.ithinkrok.util.event.CustomEventExecutor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 
@@ -50,6 +53,33 @@ public class ServerAPIProtocol implements ServerListener {
                 return;
             case "HasPlayers":
                 handleHasPlayers(connection.getConnectedTo(), channel, payload);
+                return;
+            case "PlayerCommand":
+                handlePlayerCommand(connection.getMinecraftServer(), payload);
+        }
+    }
+
+    private void handlePlayerCommand(MinecraftServer minecraftServer, ConfigurationSection payload) {
+        String playerUUID = payload.getString("player");
+        Player player = minecraftServer.getPlayer(UUID.fromString(playerUUID));
+        if(player == null) return;
+
+        String fullCommand = payload.getString("command");
+        CustomCommand command = new CustomCommand(fullCommand);
+
+        MSMCommandInfo commandInfo = minecraftServer.getConnectedTo().getCommand(command.getCommand());
+
+        if(commandInfo == null) {
+            player.sendMessage("Unknown MSM command: " + command.getCommand());
+            return;
+        }
+
+        PlayerCommandEvent commandEvent = new PlayerCommandEvent(player, command);
+
+        CustomEventExecutor.executeEvent(commandEvent, commandInfo.getCommandListener());
+
+        if(!commandEvent.isValidCommand()) {
+            player.sendMessage("Usage: " + commandInfo.getUsage());
         }
     }
 
@@ -111,13 +141,13 @@ public class ServerAPIProtocol implements ServerListener {
         Player player = ((MSMMinecraftServer)minecraftServer).removePlayer(playerUUID);
         if(player == null) return;
 
-        minecraftServer.getConnectedTo().callEvent(new PlayerQuitEvent(minecraftServer, player));
+        minecraftServer.getConnectedTo().callEvent(new PlayerQuitEvent(player));
     }
 
     private void handlePlayerJoin(MinecraftServer minecraftServer, ConfigurationSection payload, boolean alreadyOn) {
         MSMPlayer player = new MSMPlayer(minecraftServer, payload);
         ((MSMMinecraftServer)minecraftServer).addPlayer(player);
 
-        if(!alreadyOn) minecraftServer.getConnectedTo().callEvent(new PlayerJoinEvent(minecraftServer, player));
+        if(!alreadyOn) minecraftServer.getConnectedTo().callEvent(new PlayerJoinEvent(player));
     }
 }

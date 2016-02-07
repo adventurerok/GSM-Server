@@ -1,6 +1,5 @@
 package com.ithinkrok.msm.server.event.player;
 
-import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
 
 /**
@@ -8,7 +7,7 @@ import com.ithinkrok.msm.server.Player;
  */
 public class PlayerQuitEvent extends PlayerEvent {
 
-    public PlayerQuitEvent(MinecraftServer minecraftServer, Player player) {
-        super(minecraftServer, player);
+    public PlayerQuitEvent(Player player) {
+        super(player);
     }
 }
