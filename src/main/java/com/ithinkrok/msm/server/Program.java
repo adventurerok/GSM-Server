@@ -26,9 +26,7 @@ public class Program {
 
         log.info("Loading plugins...");
         List<MSMServerPlugin> plugins = pluginLoader.loadPlugins();
-        log.info("Enabling plugins...");
-        plugins = pluginLoader.enablePlugins(plugins);
-        log.info("Finished loading/enabling plugins");
+        log.info("Finished loading plugins");
 
         Map<String, ServerListener> listenerMap = new HashMap<>();
 
@@ -46,6 +44,10 @@ public class Program {
         for(MSMServerPlugin plugin : plugins) {
             plugin.setServer(server);
         }
+
+        log.info("Enabling plugins...");
+        pluginLoader.enablePlugins(plugins);
+        log.info("Finished enabling plugins");
 
         server.start();
     }
