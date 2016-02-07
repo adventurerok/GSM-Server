@@ -1,5 +1,7 @@
 package com.ithinkrok.msm.server;
 
+import com.ithinkrok.msm.server.event.MSMEvent;
+
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
@@ -25,4 +27,6 @@ public interface Server {
     ScheduledFuture<?> scheduleAsync(Runnable command, long delay, TimeUnit unit);
 
     ScheduledFuture<?> scheduleRepeatAsync(Runnable command, long initialDelay, long period, TimeUnit unit);
+
+    void callEvent(MSMEvent event);
 }

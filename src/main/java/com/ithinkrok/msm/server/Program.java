@@ -36,10 +36,14 @@ public class Program {
 
         //Add plugin protocols
         for(MSMServerPlugin plugin : plugins) {
-            if(plugin.hasProtocol()) listenerMap.put(plugin.getProtocol(), plugin);
+            listenerMap.putAll(plugin.getProtocols());
         }
 
         MSMServer server = new MSMServer(30824, listenerMap);
+
+        for(MSMServerPlugin plugin : plugins) {
+            plugin.setServer(server);
+        }
 
         server.start();
     }

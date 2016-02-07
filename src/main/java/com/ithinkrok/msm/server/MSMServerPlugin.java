@@ -1,17 +1,17 @@
 package com.ithinkrok.msm.server;
 
-import com.ithinkrok.msm.common.Channel;
-import com.ithinkrok.msm.server.impl.MSMConnection;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by paul on 02/02/16.
  */
-public abstract class MSMServerPlugin implements ServerListener {
+public abstract class MSMServerPlugin {
 
     private final Logger logger;
     //This field is accessed by reflection.
@@ -24,6 +24,8 @@ public abstract class MSMServerPlugin implements ServerListener {
     @SuppressWarnings("unused")
     private FileConfiguration pluginYml;
 
+    private Server server;
+
     public MSMServerPlugin() {
         logger = LogManager.getLogger(getClass());
 
@@ -34,6 +36,14 @@ public abstract class MSMServerPlugin implements ServerListener {
         }
     }
 
+    public Server getServer() {
+        return server;
+    }
+
+    public void setServer(Server server) {
+        this.server = server;
+    }
+
     public Logger getLogger() {
         return logger;
     }
@@ -42,30 +52,11 @@ public abstract class MSMServerPlugin implements ServerListener {
         return pluginYml.getString("version");
     }
 
-    public String getProtocol() {
-        return pluginYml.getString("protocol");
-    }
-
     public String getName() {
         return name;
     }
 
-    @Override
-    public void connectionOpened(Connection connection, Channel channel) {
-
-    }
-
-    @Override
-    public void connectionClosed(Connection connection) {
-
-    }
-
-    @Override
-    public void packetRecieved(Connection connection, Channel channel, ConfigurationSection payload) {
-
-    }
-
-    public boolean hasProtocol() {
-        return pluginYml.contains("protocol");
+    public Map<String, ServerListener> getProtocols() {
+        return new HashMap<>();
     }
 }
