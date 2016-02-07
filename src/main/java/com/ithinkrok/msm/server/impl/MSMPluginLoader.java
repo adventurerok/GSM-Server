@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server.impl;
 
-import com.ithinkrok.msm.common.util.FIleUtil;
+import com.ithinkrok.util.FIleUtil;
 import com.ithinkrok.msm.server.MSMServerPlugin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +12,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.Field;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.*;

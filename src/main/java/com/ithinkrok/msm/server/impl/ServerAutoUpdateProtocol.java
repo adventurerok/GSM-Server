@@ -2,7 +2,7 @@ package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.util.ConfigUtils;
-import com.ithinkrok.msm.common.util.FIleUtil;
+import com.ithinkrok.util.FIleUtil;
 import com.ithinkrok.msm.common.util.io.DirectoryListener;
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.Connection;
