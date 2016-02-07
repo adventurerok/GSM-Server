@@ -45,7 +45,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
 
     @Override
     public Channel getChannel(String protocol) {
-        return channelMap.get(idToProtocolMap.inverse().get(protocol));
+        return getChannel(idToProtocolMap.inverse().get(protocol));
     }
 
     @Override
