@@ -138,6 +138,13 @@ public class MSMServer implements Server {
     }
 
     @Override
+    public void broadcast(String message) {
+        for(MinecraftServer server : minecraftServerMap.values()) {
+            server.broadcast(message);
+        }
+    }
+
+    @Override
     public void registerListener(CustomListener listener, String... requireProtocols) {
         listeners.put(listener, new HashSet<>(Arrays.asList(requireProtocols)));
     }

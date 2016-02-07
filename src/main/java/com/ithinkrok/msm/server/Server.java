@@ -54,4 +54,6 @@ public interface Server {
     MSMCommandInfo getCommand(String name);
 
     Collection<MSMCommandInfo> getRegisteredCommands();
+
+    void broadcast(String message);
 }
