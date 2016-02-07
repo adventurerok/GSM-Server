@@ -2,10 +2,7 @@ package com.ithinkrok.msm.server.protocol;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.util.ConfigUtils;
-import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.MinecraftServer;
-import com.ithinkrok.msm.server.Player;
-import com.ithinkrok.msm.server.ServerListener;
+import com.ithinkrok.msm.server.*;
 import com.ithinkrok.msm.server.event.player.PlayerJoinEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
@@ -13,7 +10,7 @@ import com.ithinkrok.msm.server.impl.MSMPlayer;
 import io.netty.channel.EventLoop;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by paul on 06/02/16.
@@ -46,6 +43,36 @@ public class ServerAPIProtocol implements ServerListener {
                 return;
             case "PlayerInfo":
                 handlePlayerInfo(connection.getMinecraftServer(), payload);
+                return;
+            case "Message":
+                handleMessage(connection.getConnectedTo(), payload);
+        }
+    }
+
+    private void handleMessage(Server connectedTo, ConfigurationSection payload) {
+        Map<MinecraftServer, Set<Player>> messagePackets = new HashMap<>();
+
+        for(String uuidString : payload.getStringList("recipients")) {
+            Player player = connectedTo.getPlayer(UUID.fromString(uuidString));
+
+            if(player == null || player.getServer() == null) continue;
+
+            Set<Player> playersForServer = messagePackets.get(player.getServer());
+
+            if(playersForServer == null) {
+                playersForServer = new HashSet<>();
+                messagePackets.put(player.getServer(), playersForServer);
+            }
+
+            playersForServer.add(player);
+        }
+
+        String message = payload.getString("message");
+
+        for(Map.Entry<MinecraftServer, Set<Player>> messageEntry : messagePackets.entrySet()) {
+            if(!messageEntry.getKey().isConnected()) continue;
+
+            messageEntry.getKey().messagePlayers(message, messageEntry.getValue());
         }
     }
 

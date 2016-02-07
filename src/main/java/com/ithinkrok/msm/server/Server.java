@@ -3,7 +3,9 @@ package com.ithinkrok.msm.server;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.util.event.CustomListener;
 
+import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +18,10 @@ public interface Server {
     Set<String> getAvailableProtocols();
 
     MinecraftServer getMinecraftServer(String name);
+
+    Collection<MinecraftServer> getMinecraftServers();
+
+    Player getPlayer(UUID uuid);
 
     <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit);
 

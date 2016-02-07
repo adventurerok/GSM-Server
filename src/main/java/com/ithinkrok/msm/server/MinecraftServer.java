@@ -4,8 +4,10 @@ import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.MinecraftServerType;
 import com.ithinkrok.msm.server.impl.MSMPlayer;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by paul on 05/02/16.
@@ -42,11 +44,17 @@ public interface MinecraftServer {
 
     List<String> getPlugins();
 
-    List<Player> getPlayers();
+    Collection<? extends Player> getPlayers();
 
     Server getConnectedTo();
 
-    void messagePlayers(String message, Player...players);
+    default void messagePlayers(String message, Player...players) {
+        messagePlayers(message, Arrays.asList(players));
+    }
+
+    void messagePlayers(String message, Collection<? extends Player> players);
 
     void broadcast(String message);
+
+    Player getPlayer(UUID uuid);
 }

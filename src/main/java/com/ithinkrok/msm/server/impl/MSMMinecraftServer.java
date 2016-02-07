@@ -10,6 +10,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by paul on 05/02/16.
@@ -21,7 +22,7 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     private MSMConnection connection;
 
-    private final List<MSMPlayer> players = new ArrayList<>();
+    private final Map<UUID, MSMPlayer> players = new ConcurrentHashMap<>();
 
     private Collection<String> supportedProtocols;
 
@@ -66,12 +67,12 @@ public class MSMMinecraftServer implements MinecraftServer {
     }
 
     @Override
-    public List<Player> getPlayers() {
-        return new ArrayList<>(players);
+    public Collection<? extends Player> getPlayers() {
+        return players.values();
     }
 
     public void addPlayer(MSMPlayer player) {
-        players.add(player);
+        players.put(player.getUUID(), player);
     }
 
     public void setConnection(MSMConnection connection) {
@@ -86,7 +87,7 @@ public class MSMMinecraftServer implements MinecraftServer {
     }
 
     public MSMPlayer removePlayer(UUID playerUUID) {
-        Iterator<MSMPlayer> playerIterator = players.iterator();
+        Iterator<MSMPlayer> playerIterator = players.values().iterator();
 
         while(playerIterator.hasNext()){
             MSMPlayer next = playerIterator.next();
@@ -123,7 +124,7 @@ public class MSMMinecraftServer implements MinecraftServer {
     }
 
     @Override
-    public void messagePlayers(String message, Player... players) {
+    public void messagePlayers(String message, Collection<? extends Player> players) {
         List<String> playerUUIDs = new ArrayList<>();
 
         for(Player player : players) {
@@ -147,5 +148,10 @@ public class MSMMinecraftServer implements MinecraftServer {
         payload.set("mode", "Broadcast");
 
         getAPIChannel().write(payload);
+    }
+
+    @Override
+    public MSMPlayer getPlayer(UUID uuid) {
+        return players.get(uuid);
     }
 }

@@ -5,6 +5,8 @@ import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
+import com.ithinkrok.msm.server.MinecraftServer;
+import com.ithinkrok.msm.server.Player;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.event.MSMEvent;
@@ -66,6 +68,22 @@ public class MSMServer implements Server {
     @Override
     public MSMMinecraftServer getMinecraftServer(String name) {
         return minecraftServerMap.get(name);
+    }
+
+    @Override
+    public Collection<MinecraftServer> getMinecraftServers() {
+        return new ArrayList<>(minecraftServerMap.values());
+    }
+
+    @Override
+    public MSMPlayer getPlayer(UUID uuid) {
+        for(MSMMinecraftServer minecraftServer : minecraftServerMap.values()) {
+            MSMPlayer player = minecraftServer.getPlayer(uuid);
+
+            if(player != null) return player;
+        }
+
+        return null;
     }
 
     @Override
