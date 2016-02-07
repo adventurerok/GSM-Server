@@ -9,6 +9,7 @@ import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
 import com.ithinkrok.msm.server.impl.MSMPlayer;
 import io.netty.channel.EventLoop;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 
 import java.util.*;
 
@@ -46,7 +47,29 @@ public class ServerAPIProtocol implements ServerListener {
                 return;
             case "Message":
                 handleMessage(connection.getConnectedTo(), payload);
+                return;
+            case "HasPlayers":
+                handleHasPlayers(connection.getConnectedTo(), channel, payload);
         }
+    }
+
+    private void handleHasPlayers(Server connectedTo, Channel channel, ConfigurationSection payload) {
+        ConfigurationSection players = new MemoryConfiguration();
+
+        for(String uuidString : payload.getStringList("players")) {
+            Player player = connectedTo.getPlayer(UUID.fromString(uuidString));
+
+            if(player == null) players.set(uuidString, "NONE");
+            else players.set(uuidString, player.getServer().getName());
+        }
+
+        ConfigurationSection reply = new MemoryConfiguration();
+
+        reply.set("players", players);
+        reply.set("mode", "HasPlayersResponse");
+        if(payload.contains("tag")) reply.set("tag", payload.getString("tag"));
+
+        channel.write(reply);
     }
 
     private void handleMessage(Server connectedTo, ConfigurationSection payload) {
