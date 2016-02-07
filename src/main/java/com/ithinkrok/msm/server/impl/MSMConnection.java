@@ -104,6 +104,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
         return channel;
     }
 
+    @Override
     public Collection<String> getSupportedProtocols() {
         return idToProtocolMap.values();
     }

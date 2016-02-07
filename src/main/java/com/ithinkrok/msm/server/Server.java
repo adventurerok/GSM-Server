@@ -1,6 +1,7 @@
 package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.server.event.MSMEvent;
+import com.ithinkrok.util.event.CustomListener;
 
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -29,4 +30,15 @@ public interface Server {
     ScheduledFuture<?> scheduleRepeatAsync(Runnable command, long initialDelay, long period, TimeUnit unit);
 
     void callEvent(MSMEvent event);
+
+    /**
+     * Registers a listener with the server
+     *
+     * @param listener The listener to register with the server
+     * @param requireProtocols The protocols that connected minecraft servers must support for their events to be
+     *                         sent to this listener
+     */
+    void registerListener(CustomListener listener, String...requireProtocols);
+
+    void unregisterListener(CustomListener listener);
 }

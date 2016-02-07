@@ -3,6 +3,7 @@ package com.ithinkrok.msm.server;
 import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.MinecraftServerType;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -24,6 +25,8 @@ public interface MinecraftServer {
      * @return The Connection representing this MinecraftServer, or {@code null} if none exists
      */
     Connection getConnection();
+
+    Collection<String> getSupportedProtocols();
 
     MinecraftServerInfo getServerInfo();
 

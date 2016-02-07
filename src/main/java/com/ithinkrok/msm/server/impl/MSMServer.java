@@ -9,7 +9,10 @@ import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
+import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
+import com.ithinkrok.util.event.CustomEventExecutor;
+import com.ithinkrok.util.event.CustomListener;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -38,6 +41,8 @@ public class MSMServer implements Server {
     private final Map<String, MSMMinecraftServer> minecraftServerMap = new ConcurrentHashMap<>();
 
     private final ScheduledThreadPoolExecutor mainThreadExecutor, asyncThreadExecutor;
+
+    private final Map<CustomListener, HashSet<String>> listeners = new ConcurrentHashMap<>();
 
     public MSMServer(int port, Map<String, ? extends ServerListener> listeners) {
         this.port = port;
@@ -93,6 +98,29 @@ public class MSMServer implements Server {
     @Override
     public ScheduledFuture<?> scheduleRepeatAsync(Runnable command, long initialDelay, long period, TimeUnit unit) {
         return asyncThreadExecutor.scheduleAtFixedRate(command, initialDelay, period, unit);
+    }
+
+    @Override
+    public void callEvent(MSMEvent event) {
+        List<CustomListener> listenersToCall = new ArrayList<>();
+
+        for(Map.Entry<CustomListener, HashSet<String>> listenerEntry : listeners.entrySet()) {
+            if(!event.getMinecraftServer().getSupportedProtocols().containsAll(listenerEntry.getValue())) continue;
+
+            listenersToCall.add(listenerEntry.getKey());
+        }
+
+        CustomEventExecutor.executeEvent(event, listenersToCall);
+    }
+
+    @Override
+    public void registerListener(CustomListener listener, String... requireProtocols) {
+        listeners.put(listener, new HashSet<>(Arrays.asList(requireProtocols)));
+    }
+
+    @Override
+    public void unregisterListener(CustomListener listener) {
+        listeners.remove(listener);
     }
 
     public MSMMinecraftServer assignMinecraftServerToConnection(ConfigurationSection config, MSMConnection connection) {

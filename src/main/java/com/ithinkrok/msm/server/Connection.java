@@ -2,6 +2,8 @@ package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.common.Channel;
 
+import java.util.Collection;
+
 /**
  * Created by paul on 04/02/16.
  */
@@ -18,4 +20,6 @@ public interface Connection {
      * @return The MinecraftServer this Connection is representing.
      */
     MinecraftServer getMinecraftServer();
+
+    Collection<String> getSupportedProtocols();
 }

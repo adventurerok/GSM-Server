@@ -5,10 +5,7 @@ import com.ithinkrok.msm.common.MinecraftServerType;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Created by paul on 05/02/16.
@@ -19,6 +16,8 @@ public class MSMMinecraftServer implements MinecraftServer {
     private MSMConnection connection;
 
     private final List<MSMPlayer> players = new ArrayList<>();
+
+    private Collection<String> supportedProtocols;
 
     public MSMMinecraftServer(MinecraftServerInfo serverInfo) {
         this.serverInfo = serverInfo;
@@ -70,6 +69,8 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     public void setConnection(MSMConnection connection) {
         this.connection = connection;
+
+        setSupportedProtocols(connection.getSupportedProtocols());
     }
 
     @Override
@@ -90,5 +91,14 @@ public class MSMMinecraftServer implements MinecraftServer {
         }
 
         return false;
+    }
+
+    @Override
+    public Collection<String> getSupportedProtocols() {
+        return supportedProtocols;
+    }
+
+    public void setSupportedProtocols(Collection<String> supportedProtocols) {
+        this.supportedProtocols = supportedProtocols;
     }
 }
