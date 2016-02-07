@@ -1,5 +1,6 @@
 package com.ithinkrok.msm.server.impl;
 
+import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
 import org.bukkit.configuration.ConfigurationSection;
@@ -38,7 +39,17 @@ public class MSMPlayer implements Player {
 
     @Override
     public void sendMessage(String message) {
+        if(!isConnected()) return;
 
+        minecraftServer.messagePlayers(message, this);
+    }
+
+    public boolean isConnected() {
+        return minecraftServer != null && minecraftServer.getConnection() != null;
+    }
+
+    private Channel getAPIChannel() {
+        return minecraftServer.getConnection().getChannel("MSMAPI");
     }
 
     @Override

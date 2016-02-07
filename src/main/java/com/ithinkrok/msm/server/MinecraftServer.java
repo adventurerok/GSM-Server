@@ -2,6 +2,7 @@ package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.MinecraftServerType;
+import com.ithinkrok.msm.server.impl.MSMPlayer;
 
 import java.util.Collection;
 import java.util.List;
@@ -44,4 +45,8 @@ public interface MinecraftServer {
     List<Player> getPlayers();
 
     Server getConnectedTo();
+
+    void messagePlayers(String message, Player...players);
+
+    void broadcast(String message);
 }

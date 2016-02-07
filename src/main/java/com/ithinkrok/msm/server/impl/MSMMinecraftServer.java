@@ -1,10 +1,13 @@
 package com.ithinkrok.msm.server.impl;
 
+import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.MinecraftServerType;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
 import com.ithinkrok.msm.server.Server;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
 
 import java.util.*;
 
@@ -106,8 +109,43 @@ public class MSMMinecraftServer implements MinecraftServer {
         this.supportedProtocols = supportedProtocols;
     }
 
+    private Channel getAPIChannel() {
+        return connection.getChannel("MSMAPI");
+    }
+
+    public boolean isConnected() {
+        return connection != null;
+    }
+
     @Override
     public Server getConnectedTo() {
         return server;
+    }
+
+    @Override
+    public void messagePlayers(String message, Player... players) {
+        List<String> playerUUIDs = new ArrayList<>();
+
+        for(Player player : players) {
+            playerUUIDs.add(player.getUUID().toString());
+        }
+
+        ConfigurationSection payload = new MemoryConfiguration();
+
+        payload.set("recipients", playerUUIDs);
+        payload.set("message", message);
+        payload.set("mode", "Message");
+
+        getAPIChannel().write(payload);
+    }
+
+    @Override
+    public void broadcast(String message) {
+        ConfigurationSection payload = new MemoryConfiguration();
+
+        payload.set("message", message);
+        payload.set("mode", "Broadcast");
+
+        getAPIChannel().write(payload);
     }
 }
