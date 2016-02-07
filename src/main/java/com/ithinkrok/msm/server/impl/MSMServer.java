@@ -11,6 +11,7 @@ import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.command.MSMCommandInfo;
 import com.ithinkrok.msm.server.event.MSMEvent;
+import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
 import com.ithinkrok.util.event.CustomEventExecutor;
 import com.ithinkrok.util.event.CustomListener;
@@ -46,6 +47,8 @@ public class MSMServer implements Server {
     private final Map<CustomListener, HashSet<String>> listeners = new ConcurrentHashMap<>();
 
     private final Map<String, MSMCommandInfo> commandMap = new ConcurrentHashMap<>();
+
+    private final Map<UUID, MSMPlayer> quittingPlayers = new ConcurrentHashMap<>();
 
     public MSMServer(int port, Map<String, ? extends ServerListener> listeners) {
         this.port = port;
@@ -87,6 +90,24 @@ public class MSMServer implements Server {
         }
 
         return null;
+    }
+
+    public void addQuittingPlayer(MSMPlayer quitting) {
+        quittingPlayers.put(quitting.getUUID(), quitting);
+
+        schedule(() -> {
+            if(quittingPlayers.remove(quitting.getUUID()) == null) return;
+
+            callEvent(new PlayerQuitEvent(quitting));
+        }, 3, TimeUnit.SECONDS);
+    }
+
+    public MSMPlayer removeQuittingPlayer(UUID uuid) {
+        MSMPlayer player = quittingPlayers.remove(uuid);
+
+        if(player != null) return player;
+
+        return getPlayer(uuid);
     }
 
     @Override
