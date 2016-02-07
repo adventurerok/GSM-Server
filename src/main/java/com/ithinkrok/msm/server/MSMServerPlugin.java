@@ -5,7 +5,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,8 +54,18 @@ public abstract class MSMServerPlugin {
         return pluginYml.getString("version");
     }
 
+    public List<String> getDependencies() {
+        List<String> dependencies = pluginYml.getStringList("depend");
+
+        return dependencies != null ? dependencies : Collections.emptyList();
+    }
+
     public String getName() {
         return name;
+    }
+
+    public void onEnable() {
+
     }
 
     public Map<String, ServerListener> getProtocols() {

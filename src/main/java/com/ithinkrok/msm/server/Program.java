@@ -26,7 +26,9 @@ public class Program {
 
         log.info("Loading plugins...");
         List<MSMServerPlugin> plugins = pluginLoader.loadPlugins();
-        log.info("Finished loading plugins");
+        log.info("Enabling plugins...");
+        plugins = pluginLoader.enablePlugins(plugins);
+        log.info("Finished loading/enabling plugins");
 
         Map<String, ServerListener> listenerMap = new HashMap<>();
 

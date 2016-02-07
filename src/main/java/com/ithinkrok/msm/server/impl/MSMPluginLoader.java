@@ -1,5 +1,6 @@
 package com.ithinkrok.msm.server.impl;
 
+import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.FIleUtil;
 import com.ithinkrok.msm.server.MSMServerPlugin;
 import org.apache.logging.log4j.LogManager;
@@ -15,10 +16,7 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by paul on 02/02/16.
@@ -136,8 +134,8 @@ public class MSMPluginLoader {
                 pluginYml.load(reader);
 
                 //Loop over the keys required in the msm_plugin.yml and check they are there
-                for(String required : new String[]{"name", "main", "version"}) {
-                    if(pluginYml.contains(required)) continue;
+                for (String required : new String[]{"name", "main", "version"}) {
+                    if (pluginYml.contains(required)) continue;
 
                     throw new InvalidConfigurationException("msm_plugin.yml missing required key: " + required);
                 }
@@ -162,14 +160,68 @@ public class MSMPluginLoader {
 
         configLookup.put(pluginClass, pluginYml);
 
-        String pluginName = pluginYml.getString("name");
-        String pluginVersion = pluginYml.getString("version");
-        log.info("Loading plugin " + pluginName + " version " + pluginVersion);
-
         return pluginClass.newInstance();
     }
 
+    public List<MSMServerPlugin> enablePlugins(List<MSMServerPlugin> plugins) {
+        List<MSMServerPlugin> enabledPlugins = new ArrayList<>();
 
+        Map<String, MSMServerPlugin> pluginsByName = new HashMap<>();
+
+        for (MSMServerPlugin plugin : plugins) {
+            pluginsByName.put(plugin.getName(), plugin);
+        }
+
+        for (MSMServerPlugin plugin : plugins) {
+            Set<MSMServerPlugin> loading = new HashSet<>();
+
+            enablePlugin(plugin, loading, pluginsByName, enabledPlugins);
+        }
+
+        return enabledPlugins;
+    }
+
+    private boolean enablePlugin(MSMServerPlugin plugin, Set<MSMServerPlugin> loading,
+                                 Map<String, MSMServerPlugin> pluginsByName, List<MSMServerPlugin> enabledPlugins) {
+
+        //Make sure the plugin is not already enabled
+        if (enabledPlugins.contains(plugin)) return true;
+
+        //Make sure we are not already enabling the plugin (cyclic dependency)
+        if (!loading.add(plugin)) {
+            log.warn("Plugin " + plugin.getName() + " has cyclic dependencies");
+            return false;
+        }
+
+        try {
+
+            //Enable dependencies first
+            for (String dependencyName : plugin.getDependencies()) {
+                MSMServerPlugin dependency = pluginsByName.get(dependencyName);
+
+                if (dependency == null) {
+                    log.warn("Plugin " + plugin.getName() + " is missing dependency: " + dependencyName);
+                    return false;
+                }
+
+                if (!enablePlugin(dependency, loading, pluginsByName, enabledPlugins)) return false;
+            }
+
+            log.info("Enabling plugin " + plugin.getName() + " v" + plugin.getVersion());
+
+            plugin.onEnable();
+
+        } catch (Exception e) {
+            log.warn("Failed to enable plugin " + plugin.getName(), e);
+            return false;
+        } finally {
+            loading.remove(plugin);
+        }
+
+        enabledPlugins.add(plugin);
+
+        return true;
+    }
 
 
 }
