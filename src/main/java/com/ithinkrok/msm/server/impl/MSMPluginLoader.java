@@ -185,7 +185,7 @@ public class MSMPluginLoader {
                                  Map<String, MSMServerPlugin> pluginsByName, List<MSMServerPlugin> enabledPlugins) {
 
         //Make sure the plugin is not already enabled
-        if (enabledPlugins.contains(plugin)) return true;
+        if (plugin.isEnabled()) return true;
 
         //Make sure we are not already enabling the plugin (cyclic dependency)
         if (!loading.add(plugin)) {
@@ -207,9 +207,21 @@ public class MSMPluginLoader {
                 if (!enablePlugin(dependency, loading, pluginsByName, enabledPlugins)) return false;
             }
 
+            for(String dependencyName : plugin.getSoftDependencies()) {
+                MSMServerPlugin dependency = pluginsByName.get(dependencyName);
+
+                if(dependency == null) continue;
+
+                enablePlugin(dependency, loading, pluginsByName, enabledPlugins);
+            }
+
             log.info("Enabling plugin " + plugin.getName() + " v" + plugin.getVersion());
 
             plugin.onEnable();
+
+            Field enabledField = MSMServerPlugin.class.getDeclaredField("enabled");
+            enabledField.setAccessible(true);
+            enabledField.setBoolean(plugin, true);
 
         } catch (Exception e) {
             log.warn("Failed to enable plugin " + plugin.getName(), e);

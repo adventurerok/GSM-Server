@@ -26,6 +26,10 @@ public abstract class MSMServerPlugin {
     @SuppressWarnings("unused")
     private FileConfiguration pluginYml;
 
+    //Accessed by reflection
+    @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
+    private boolean enabled = false;
+
     private Server server;
 
     public MSMServerPlugin() {
@@ -60,12 +64,22 @@ public abstract class MSMServerPlugin {
         return dependencies != null ? dependencies : Collections.emptyList();
     }
 
+    public List<String> getSoftDependencies() {
+        List<String> softDependencies = pluginYml.getStringList("softdepend");
+
+        return softDependencies != null ? softDependencies : Collections.emptyList();
+    }
+
     public String getName() {
         return name;
     }
 
     public void onEnable() {
 
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     public Map<String, ServerListener> getProtocols() {
