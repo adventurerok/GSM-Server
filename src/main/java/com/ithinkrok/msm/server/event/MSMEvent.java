@@ -6,7 +6,15 @@ import com.ithinkrok.util.event.CustomEvent;
 /**
  * Created by paul on 07/02/16.
  */
-public interface MSMEvent extends CustomEvent {
+public abstract class MSMEvent implements CustomEvent {
 
-    MinecraftServer getMinecraftServer();
+    private final MinecraftServer minecraftServer;
+
+    public MSMEvent(MinecraftServer minecraftServer) {
+        this.minecraftServer = minecraftServer;
+    }
+
+    public MinecraftServer getMinecraftServer() {
+        return minecraftServer;
+    }
 }

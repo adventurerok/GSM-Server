@@ -6,6 +6,8 @@ import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
 import com.ithinkrok.msm.server.ServerListener;
+import com.ithinkrok.msm.server.event.player.PlayerJoinEvent;
+import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
 import com.ithinkrok.msm.server.impl.MSMPlayer;
 import io.netty.channel.EventLoop;
@@ -56,15 +58,16 @@ public class ServerAPIProtocol implements ServerListener {
     private void handlePlayerQuit(MinecraftServer minecraftServer, ConfigurationSection payload) {
         UUID playerUUID = UUID.fromString(payload.getString("uuid"));
 
-        ((MSMMinecraftServer)minecraftServer).removePlayer(playerUUID);
+        Player player = ((MSMMinecraftServer)minecraftServer).removePlayer(playerUUID);
+        if(player == null) return;
 
-        //TODO store players in map, and remove them if they are disconnected for more than 10 seconds
+        minecraftServer.getConnectedTo().callEvent(new PlayerQuitEvent(minecraftServer, player));
     }
 
     private void handlePlayerJoin(MinecraftServer minecraftServer, ConfigurationSection payload, boolean alreadyOn) {
-        UUID playerUUID = UUID.fromString(payload.getString("uuid"));
-
         MSMPlayer player = new MSMPlayer(minecraftServer, payload);
         ((MSMMinecraftServer)minecraftServer).addPlayer(player);
+
+        if(!alreadyOn) minecraftServer.getConnectedTo().callEvent(new PlayerJoinEvent(minecraftServer, player));
     }
 }

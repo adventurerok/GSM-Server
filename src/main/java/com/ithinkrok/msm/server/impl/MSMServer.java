@@ -5,8 +5,6 @@ import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
-import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.event.MSMEvent;
@@ -127,7 +125,7 @@ public class MSMServer implements Server {
         MSMMinecraftServer server = getMinecraftServer(config.getString("name"));
 
         if(server == null) {
-            server = new MSMMinecraftServer(new MinecraftServerInfo(config));
+            server = new MSMMinecraftServer(new MinecraftServerInfo(config), this);
             minecraftServerMap.put(config.getString("name"), server);
         } else server.getServerInfo().fromConfig(config);
 

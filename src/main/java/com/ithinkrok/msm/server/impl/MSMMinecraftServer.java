@@ -4,6 +4,7 @@ import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.MinecraftServerType;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
+import com.ithinkrok.msm.server.Server;
 
 import java.util.*;
 
@@ -13,14 +14,17 @@ import java.util.*;
 public class MSMMinecraftServer implements MinecraftServer {
 
     private final MinecraftServerInfo serverInfo;
+    private final MSMServer server;
+
     private MSMConnection connection;
 
     private final List<MSMPlayer> players = new ArrayList<>();
 
     private Collection<String> supportedProtocols;
 
-    public MSMMinecraftServer(MinecraftServerInfo serverInfo) {
+    public MSMMinecraftServer(MinecraftServerInfo serverInfo, MSMServer server) {
         this.serverInfo = serverInfo;
+        this.server = server;
     }
 
     @Override
@@ -78,7 +82,7 @@ public class MSMMinecraftServer implements MinecraftServer {
         return "MSMMinecraftServer{" + "name=" + serverInfo.getName() + "}";
     }
 
-    public boolean removePlayer(UUID playerUUID) {
+    public MSMPlayer removePlayer(UUID playerUUID) {
         Iterator<MSMPlayer> playerIterator = players.iterator();
 
         while(playerIterator.hasNext()){
@@ -87,10 +91,10 @@ public class MSMMinecraftServer implements MinecraftServer {
             if(!next.getUUID().equals(playerUUID)) continue;
 
             playerIterator.remove();
-            return true;
+            return next;
         }
 
-        return false;
+        return null;
     }
 
     @Override
@@ -100,5 +104,10 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     public void setSupportedProtocols(Collection<String> supportedProtocols) {
         this.supportedProtocols = supportedProtocols;
+    }
+
+    @Override
+    public Server getConnectedTo() {
+        return server;
     }
 }

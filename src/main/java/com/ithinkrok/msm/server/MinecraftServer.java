@@ -42,4 +42,6 @@ public interface MinecraftServer {
     List<String> getPlugins();
 
     List<Player> getPlayers();
+
+    Server getConnectedTo();
 }
