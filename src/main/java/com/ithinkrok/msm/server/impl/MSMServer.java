@@ -133,6 +133,11 @@ public class MSMServer implements Server {
     }
 
     @Override
+    public Collection<MSMCommandInfo> getRegisteredCommands() {
+        return commandMap.values();
+    }
+
+    @Override
     public void registerListener(CustomListener listener, String... requireProtocols) {
         listeners.put(listener, new HashSet<>(Arrays.asList(requireProtocols)));
     }

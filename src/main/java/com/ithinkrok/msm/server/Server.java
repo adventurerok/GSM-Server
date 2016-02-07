@@ -52,4 +52,6 @@ public interface Server {
     void registerCommand(MSMCommandInfo command);
 
     MSMCommandInfo getCommand(String name);
+
+    Collection<MSMCommandInfo> getRegisteredCommands();
 }

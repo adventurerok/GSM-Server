@@ -24,7 +24,18 @@ public class ServerAPIProtocol implements ServerListener {
 
     @Override
     public void connectionOpened(Connection connection, Channel channel) {
+        List<ConfigurationSection> commands = new ArrayList<>();
 
+        for(MSMCommandInfo commandInfo : connection.getConnectedTo().getRegisteredCommands()) {
+            commands.add(commandInfo.toConfig());
+        }
+
+        ConfigurationSection payload = new MemoryConfiguration();
+
+        payload.set("commands", commands);
+        payload.set("mode", "RegisterCommands");
+
+        channel.write(payload);
     }
 
     @Override
