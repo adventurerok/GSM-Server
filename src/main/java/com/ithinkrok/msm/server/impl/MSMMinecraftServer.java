@@ -78,7 +78,7 @@ public class MSMMinecraftServer implements MinecraftServer {
     public void setConnection(MSMConnection connection) {
         this.connection = connection;
 
-        setSupportedProtocols(connection.getSupportedProtocols());
+        if(connection != null) setSupportedProtocols(connection.getSupportedProtocols());
     }
 
     @Override
