@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 /**
  * Created by paul on 01/02/16.
@@ -37,6 +37,8 @@ public class MSMServer implements Server {
 
     private final Map<String, MSMMinecraftServer> minecraftServerMap = new ConcurrentHashMap<>();
 
+    private final ScheduledThreadPoolExecutor mainThreadExecutor, asyncThreadExecutor;
+
     public MSMServer(int port, Map<String, ? extends ServerListener> listeners) {
         this.port = port;
 
@@ -44,6 +46,9 @@ public class MSMServer implements Server {
         protocolToPluginMap.put("MSMLogin", new ServerLoginProtocol());
 
         protocolToPluginMap.putAll(listeners);
+
+        mainThreadExecutor = new ScheduledThreadPoolExecutor(1);
+        asyncThreadExecutor = new ScheduledThreadPoolExecutor(4);
     }
 
     public ServerListener getListenerForProtocol(String protocol) {
@@ -58,6 +63,36 @@ public class MSMServer implements Server {
     @Override
     public MSMMinecraftServer getMinecraftServer(String name) {
         return minecraftServerMap.get(name);
+    }
+
+    @Override
+    public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
+        return mainThreadExecutor.schedule(callable, delay, unit);
+    }
+
+    @Override
+    public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
+        return mainThreadExecutor.schedule(command, delay, unit);
+    }
+
+    @Override
+    public ScheduledFuture<?> scheduleRepeat(Runnable command, long initialDelay, long period, TimeUnit unit) {
+        return mainThreadExecutor.scheduleAtFixedRate(command, initialDelay, period, unit);
+    }
+
+    @Override
+    public <V> ScheduledFuture<V> scheduleAsync(Callable<V> callable, long delay, TimeUnit unit) {
+        return asyncThreadExecutor.schedule(callable, delay, unit);
+    }
+
+    @Override
+    public ScheduledFuture<?> scheduleAsync(Runnable command, long delay, TimeUnit unit) {
+        return asyncThreadExecutor.schedule(command, delay, unit);
+    }
+
+    @Override
+    public ScheduledFuture<?> scheduleRepeatAsync(Runnable command, long initialDelay, long period, TimeUnit unit) {
+        return asyncThreadExecutor.scheduleAtFixedRate(command, initialDelay, period, unit);
     }
 
     public MSMMinecraftServer assignMinecraftServerToConnection(ConfigurationSection config, MSMConnection connection) {
