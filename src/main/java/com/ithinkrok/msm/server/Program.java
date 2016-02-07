@@ -3,6 +3,7 @@ package com.ithinkrok.msm.server;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.msm.server.impl.ServerAutoUpdateProtocol;
+import com.ithinkrok.msm.server.protocol.ServerAPIProtocol;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,6 +32,7 @@ public class Program {
 
         //Add all default protocols (except MSMLogin)
         listenerMap.put("MSMAutoUpdate", new ServerAutoUpdateProtocol(Paths.get("updates/bukkit_plugins")));
+        listenerMap.put("MSMAPI", new ServerAPIProtocol());
 
         //Add plugin protocols
         for(MSMServerPlugin plugin : plugins) {
