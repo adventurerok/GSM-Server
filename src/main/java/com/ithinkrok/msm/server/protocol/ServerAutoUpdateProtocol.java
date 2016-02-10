@@ -1,4 +1,4 @@
-package com.ithinkrok.msm.server.impl;
+package com.ithinkrok.msm.server.protocol;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.util.io.DirectoryListener;
@@ -9,6 +9,7 @@ import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.util.FIleUtil;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
+import com.ithinkrok.util.config.YamlConfigIO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -74,11 +75,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
 
             if (!Files.exists(pluginYmlPath)) return;
 
-            YamlConfiguration pluginYml = new YamlConfiguration();
-
-            try (Reader reader = Files.newBufferedReader(pluginYmlPath)) {
-                pluginYml.load(reader);
-            }
+            Config pluginYml = YamlConfigIO.loadConfig(pluginYmlPath);
 
             String name = pluginYml.getString("name");
             if (name == null) return;
@@ -100,7 +97,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
             updatesMap.put(name, versionInfo);
 
             checkUpdates(name);
-        } catch (IOException | InvalidConfigurationException e) {
+        } catch (IOException e) {
             log.warn("Failed to update version info for plugin: " + pluginPath, e);
         }
     }
