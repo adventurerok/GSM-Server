@@ -12,11 +12,8 @@ import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.config.YamlConfigIO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.nio.file.*;
 import java.time.Instant;
 import java.util.Iterator;
@@ -75,7 +72,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
 
             if (!Files.exists(pluginYmlPath)) return;
 
-            Config pluginYml = YamlConfigIO.loadConfig(pluginYmlPath);
+            Config pluginYml = YamlConfigIO.loadToConfig(pluginYmlPath, new MemoryConfig('/'));
 
             String name = pluginYml.getString("name");
             if (name == null) return;

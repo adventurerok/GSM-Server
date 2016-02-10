@@ -2,13 +2,12 @@ package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.server.MSMServerPlugin;
 import com.ithinkrok.util.FIleUtil;
-import com.ithinkrok.util.config.BukkitConfig;
 import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.config.YamlConfigIO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -130,7 +129,7 @@ public class MSMPluginLoader {
 
 
             try (Reader reader = Files.newBufferedReader(pluginYmlPath)) {
-                Config pluginYml = YamlConfigIO.loadConfig(reader);
+                Config pluginYml = YamlConfigIO.loadToConfig(reader, new MemoryConfig('/'));
 
                 //Loop over the keys required in the msm_plugin.yml and check they are there
                 for (String required : new String[]{"name", "main", "version"}) {
