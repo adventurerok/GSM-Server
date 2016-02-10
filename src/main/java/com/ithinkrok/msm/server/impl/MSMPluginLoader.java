@@ -4,6 +4,7 @@ import com.ithinkrok.msm.server.MSMServerPlugin;
 import com.ithinkrok.util.FIleUtil;
 import com.ithinkrok.util.config.BukkitConfig;
 import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.YamlConfigIO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -127,10 +128,9 @@ public class MSMPluginLoader {
 
             if (!Files.exists(pluginYmlPath)) throw new IOException("Plugin jar does not contain msm_plugin.yml");
 
-            YamlConfiguration pluginYml = new YamlConfiguration();
 
             try (Reader reader = Files.newBufferedReader(pluginYmlPath)) {
-                pluginYml.load(reader);
+                Config pluginYml = YamlConfigIO.loadConfig(reader);
 
                 //Loop over the keys required in the msm_plugin.yml and check they are there
                 for (String required : new String[]{"name", "main", "version"}) {
@@ -139,7 +139,7 @@ public class MSMPluginLoader {
                     throw new InvalidConfigurationException("msm_plugin.yml missing required key: " + required);
                 }
 
-                return new BukkitConfig(pluginYml);
+                return pluginYml;
             } catch (InvalidConfigurationException e) {
                 throw new IOException("plugin.yml is invalid", e);
             }
