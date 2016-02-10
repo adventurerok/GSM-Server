@@ -1,9 +1,9 @@
 package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
+import com.ithinkrok.util.config.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public abstract class MSMServerPlugin {
     private String name;
     //Accessed by reflection
     @SuppressWarnings("unused")
-    private FileConfiguration pluginYml;
+    private Config pluginYml;
 
     //Accessed by reflection
     @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})

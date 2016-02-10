@@ -3,7 +3,7 @@ package com.ithinkrok.msm.server.impl;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
-import org.bukkit.configuration.ConfigurationSection;
+import com.ithinkrok.util.config.Config;
 
 import java.util.UUID;
 
@@ -16,14 +16,14 @@ public class MSMPlayer implements Player {
     private String name;
     private MinecraftServer minecraftServer;
 
-    public MSMPlayer(MinecraftServer server, ConfigurationSection config) {
+    public MSMPlayer(MinecraftServer server, Config config) {
         uuid = UUID.fromString(config.getString("uuid"));
         minecraftServer = server;
 
         fromConfig(config);
     }
 
-    public void fromConfig(ConfigurationSection config) {
+    public void fromConfig(Config config) {
         name = config.getString("name");
     }
 

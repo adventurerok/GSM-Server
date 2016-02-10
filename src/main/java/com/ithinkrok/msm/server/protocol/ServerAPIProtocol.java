@@ -1,7 +1,6 @@
 package com.ithinkrok.msm.server.protocol;
 
 import com.ithinkrok.msm.common.Channel;
-import com.ithinkrok.msm.common.util.ConfigUtils;
 import com.ithinkrok.msm.server.*;
 import com.ithinkrok.msm.server.command.MSMCommandInfo;
 import com.ithinkrok.msm.server.event.player.PlayerChangeServerEvent;
@@ -12,6 +11,8 @@ import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
 import com.ithinkrok.msm.server.impl.MSMPlayer;
 import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.util.command.CustomCommand;
+import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomEventExecutor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
@@ -26,13 +27,13 @@ public class ServerAPIProtocol implements ServerListener {
 
     @Override
     public void connectionOpened(Connection connection, Channel channel) {
-        List<ConfigurationSection> commands = new ArrayList<>();
+        List<Config> commands = new ArrayList<>();
 
         for (MSMCommandInfo commandInfo : connection.getConnectedTo().getRegisteredCommands()) {
             commands.add(commandInfo.toConfig());
         }
 
-        ConfigurationSection payload = new MemoryConfiguration();
+        Config payload = new MemoryConfig();
 
         payload.set("commands", commands);
         payload.set("mode", "RegisterCommands");
@@ -46,7 +47,7 @@ public class ServerAPIProtocol implements ServerListener {
     }
 
     @Override
-    public void packetRecieved(Connection connection, Channel channel, ConfigurationSection payload) {
+    public void packetRecieved(Connection connection, Channel channel, Config payload) {
         String mode = payload.getString("mode");
 
         if (mode == null) return;
@@ -72,7 +73,7 @@ public class ServerAPIProtocol implements ServerListener {
         }
     }
 
-    private void handlePlayerJoin(MinecraftServer minecraftServer, ConfigurationSection payload, boolean alreadyOn) {
+    private void handlePlayerJoin(MinecraftServer minecraftServer, Config payload, boolean alreadyOn) {
         UUID playerUUID = UUID.fromString(payload.getString("uuid"));
 
         MSMPlayer player = ((MSMServer) minecraftServer.getConnectedTo()).removeQuittingPlayer(playerUUID);
@@ -96,7 +97,7 @@ public class ServerAPIProtocol implements ServerListener {
         }
     }
 
-    private void handlePlayerQuit(MinecraftServer minecraftServer, ConfigurationSection payload) {
+    private void handlePlayerQuit(MinecraftServer minecraftServer, Config payload) {
         UUID playerUUID = UUID.fromString(payload.getString("uuid"));
 
         Player player = ((MSMMinecraftServer) minecraftServer).removePlayer(playerUUID);
@@ -112,13 +113,13 @@ public class ServerAPIProtocol implements ServerListener {
         }
     }
 
-    private void handlePlayerInfo(MinecraftServer minecraftServer, ConfigurationSection payload) {
-        for (ConfigurationSection playerInfo : ConfigUtils.getConfigList(payload, "players")) {
+    private void handlePlayerInfo(MinecraftServer minecraftServer, Config payload) {
+        for (Config playerInfo : payload.getConfigList("players")) {
             handlePlayerJoin(minecraftServer, playerInfo, true);
         }
     }
 
-    private void handleMessage(Server connectedTo, ConfigurationSection payload) {
+    private void handleMessage(Server connectedTo, Config payload) {
         Map<MinecraftServer, Set<Player>> messagePackets = new HashMap<>();
 
         for (String uuidString : payload.getStringList("recipients")) {
@@ -145,7 +146,7 @@ public class ServerAPIProtocol implements ServerListener {
         }
     }
 
-    private void handleHasPlayers(Server connectedTo, Channel channel, ConfigurationSection payload) {
+    private void handleHasPlayers(Server connectedTo, Channel channel, Config payload) {
         ConfigurationSection players = new MemoryConfiguration();
 
         for (String uuidString : payload.getStringList("players")) {
@@ -155,7 +156,7 @@ public class ServerAPIProtocol implements ServerListener {
             else players.set(uuidString, player.getServer().getName());
         }
 
-        ConfigurationSection reply = new MemoryConfiguration();
+        Config reply = new MemoryConfig();
 
         reply.set("players", players);
         reply.set("mode", "HasPlayersResponse");
@@ -164,7 +165,7 @@ public class ServerAPIProtocol implements ServerListener {
         channel.write(reply);
     }
 
-    private void handlePlayerCommand(MinecraftServer minecraftServer, ConfigurationSection payload) {
+    private void handlePlayerCommand(MinecraftServer minecraftServer, Config payload) {
         String playerUUID = payload.getString("player");
         Player player = minecraftServer.getPlayer(UUID.fromString(playerUUID));
         if (player == null) return;

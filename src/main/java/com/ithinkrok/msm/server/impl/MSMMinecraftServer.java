@@ -6,8 +6,8 @@ import com.ithinkrok.msm.common.MinecraftServerType;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
 import com.ithinkrok.msm.server.Server;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.MemoryConfiguration;
+import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.MemoryConfig;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -131,7 +131,7 @@ public class MSMMinecraftServer implements MinecraftServer {
             playerUUIDs.add(player.getUUID().toString());
         }
 
-        ConfigurationSection payload = new MemoryConfiguration();
+        Config payload = new MemoryConfig();
 
         payload.set("recipients", playerUUIDs);
         payload.set("message", message);
@@ -142,7 +142,7 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     @Override
     public void broadcast(String message) {
-        ConfigurationSection payload = new MemoryConfiguration();
+        Config payload = new MemoryConfig();
 
         payload.set("message", message);
         payload.set("mode", "Broadcast");

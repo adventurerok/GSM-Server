@@ -1,18 +1,17 @@
 package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.common.Channel;
-import com.ithinkrok.msm.common.util.ConfigUtils;
-import com.ithinkrok.util.FIleUtil;
 import com.ithinkrok.msm.common.util.io.DirectoryListener;
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.ServerListener;
+import com.ithinkrok.util.FIleUtil;
+import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.MemoryConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
@@ -134,7 +133,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
     }
 
     private void doUpdate(Channel channel, String plugin, Path pluginPath) {
-        ConfigurationSection payload = new MemoryConfiguration();
+        Config payload = new MemoryConfig();
 
         payload.set("mode", "PluginInstall");
         payload.set("name", plugin);
@@ -162,7 +161,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
     }
 
     @Override
-    public void packetRecieved(Connection connection, Channel channel, ConfigurationSection payload) {
+    public void packetRecieved(Connection connection, Channel channel, Config payload) {
 
         String mode = payload.getString("mode");
         if (mode == null) return;
@@ -174,10 +173,10 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
         }
     }
 
-    private void handlePluginInfo(Connection connection, ConfigurationSection payload) {
+    private void handlePluginInfo(Connection connection, Config payload) {
         Map<String, Instant> newPlugins = new ConcurrentHashMap<>();
 
-        for (ConfigurationSection pluginInfo : ConfigUtils.getConfigList(payload, "plugins")) {
+        for (Config pluginInfo : payload.getConfigList("plugins")) {
             String name = pluginInfo.getString("name");
 
             Instant modified = Instant.ofEpochMilli(pluginInfo.getLong("modified"));

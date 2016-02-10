@@ -1,7 +1,7 @@
 package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.common.Channel;
-import org.bukkit.configuration.ConfigurationSection;
+import com.ithinkrok.util.config.Config;
 
 /**
  * Created by paul on 02/02/16.
@@ -12,5 +12,5 @@ public interface ServerListener {
 
     void connectionClosed(Connection connection);
 
-    void packetRecieved(Connection connection, Channel channel, ConfigurationSection payload);
+    void packetRecieved(Connection connection, Channel channel, Config payload);
 }

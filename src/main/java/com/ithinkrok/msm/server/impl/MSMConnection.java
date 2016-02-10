@@ -6,15 +6,13 @@ import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.Packet;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.MinecraftServer;
+import com.ithinkrok.util.config.Config;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -137,7 +135,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
         }
 
         @Override
-        public void write(ConfigurationSection packet) {
+        public void write(Config packet) {
             channel.writeAndFlush(new Packet(id, packet));
         }
     }

@@ -6,13 +6,13 @@ import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
 import com.ithinkrok.msm.server.MinecraftServer;
-import com.ithinkrok.msm.server.Player;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.command.MSMCommandInfo;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
+import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.event.CustomEventExecutor;
 import com.ithinkrok.util.event.CustomListener;
 import io.netty.bootstrap.ServerBootstrap;
@@ -22,7 +22,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -187,7 +186,7 @@ public class MSMServer implements Server {
         return commandMap.get(name);
     }
 
-    public MSMMinecraftServer assignMinecraftServerToConnection(ConfigurationSection config, MSMConnection connection) {
+    public MSMMinecraftServer assignMinecraftServerToConnection(Config config, MSMConnection connection) {
         MSMMinecraftServer server = getMinecraftServer(config.getString("name"));
 
         if(server == null) {

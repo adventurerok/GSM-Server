@@ -1,8 +1,8 @@
 package com.ithinkrok.msm.server.command;
 
+import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomListener;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.MemoryConfiguration;
 
 /**
  * Created by paul on 07/02/16.
@@ -44,8 +44,8 @@ public class MSMCommandInfo {
         return commandListener;
     }
 
-    public ConfigurationSection toConfig() {
-        ConfigurationSection result = new MemoryConfiguration();
+    public Config toConfig() {
+        Config result = new MemoryConfig();
 
         result.set("name", name);
         result.set("usage", usage);

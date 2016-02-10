@@ -1,13 +1,12 @@
 package com.ithinkrok.msm.server.impl;
 
-import com.ithinkrok.msm.server.Server;
-import com.ithinkrok.util.FIleUtil;
 import com.ithinkrok.msm.server.MSMServerPlugin;
+import com.ithinkrok.util.FIleUtil;
+import com.ithinkrok.util.config.BukkitConfig;
+import com.ithinkrok.util.config.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
@@ -24,7 +23,7 @@ import java.util.*;
 public class MSMPluginLoader {
 
     private static final Logger log = LogManager.getLogger(MSMPluginLoader.class);
-    private static final Map<Class<? extends MSMServerPlugin>, ConfigurationSection> configLookup = new HashMap<>();
+    private static final Map<Class<? extends MSMServerPlugin>, Config> configLookup = new HashMap<>();
 
     private static final Path pluginDirectory = Paths.get("plugins");
 
@@ -38,7 +37,7 @@ public class MSMPluginLoader {
         configuredField.setBoolean(plugin, true);
 
         //Set the plugin yml field
-        ConfigurationSection pluginYml = configLookup.get(plugin.getClass());
+        Config pluginYml = configLookup.get(plugin.getClass());
         Field pluginYmlField = pluginClass.getDeclaredField("pluginYml");
         pluginYmlField.setAccessible(true);
         pluginYmlField.set(plugin, pluginYml);
@@ -65,7 +64,7 @@ public class MSMPluginLoader {
         }
 
         List<URL> pluginLoaderUrls = new ArrayList<>();
-        List<FileConfiguration> pluginYmls = new ArrayList<>();
+        List<Config> pluginYmls = new ArrayList<>();
 
         //Load all the plugin ymls
         for (Path path : jarPaths) {
@@ -85,7 +84,7 @@ public class MSMPluginLoader {
         URLClassLoader pluginLoader = new URLClassLoader(pluginLoaderUrlsArray);
 
         //Load the plugin main classes from the plugin ymls
-        for (FileConfiguration pluginYml : pluginYmls) {
+        for (Config pluginYml : pluginYmls) {
             try {
                 plugins.add(loadPluginObject(pluginLoader, pluginYml));
             } catch (Exception e) {
@@ -119,7 +118,7 @@ public class MSMPluginLoader {
         return jarPaths;
     }
 
-    private FileConfiguration loadPluginYml(Path path) throws IOException {
+    private Config loadPluginYml(Path path) throws IOException {
         //Open the jar as a file system
         try (FileSystem jar = FIleUtil.createZipFileSystem(path)) {
 
@@ -140,7 +139,7 @@ public class MSMPluginLoader {
                     throw new InvalidConfigurationException("msm_plugin.yml missing required key: " + required);
                 }
 
-                return pluginYml;
+                return new BukkitConfig(pluginYml);
             } catch (InvalidConfigurationException e) {
                 throw new IOException("plugin.yml is invalid", e);
             }
@@ -148,7 +147,7 @@ public class MSMPluginLoader {
 
     }
 
-    private MSMServerPlugin loadPluginObject(ClassLoader pluginLoader, FileConfiguration pluginYml)
+    private MSMServerPlugin loadPluginObject(ClassLoader pluginLoader, Config pluginYml)
             throws ReflectiveOperationException {
         String mainClassName = pluginYml.getString("main");
 

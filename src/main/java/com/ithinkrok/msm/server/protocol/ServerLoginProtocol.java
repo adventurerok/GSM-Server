@@ -7,12 +7,15 @@ import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.impl.MSMConnection;
 import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
 import com.ithinkrok.msm.server.impl.MSMServer;
+import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.MemoryConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.MemoryConfiguration;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by paul on 04/02/16.
@@ -32,16 +35,20 @@ public class ServerLoginProtocol implements ServerListener {
     }
 
     @Override
-    public void packetRecieved(Connection connection, Channel channel, ConfigurationSection payload) {
+    public void packetRecieved(Connection connection, Channel channel, Config payload) {
+        //Check we support the clients protocol version
         int version = payload.getInt("version", -1);
         if (version != 0) throw new RuntimeException("Unsupported version: " + version);
 
-        ConfigurationSection serverInfoConfig = payload.getConfigurationSection("server_info");
+        //Get the clients server info
+        Config serverInfoConfig = payload.getConfigOrNull("server_info");
         MinecraftServerInfo minecraftServerInfo = new MinecraftServerInfo(serverInfoConfig);
 
+        //Assign a MinecraftServer object to the connection
         ((MSMServer) connection.getConnectedTo())
                 .assignMinecraftServerToConnection(serverInfoConfig, (MSMConnection) connection);
 
+        //Get the client protocol list and the server protocol list
         List<String> clientProtocols = payload.getStringList("protocols");
         Set<String> serverProtocols = connection.getConnectedTo().getAvailableProtocols();
 
@@ -55,11 +62,13 @@ public class ServerLoginProtocol implements ServerListener {
 
         ((MSMConnection) connection).setSupportedProtocols(new ArrayList<>(sharedProtocols));
 
-        ConfigurationSection replyPayload = new MemoryConfiguration();
+        //Reply with our supported protocols
+        Config replyPayload = new MemoryConfig();
         replyPayload.set("protocols", new ArrayList<>(sharedProtocols));
 
         channel.write(replyPayload);
 
+        //call connectionOpened events for supported protocols
         for (String protocol : sharedProtocols) {
             ServerListener listener = ((MSMConnection) connection).getConnectedTo().getListenerForProtocol(protocol);
 
