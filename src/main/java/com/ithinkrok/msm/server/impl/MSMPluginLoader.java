@@ -5,6 +5,7 @@ import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.util.FIleUtil;
 import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.InvalidConfigException;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.config.YamlConfigIO;
 import org.apache.logging.log4j.LogManager;
@@ -137,11 +138,11 @@ public class MSMPluginLoader {
                 for (String required : new String[]{"name", "main", "version"}) {
                     if (pluginYml.contains(required)) continue;
 
-                    throw new InvalidConfigurationException("msm_plugin.yml missing required key: " + required);
+                    throw new InvalidConfigException("msm_plugin.yml missing required key: " + required);
                 }
 
                 return pluginYml;
-            } catch (InvalidConfigurationException e) {
+            } catch (InvalidConfigException e) {
                 throw new IOException("plugin.yml is invalid", e);
             }
         }
