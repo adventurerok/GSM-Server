@@ -10,6 +10,7 @@ import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
 import com.ithinkrok.msm.server.impl.MSMPlayer;
 import com.ithinkrok.msm.server.impl.MSMServer;
+import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
@@ -27,9 +28,29 @@ public class ServerAPIProtocol implements ServerListener {
 
     @Override
     public void connectionOpened(Connection connection, Channel channel) {
+        sendPermissionsPacket(connection.getConnectedTo(), channel);
+        sendCommandsPacket(connection.getConnectedTo(), channel);
+    }
+
+    private void sendPermissionsPacket(Server server, Channel channel) {
+        List<Config> permissions = new ArrayList<>();
+
+        for(PermissionInfo permissionInfo : server.getRegisteredPermissions()){
+            permissions.add(permissionInfo.toConfig());
+        }
+
+        Config payload = new MemoryConfig();
+
+        payload.set("permissions", permissions);
+        payload.set("mode", "RegisterPermissions");
+
+        channel.write(payload);
+    }
+
+    private void sendCommandsPacket(Server server, Channel channel) {
         List<Config> commands = new ArrayList<>();
 
-        for (CommandInfo commandInfo : connection.getConnectedTo().getRegisteredCommands()) {
+        for (CommandInfo commandInfo : server.getRegisteredCommands()) {
             commands.add(commandInfo.toConfig());
         }
 

@@ -11,6 +11,7 @@ import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
+import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.event.CustomEventExecutor;
@@ -46,6 +47,8 @@ public class MSMServer implements Server {
     private final Map<CustomListener, HashSet<String>> listeners = new ConcurrentHashMap<>();
 
     private final Map<String, CommandInfo> commandMap = new ConcurrentHashMap<>();
+
+    private final Map<String, PermissionInfo> permissionMap = new ConcurrentHashMap<>();
 
     private final Map<UUID, MSMPlayer> quittingPlayers = new ConcurrentHashMap<>();
 
@@ -155,6 +158,16 @@ public class MSMServer implements Server {
     @Override
     public Collection<CommandInfo> getRegisteredCommands() {
         return commandMap.values();
+    }
+
+    @Override
+    public Collection<PermissionInfo> getRegisteredPermissions() {
+        return permissionMap.values();
+    }
+
+    @Override
+    public void registerPermission(PermissionInfo permission) {
+        permissionMap.put(permission.getName(), permission);
     }
 
     @Override

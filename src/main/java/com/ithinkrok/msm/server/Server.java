@@ -2,6 +2,7 @@ package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.event.MSMEvent;
+import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.util.event.CustomListener;
 
 import java.util.Collection;
@@ -54,6 +55,10 @@ public interface Server {
     CommandInfo getCommand(String name);
 
     Collection<CommandInfo> getRegisteredCommands();
+
+    Collection<PermissionInfo> getRegisteredPermissions();
+
+    void registerPermission(PermissionInfo permission);
 
     void broadcast(String message);
 }
