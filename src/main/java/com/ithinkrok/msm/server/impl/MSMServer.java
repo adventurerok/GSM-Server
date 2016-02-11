@@ -48,6 +48,8 @@ public class MSMServer implements Server {
 
     private final Map<String, CommandInfo> commandMap = new ConcurrentHashMap<>();
 
+    private final Map<String, CommandInfo> commandAliasMap = new ConcurrentHashMap<>();
+
     private final Map<String, PermissionInfo> permissionMap = new ConcurrentHashMap<>();
 
     private final Map<UUID, MSMPlayer> quittingPlayers = new ConcurrentHashMap<>();
@@ -190,13 +192,19 @@ public class MSMServer implements Server {
     @Override
     public void registerCommand(CommandInfo command) {
         commandMap.put(command.getName(), command);
+
+        commandAliasMap.put(command.getName(), command);
+
+        for(String alias : command.getAliases()) {
+            commandAliasMap.put(alias, command);
+        }
     }
 
     @Override
     public CommandInfo getCommand(String name) {
         if(name == null) return null;
 
-        return commandMap.get(name);
+        return commandAliasMap.get(name);
     }
 
     public MSMMinecraftServer assignMinecraftServerToConnection(Config config, MSMConnection connection) {

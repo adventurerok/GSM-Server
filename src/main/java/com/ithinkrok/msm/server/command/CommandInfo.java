@@ -52,6 +52,10 @@ public class CommandInfo {
         return commandListener;
     }
 
+    public List<String> getAliases() {
+        return aliases;
+    }
+
     public Config toConfig() {
         Config result = new MemoryConfig();
 
