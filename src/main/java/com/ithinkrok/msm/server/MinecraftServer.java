@@ -57,4 +57,6 @@ public interface MinecraftServer {
     void broadcast(String message);
 
     Player getPlayer(UUID uuid);
+
+    Player getPlayer(String name);
 }

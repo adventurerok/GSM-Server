@@ -24,6 +24,8 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     private final Map<UUID, MSMPlayer> players = new ConcurrentHashMap<>();
 
+    private final Map<String, MSMPlayer> namedPlayers = new ConcurrentHashMap<>();
+
     private Collection<String> supportedProtocols;
 
     public MSMMinecraftServer(MinecraftServerInfo serverInfo, MSMServer server) {
@@ -73,6 +75,8 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     public void addPlayer(MSMPlayer player) {
         players.put(player.getUUID(), player);
+
+        namedPlayers.put(player.getName(), player);
     }
 
     public void setConnection(MSMConnection connection) {
@@ -87,18 +91,13 @@ public class MSMMinecraftServer implements MinecraftServer {
     }
 
     public MSMPlayer removePlayer(UUID playerUUID) {
-        Iterator<MSMPlayer> playerIterator = players.values().iterator();
+        MSMPlayer player = players.remove(playerUUID);
 
-        while(playerIterator.hasNext()){
-            MSMPlayer next = playerIterator.next();
-
-            if(!next.getUUID().equals(playerUUID)) continue;
-
-            playerIterator.remove();
-            return next;
+        if(player != null) {
+            namedPlayers.remove(player.getName());
         }
 
-        return null;
+        return player;
     }
 
     @Override
@@ -153,5 +152,10 @@ public class MSMMinecraftServer implements MinecraftServer {
     @Override
     public MSMPlayer getPlayer(UUID uuid) {
         return players.get(uuid);
+    }
+
+    @Override
+    public MSMPlayer getPlayer(String name) {
+        return namedPlayers.get(name);
     }
 }

@@ -25,6 +25,8 @@ public interface Server {
 
     Player getPlayer(UUID uuid);
 
+    Player getPlayer(String name);
+
     <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit);
 
     ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit);
