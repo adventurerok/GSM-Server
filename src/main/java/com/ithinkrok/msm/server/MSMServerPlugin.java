@@ -3,16 +3,14 @@ package com.ithinkrok.msm.server;
 import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.event.player.PlayerCommandEvent;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
+import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.event.CustomEventHandler;
 import com.ithinkrok.util.event.CustomListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -36,6 +34,8 @@ public abstract class MSMServerPlugin {
     private boolean enabled = false;
 
     private Map<String, CommandInfo> commands;
+
+    private List<PermissionInfo> permissions;
 
     private Server server;
 
@@ -98,14 +98,14 @@ public abstract class MSMServerPlugin {
     }
 
     public Map<String, CommandInfo> getCommands() {
-        if(commands == null) {
+        if (commands == null) {
             Map<String, CommandInfo> commands = new ConcurrentHashMap<>();
 
             Config commandConfigs = pluginYml.getConfigOrEmpty("commands");
 
             CustomListener listener = new MSMPluginListener();
 
-            for(String commandName : commandConfigs.getKeys(false)) {
+            for (String commandName : commandConfigs.getKeys(false)) {
                 Config commandConfig = commandConfigs.getConfigOrNull(commandName);
 
                 String usage = commandConfig.getString("usage");
@@ -121,6 +121,25 @@ public abstract class MSMServerPlugin {
         }
 
         return commands;
+    }
+
+    public List<PermissionInfo> getPermissions() {
+        if (permissions == null) {
+            List<PermissionInfo> permissions = new ArrayList<>();
+
+            Config permissionConfigs = pluginYml.getConfigOrEmpty("permissions");
+
+            for (String permissionName : permissionConfigs.getKeys(false)) {
+                Config permissionConfig = permissionConfigs.getConfigOrNull(permissionName);
+                PermissionInfo permissionInfo = new PermissionInfo(permissionName, permissionConfig);
+
+                permissions.add(permissionInfo);
+            }
+
+            this.permissions = permissions;
+        }
+
+        return permissions;
     }
 
     private class MSMPluginListener implements CustomListener {
