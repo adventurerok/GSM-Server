@@ -4,6 +4,8 @@ import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomListener;
 
+import java.util.List;
+
 /**
  * Created by paul on 07/02/16.
  */
@@ -13,14 +15,16 @@ public class CommandInfo {
     private final String usage;
     private final String description;
     private final String permission;
+    private final List<String> aliases;
     private CustomListener commandListener;
 
-    public CommandInfo(String name, String usage, String description, String permission,
+    public CommandInfo(String name, Config config,
                        CustomListener commandListener) {
         this.name = name;
-        this.usage = usage;
-        this.description = description;
-        this.permission = permission;
+        this.usage = config.getString("usage");
+        this.description = config.getString("description");
+        this.permission = config.getString("permission");
+        this.aliases = config.getStringList("aliases");
         this.commandListener = commandListener;
     }
 
@@ -55,6 +59,7 @@ public class CommandInfo {
         result.set("usage", usage);
         result.set("description", description);
         result.set("permission", permission);
+        result.set("aliases", aliases);
 
         return result;
     }

@@ -108,11 +108,7 @@ public abstract class MSMServerPlugin {
             for (String commandName : commandConfigs.getKeys(false)) {
                 Config commandConfig = commandConfigs.getConfigOrNull(commandName);
 
-                String usage = commandConfig.getString("usage");
-                String description = commandConfig.getString("description");
-                String permission = commandConfig.getString("permission");
-
-                CommandInfo commandInfo = new CommandInfo(commandName, usage, description, permission, listener);
+                CommandInfo commandInfo = new CommandInfo(commandName, commandConfig, listener);
 
                 commands.put(commandName, commandInfo);
             }
