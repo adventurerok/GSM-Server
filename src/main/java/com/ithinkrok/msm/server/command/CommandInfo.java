@@ -13,7 +13,7 @@ public class CommandInfo {
     private final String usage;
     private final String description;
     private final String permission;
-    private final CustomListener commandListener;
+    private CustomListener commandListener;
 
     public CommandInfo(String name, String usage, String description, String permission,
                        CustomListener commandListener) {
@@ -38,6 +38,10 @@ public class CommandInfo {
 
     public String getPermission() {
         return permission;
+    }
+
+    public void setCommandListener(CustomListener commandListener) {
+        this.commandListener = commandListener;
     }
 
     public CustomListener getCommandListener() {
