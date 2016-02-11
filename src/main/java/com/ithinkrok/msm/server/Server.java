@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server;
 
-import com.ithinkrok.msm.server.command.MSMCommandInfo;
+import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.util.event.CustomListener;
 
@@ -49,11 +49,11 @@ public interface Server {
 
     void unregisterListener(CustomListener listener);
 
-    void registerCommand(MSMCommandInfo command);
+    void registerCommand(CommandInfo command);
 
-    MSMCommandInfo getCommand(String name);
+    CommandInfo getCommand(String name);
 
-    Collection<MSMCommandInfo> getRegisteredCommands();
+    Collection<CommandInfo> getRegisteredCommands();
 
     void broadcast(String message);
 }

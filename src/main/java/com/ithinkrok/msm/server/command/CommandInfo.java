@@ -7,7 +7,7 @@ import com.ithinkrok.util.event.CustomListener;
 /**
  * Created by paul on 07/02/16.
  */
-public class MSMCommandInfo {
+public class CommandInfo {
 
     private final String name;
     private final String usage;
@@ -15,8 +15,8 @@ public class MSMCommandInfo {
     private final String permission;
     private final CustomListener commandListener;
 
-    public MSMCommandInfo(String name, String usage, String description, String permission,
-                          CustomListener commandListener) {
+    public CommandInfo(String name, String usage, String description, String permission,
+                       CustomListener commandListener) {
         this.name = name;
         this.usage = usage;
         this.description = description;

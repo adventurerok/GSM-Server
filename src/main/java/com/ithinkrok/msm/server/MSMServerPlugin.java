@@ -1,7 +1,11 @@
 package com.ithinkrok.msm.server;
 
+import com.ithinkrok.msm.server.command.CommandInfo;
+import com.ithinkrok.msm.server.event.player.PlayerCommandEvent;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.event.CustomEventHandler;
+import com.ithinkrok.util.event.CustomListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by paul on 02/02/16.
@@ -29,6 +34,8 @@ public abstract class MSMServerPlugin {
     //Accessed by reflection
     @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
     private boolean enabled = false;
+
+    private Map<String, CommandInfo> commands;
 
     private Server server;
 
@@ -78,11 +85,50 @@ public abstract class MSMServerPlugin {
 
     }
 
+    public void onCommand(PlayerCommandEvent event) {
+
+    }
+
     public boolean isEnabled() {
         return enabled;
     }
 
     public Map<String, ServerListener> getProtocols() {
         return new HashMap<>();
+    }
+
+    public Map<String, CommandInfo> getCommands() {
+        if(commands == null) {
+            Map<String, CommandInfo> commands = new ConcurrentHashMap<>();
+
+            Config commandConfigs = pluginYml.getConfigOrEmpty("commands");
+
+            CustomListener listener = new MSMPluginListener();
+
+            for(String commandName : commandConfigs.getKeys(false)) {
+                Config commandConfig = commandConfigs.getConfigOrNull(commandName);
+
+                String usage = commandConfig.getString("usage");
+                String description = commandConfig.getString("description");
+                String permission = commandConfig.getString("permission");
+
+                CommandInfo commandInfo = new CommandInfo(commandName, usage, description, permission, listener);
+
+                commands.put(commandName, commandInfo);
+            }
+
+            this.commands = commands;
+        }
+
+        return commands;
+    }
+
+    private class MSMPluginListener implements CustomListener {
+
+        @CustomEventHandler
+        public void onPlayerCommand(PlayerCommandEvent event) {
+            onCommand(event);
+        }
+
     }
 }

@@ -8,7 +8,7 @@ import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
-import com.ithinkrok.msm.server.command.MSMCommandInfo;
+import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
@@ -45,7 +45,7 @@ public class MSMServer implements Server {
 
     private final Map<CustomListener, HashSet<String>> listeners = new ConcurrentHashMap<>();
 
-    private final Map<String, MSMCommandInfo> commandMap = new ConcurrentHashMap<>();
+    private final Map<String, CommandInfo> commandMap = new ConcurrentHashMap<>();
 
     private final Map<UUID, MSMPlayer> quittingPlayers = new ConcurrentHashMap<>();
 
@@ -153,7 +153,7 @@ public class MSMServer implements Server {
     }
 
     @Override
-    public Collection<MSMCommandInfo> getRegisteredCommands() {
+    public Collection<CommandInfo> getRegisteredCommands() {
         return commandMap.values();
     }
 
@@ -175,12 +175,12 @@ public class MSMServer implements Server {
     }
 
     @Override
-    public void registerCommand(MSMCommandInfo command) {
+    public void registerCommand(CommandInfo command) {
         commandMap.put(command.getName(), command);
     }
 
     @Override
-    public MSMCommandInfo getCommand(String name) {
+    public CommandInfo getCommand(String name) {
         if(name == null) return null;
 
         return commandMap.get(name);

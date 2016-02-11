@@ -2,7 +2,7 @@ package com.ithinkrok.msm.server.protocol;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.*;
-import com.ithinkrok.msm.server.command.MSMCommandInfo;
+import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.event.player.PlayerChangeServerEvent;
 import com.ithinkrok.msm.server.event.player.PlayerCommandEvent;
 import com.ithinkrok.msm.server.event.player.PlayerJoinEvent;
@@ -29,7 +29,7 @@ public class ServerAPIProtocol implements ServerListener {
     public void connectionOpened(Connection connection, Channel channel) {
         List<Config> commands = new ArrayList<>();
 
-        for (MSMCommandInfo commandInfo : connection.getConnectedTo().getRegisteredCommands()) {
+        for (CommandInfo commandInfo : connection.getConnectedTo().getRegisteredCommands()) {
             commands.add(commandInfo.toConfig());
         }
 
@@ -173,7 +173,7 @@ public class ServerAPIProtocol implements ServerListener {
         String fullCommand = payload.getString("command");
         CustomCommand command = new CustomCommand(fullCommand);
 
-        MSMCommandInfo commandInfo = minecraftServer.getConnectedTo().getCommand(command.getCommand());
+        CommandInfo commandInfo = minecraftServer.getConnectedTo().getCommand(command.getCommand());
 
         if (commandInfo == null) {
             player.sendMessage("Unknown MSM command: " + command.getCommand());

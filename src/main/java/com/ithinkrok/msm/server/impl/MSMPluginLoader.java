@@ -1,6 +1,7 @@
 package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.server.MSMServerPlugin;
+import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.util.FIleUtil;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
@@ -173,6 +174,7 @@ public class MSMPluginLoader {
         for (MSMServerPlugin plugin : plugins) {
             Set<MSMServerPlugin> loading = new HashSet<>();
 
+
             enablePlugin(plugin, loading, pluginsByName, enabledPlugins);
         }
 
@@ -215,6 +217,8 @@ public class MSMPluginLoader {
 
             log.info("Enabling plugin " + plugin.getName() + " v" + plugin.getVersion());
 
+            setupPluginCommands(plugin);
+
             plugin.onEnable();
 
             Field enabledField = MSMServerPlugin.class.getDeclaredField("enabled");
@@ -231,6 +235,12 @@ public class MSMPluginLoader {
         enabledPlugins.add(plugin);
 
         return true;
+    }
+
+    private void setupPluginCommands(MSMServerPlugin plugin) {
+        for(CommandInfo commandInfo : plugin.getCommands().values()) {
+            plugin.getServer().registerCommand(commandInfo);
+        }
     }
 
 
