@@ -83,7 +83,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
         Packet packet = (Packet) msg;
         String protocol = idToProtocolMap.get(packet.getId());
 
-        log.info("Received packet for protocol " + protocol);
+        log.trace("Received packet for protocol " + protocol);
 
         MSMConnectionChannel channel = getChannel(packet.getId());
 
