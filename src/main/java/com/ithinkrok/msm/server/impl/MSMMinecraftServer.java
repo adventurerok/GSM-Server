@@ -151,11 +151,13 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     @Override
     public MSMPlayer getPlayer(UUID uuid) {
+        if(uuid == null) return null;
         return players.get(uuid);
     }
 
     @Override
     public MSMPlayer getPlayer(String name) {
+        if(name == null) return null;
         return namedPlayers.get(name);
     }
 }
