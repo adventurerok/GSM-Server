@@ -67,6 +67,16 @@ public class MSMServer implements Server {
         asyncThreadExecutor = new ScheduledThreadPoolExecutor(4);
     }
 
+    public void registerProtocol(String name, ServerListener listener) {
+        protocolToPluginMap.put(name, listener);
+    }
+
+    public void registerProtocols(Map<String, ServerListener> protocols) {
+        protocolToPluginMap.putAll(protocols);
+    }
+
+
+
     public ServerListener getListenerForProtocol(String protocol) {
         return protocolToPluginMap.get(protocol);
     }

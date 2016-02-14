@@ -34,11 +34,6 @@ public class Program {
         listenerMap.put("MSMAutoUpdate", new ServerAutoUpdateProtocol(Paths.get("updates/bukkit_plugins")));
         listenerMap.put("MSMAPI", new ServerAPIProtocol());
 
-        //Add plugin protocols
-        for(MSMServerPlugin plugin : plugins) {
-            listenerMap.putAll(plugin.getProtocols());
-        }
-
         MSMServer server = new MSMServer(30824, listenerMap);
 
         for(MSMServerPlugin plugin : plugins) {
@@ -48,6 +43,12 @@ public class Program {
         log.info("Enabling plugins...");
         pluginLoader.enablePlugins(plugins);
         log.info("Finished enabling plugins");
+
+        for(MSMServerPlugin plugin : plugins) {
+            server.registerProtocols(plugin.getProtocols());
+        }
+
+        log.info("Supported protocols: " + server.getAvailableProtocols());
 
         server.start();
     }
