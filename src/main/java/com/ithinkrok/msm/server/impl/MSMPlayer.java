@@ -4,6 +4,8 @@ import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
 import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.MemoryConfig;
+import org.apache.commons.lang.Validate;
 
 import java.util.UUID;
 
@@ -59,5 +61,22 @@ public class MSMPlayer implements Player {
 
     public void setServer(MinecraftServer minecraftServer) {
         this.minecraftServer = minecraftServer;
+    }
+
+    @Override
+    public void changeServer(MinecraftServer newServer) {
+        Validate.notNull(newServer, "newServer cannot be null");
+
+        if(!minecraftServer.hasBungee() || !newServer.hasBungee()){
+            throw new UnsupportedOperationException("Cannot change a player between non bungee servers");
+        }
+
+        Config payload = new MemoryConfig();
+
+        payload.set("player", uuid);
+        payload.set("target", newServer.getName());
+        payload.set("mode", "ChangeServer");
+
+        getAPIChannel().write(payload);
     }
 }

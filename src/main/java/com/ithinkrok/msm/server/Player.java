@@ -14,4 +14,6 @@ public interface Player extends CustomCommandSender {
     UUID getUUID();
 
     MinecraftServer getServer();
+
+    void changeServer(MinecraftServer newServer);
 }
