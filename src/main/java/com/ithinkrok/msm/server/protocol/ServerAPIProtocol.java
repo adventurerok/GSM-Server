@@ -15,6 +15,8 @@ import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomEventExecutor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 
@@ -25,6 +27,7 @@ import java.util.*;
  */
 public class ServerAPIProtocol implements ServerListener {
 
+    private final Logger log = LogManager.getLogger(ServerAPIProtocol.class);
 
     @Override
     public void connectionOpened(Connection connection, Channel channel) {
@@ -91,7 +94,30 @@ public class ServerAPIProtocol implements ServerListener {
                 return;
             case "PlayerCommand":
                 handlePlayerCommand(connection.getMinecraftServer(), payload);
+                return;
+            case "ChangeServer":
+                handleChangeServer(connection.getConnectedTo(), payload);
         }
+    }
+
+    private void handleChangeServer(Server connectedTo, Config payload) {
+        UUID playerUUID = UUID.fromString(payload.getString("player"));
+        Player player = connectedTo.getPlayer(playerUUID);
+
+        if(player == null) {
+            log.debug("Unknown player " + playerUUID + " in ChangeServer request");
+            return;
+        }
+
+        String targetName = payload.getString("target");
+        MinecraftServer target = connectedTo.getMinecraftServer(targetName);
+
+        if(target == null) {
+            log.debug("Unknown minecraft server " + targetName + " in ChangeServer request");
+            return;
+        }
+
+        player.changeServer(target);
     }
 
     private void handlePlayerJoin(MinecraftServer minecraftServer, Config payload, boolean alreadyOn) {
