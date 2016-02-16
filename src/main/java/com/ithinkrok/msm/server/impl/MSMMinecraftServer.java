@@ -159,6 +159,7 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     @Override
     public void messagePlayers(String message, Collection<? extends Player> players) {
+        if(getAPIChannel() == null) return;
         List<String> playerUUIDs = new ArrayList<>();
 
         for(Player player : players) {
@@ -176,6 +177,8 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     @Override
     public void broadcast(String message) {
+        if(getAPIChannel() == null) return;
+
         Config payload = new MemoryConfig();
 
         payload.set("message", message);
