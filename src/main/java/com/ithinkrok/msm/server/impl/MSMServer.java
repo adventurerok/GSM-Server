@@ -264,11 +264,19 @@ public class MSMServer implements Server {
             log.info("Server started on port " + port);
 
             future.channel().closeFuture().addListener(unused1 -> {
+                for(ServerListener protocol : protocolToPluginMap.values()) {
+                    protocol.serverStopped(this);
+                }
+
                 workerGroup.shutdownGracefully();
                 bossGroup.shutdownGracefully();
             });
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+
+        for(ServerListener protocol : protocolToPluginMap.values()) {
+            protocol.serverStarted(this);
         }
     }
 

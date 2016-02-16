@@ -8,6 +8,14 @@ import com.ithinkrok.util.config.Config;
  */
 public interface ServerListener {
 
+    default void serverStarted(Server server){
+
+    }
+
+    default void serverStopped(Server server){
+
+    }
+
     void connectionOpened(Connection connection, Channel channel);
 
     void connectionClosed(Connection connection);
