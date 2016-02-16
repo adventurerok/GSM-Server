@@ -150,8 +150,13 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
     }
 
     @Override
+    public void serverStarted(Server server) {
+        this.server = server;
+    }
+
+    @Override
     public void connectionOpened(Connection connection, Channel channel) {
-        if (server == null) server = connection.getConnectedTo();
+
     }
 
     @Override
