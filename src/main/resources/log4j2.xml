@@ -14,8 +14,8 @@
     <Loggers>
         <Logger name="org.apache.log4j.xml" level="info"/>
         <Root level="trace">
-            <AppenderRef ref="STDOUT"/>
-            <AppenderRef ref="ROLLING"/>
+            <AppenderRef ref="STDOUT" level="info"/>
+            <AppenderRef ref="ROLLING" level="trace"/>
         </Root>
     </Loggers>
 </Configuration>
