@@ -1,5 +1,6 @@
 package com.ithinkrok.msm.server;
 
+import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
@@ -63,4 +64,6 @@ public interface Server {
     void registerPermission(PermissionInfo permission);
 
     void broadcast(String message);
+
+    DirectoryWatcher getDirectoryWatcher();
 }

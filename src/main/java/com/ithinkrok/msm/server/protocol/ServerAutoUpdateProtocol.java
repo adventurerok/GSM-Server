@@ -49,14 +49,6 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
             }
         }
 
-        try {
-            DirectoryWatcher directoryWatcher = new DirectoryWatcher(updatedPluginsPath.getFileSystem());
-
-            directoryWatcher.registerListener(updatedPluginsPath, this);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to create directory watcher", e);
-        }
-
         updatePluginVersions(updatedPluginsPath);
     }
 
@@ -152,6 +144,8 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
     @Override
     public void serverStarted(Server server) {
         this.server = server;
+
+        server.getDirectoryWatcher().registerListener(updatedPluginsPath, this);
     }
 
     @Override

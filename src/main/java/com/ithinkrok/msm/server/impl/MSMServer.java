@@ -5,6 +5,7 @@ import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
+import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
 import com.ithinkrok.msm.server.Server;
@@ -25,6 +26,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -55,6 +58,8 @@ public class MSMServer implements Server {
 
     private final Map<UUID, MSMPlayer> quittingPlayers = new ConcurrentHashMap<>();
 
+    private final DirectoryWatcher directoryWatcher;
+
     public MSMServer(int port, Map<String, ? extends ServerListener> listeners) {
         this.port = port;
 
@@ -65,6 +70,18 @@ public class MSMServer implements Server {
 
         mainThreadExecutor = new ScheduledThreadPoolExecutor(1);
         asyncThreadExecutor = new ScheduledThreadPoolExecutor(4);
+
+        try {
+            directoryWatcher = new DirectoryWatcher(FileSystems.getDefault());
+        } catch (IOException e) {
+            log.fatal("Failed to create directory watcher", e);
+            throw new RuntimeException("Failed to create directory watcher", e);
+        }
+    }
+
+    @Override
+    public DirectoryWatcher getDirectoryWatcher() {
+        return directoryWatcher;
     }
 
     public void registerProtocol(String name, ServerListener listener) {
