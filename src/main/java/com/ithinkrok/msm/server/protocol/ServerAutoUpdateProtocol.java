@@ -1,10 +1,12 @@
 package com.ithinkrok.msm.server.protocol;
 
 import com.ithinkrok.msm.common.Channel;
+import com.ithinkrok.msm.common.Packet;
 import com.ithinkrok.msm.common.util.io.DirectoryListener;
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.MinecraftServer;
+import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.util.FIleUtil;
 import com.ithinkrok.util.config.Config;
@@ -16,9 +18,10 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.Instant;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by paul on 05/02/16.
@@ -31,6 +34,8 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
     private final Map<MinecraftServer, Map<String, Instant>> clientVersionsMap = new ConcurrentHashMap<>();
 
     private final Path updatedPluginsPath;
+    private final Map<Path, Future<?>> modifiedPaths = new ConcurrentHashMap<>();
+    private Server server;
 
     public ServerAutoUpdateProtocol(Path updatedPluginsPath) {
         this.updatedPluginsPath = updatedPluginsPath;
@@ -146,7 +151,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
 
     @Override
     public void connectionOpened(Connection connection, Channel channel) {
-
+        if (server == null) server = connection.getConnectedTo();
     }
 
     @Override
@@ -183,7 +188,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
         clientVersionsMap.put(connection.getMinecraftServer(), newPlugins);
 
         //Check for plugin updates. This cannot be done in the loop above as it uses the clientVersionsMap
-        for(String pluginName : newPlugins.keySet()) {
+        for (String pluginName : newPlugins.keySet()) {
             checkUpdate(connection.getMinecraftServer(), pluginName);
         }
     }
@@ -202,9 +207,18 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
             }
 
             updatePluginVersions(updatedPluginsPath);
+            return;
         }
 
-        updatePluginVersion(changed);
+        Future<?> oldFuture = modifiedPaths.get(changed);
+        if (oldFuture != null) oldFuture.cancel(false);
+
+        Future<?> newFuture = server.scheduleAsync(() -> {
+            updatePluginVersion(changed);
+            modifiedPaths.remove(changed);
+        }, 5, TimeUnit.SECONDS);
+
+        modifiedPaths.put(changed, newFuture);
     }
 
     private static class ServerVersionInfo {
