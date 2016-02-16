@@ -28,6 +28,14 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     private Collection<String> supportedProtocols;
 
+    private double tps;
+
+    private double ramUsage;
+
+    private double allocatedRam;
+
+    private double maxRam;
+
     public MSMMinecraftServer(MinecraftServerInfo serverInfo, MSMServer server) {
         this.serverInfo = serverInfo;
         this.server = server;
@@ -98,6 +106,33 @@ public class MSMMinecraftServer implements MinecraftServer {
         }
 
         return player;
+    }
+
+    public void handleResourceUsagePacket(Config payload) {
+        tps = payload.getDouble("average_tps");
+        ramUsage = payload.getDouble("average_ram");
+        maxRam = payload.getDouble("max_ram");
+        allocatedRam = payload.getDouble("allocated_ram");
+    }
+
+    @Override
+    public double getTPS() {
+        return tps;
+    }
+
+    @Override
+    public double getRamUsage() {
+        return ramUsage;
+    }
+
+    @Override
+    public double getMaxRam() {
+        return maxRam;
+    }
+
+    @Override
+    public double getAllocatedRam() {
+        return allocatedRam;
     }
 
     @Override

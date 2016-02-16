@@ -97,6 +97,9 @@ public class ServerAPIProtocol implements ServerListener {
                 return;
             case "ChangeServer":
                 handleChangeServer(connection.getConnectedTo(), payload);
+                return;
+            case "ResourceUsage":
+                ((MSMMinecraftServer)connection.getMinecraftServer()).handleResourceUsagePacket(payload);
         }
     }
 

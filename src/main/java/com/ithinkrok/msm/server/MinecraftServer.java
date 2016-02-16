@@ -29,6 +29,29 @@ public interface MinecraftServer {
      */
     Connection getConnection();
 
+    /**
+     * Gets an estimate of the average tps of the server over the last 60 seconds.
+     *
+     * @return An estimate of the average tps of the server over the last 60 seconds, within 0.2 of the actual value
+     */
+    double getTPS();
+
+    /**
+     * @return An estimate of the average ram usage (in MiB) of the server over the last 60 seconds, within 10% of the
+     * actual value
+     */
+    double getRamUsage();
+
+    /**
+     * @return The max ram (in MiB) that the server can use
+     */
+    double getMaxRam();
+
+    /**
+     * @return The current allocated ram (in MiB) of the server
+     */
+    double getAllocatedRam();
+
     Collection<String> getSupportedProtocols();
 
     MinecraftServerInfo getServerInfo();
@@ -48,7 +71,7 @@ public interface MinecraftServer {
 
     Server getConnectedTo();
 
-    default void messagePlayers(String message, Player...players) {
+    default void messagePlayers(String message, Player... players) {
         messagePlayers(message, Arrays.asList(players));
     }
 
