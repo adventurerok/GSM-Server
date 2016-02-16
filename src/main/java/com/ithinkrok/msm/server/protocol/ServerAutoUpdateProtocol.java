@@ -53,8 +53,8 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
             DirectoryWatcher directoryWatcher = new DirectoryWatcher(updatedPluginsPath.getFileSystem());
 
             directoryWatcher.registerListener(updatedPluginsPath, this);
-        } catch (IOException ignored) {
-            throw new RuntimeException("Failed to create directory watcher");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create directory watcher", e);
         }
 
         updatePluginVersions(updatedPluginsPath);
