@@ -145,6 +145,7 @@ public class MSMMinecraftServer implements MinecraftServer {
     }
 
     private Channel getAPIChannel() {
+        if(connection == null) return null;
         return connection.getChannel("MSMAPI");
     }
 
