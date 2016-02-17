@@ -142,7 +142,7 @@ public class MSMServer implements Server {
             if(quittingPlayers.remove(quitting.getUUID()) == null) return;
 
             callEvent(new PlayerQuitEvent(quitting));
-        }, 3, TimeUnit.SECONDS);
+        }, 1, TimeUnit.SECONDS);
     }
 
     public MSMPlayer removeQuittingPlayer(UUID uuid) {
