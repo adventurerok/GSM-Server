@@ -83,16 +83,6 @@ public class MSMServer implements Server {
         }
     }
 
-    @Override
-    public DirectoryWatcher getDirectoryWatcher() {
-        return directoryWatcher;
-    }
-
-    @Override
-    public void addLanguageLookup(LanguageLookup lookup) {
-        languageLookup.addLanguageLookup(lookup);
-    }
-
     public void registerProtocol(String name, ServerListener listener) {
         protocolToPluginMap.put(name, listener);
     }
@@ -100,8 +90,6 @@ public class MSMServer implements Server {
     public void registerProtocols(Map<String, ServerListener> protocols) {
         protocolToPluginMap.putAll(protocols);
     }
-
-
 
     public ServerListener getListenerForProtocol(String protocol) {
         return protocolToPluginMap.get(protocol);
@@ -124,10 +112,10 @@ public class MSMServer implements Server {
 
     @Override
     public MSMPlayer getPlayer(UUID uuid) {
-        for(MSMMinecraftServer minecraftServer : minecraftServerMap.values()) {
+        for (MSMMinecraftServer minecraftServer : minecraftServerMap.values()) {
             MSMPlayer player = minecraftServer.getPlayer(uuid);
 
-            if(player != null) return player;
+            if (player != null) return player;
         }
 
         return null;
@@ -135,74 +123,120 @@ public class MSMServer implements Server {
 
     @Override
     public Player getPlayer(String name) {
-        for(MSMMinecraftServer minecraftServer : minecraftServerMap.values()) {
+        for (MSMMinecraftServer minecraftServer : minecraftServerMap.values()) {
             MSMPlayer player = minecraftServer.getPlayer(name);
 
-            if(player != null) return player;
+            if (player != null) return player;
         }
 
         return null;
     }
 
-    public void addQuittingPlayer(MSMPlayer quitting) {
-        quittingPlayers.put(quitting.getUUID(), quitting);
-
-        schedule(() -> {
-            if(quittingPlayers.remove(quitting.getUUID()) == null) return;
-
-            callEvent(new PlayerQuitEvent(quitting));
-        }, 1, TimeUnit.SECONDS);
-    }
-
-    public MSMPlayer removeQuittingPlayer(UUID uuid) {
-        MSMPlayer player = quittingPlayers.remove(uuid);
-
-        if(player != null) return player;
-
-        return getPlayer(uuid);
-    }
-
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
-        return mainThreadExecutor.schedule(callable, delay, unit);
+        return scheduleOnService(callable, delay, unit, mainThreadExecutor);
     }
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        return mainThreadExecutor.schedule(command, delay, unit);
+        return mainThreadExecutor.schedule(() -> {
+            try {
+                command.run();
+            } catch (Exception e) {
+                log.warn("Error in scheduled task", e);
+            }
+        }, delay, unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleRepeat(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        return mainThreadExecutor.scheduleAtFixedRate(command, initialDelay, period, unit);
+        return mainThreadExecutor.scheduleAtFixedRate(() -> {
+            try {
+                command.run();
+            } catch (Exception e) {
+                log.warn("Error in scheduled task", e);
+            }
+        }, initialDelay, period, unit);
+    }
+
+    private <V> ScheduledFuture<V> scheduleOnService(Callable<V> callable, long delay, TimeUnit unit,
+                                                     ScheduledExecutorService service) {
+        return service.schedule(() -> {
+            try {
+                return callable.call();
+            } catch (Exception e) {
+                log.warn("Error in scheduled task", e);
+                return null;
+            }
+        }, delay, unit);
     }
 
     @Override
     public <V> ScheduledFuture<V> scheduleAsync(Callable<V> callable, long delay, TimeUnit unit) {
-        return asyncThreadExecutor.schedule(callable, delay, unit);
+        return scheduleOnService(callable, delay, unit, asyncThreadExecutor);
     }
 
     @Override
     public ScheduledFuture<?> scheduleAsync(Runnable command, long delay, TimeUnit unit) {
-        return asyncThreadExecutor.schedule(command, delay, unit);
+        return asyncThreadExecutor.schedule(() -> {
+            try {
+                command.run();
+            } catch (Exception e) {
+                log.warn("Error in scheduled task", e);
+            }
+        }, delay, unit);
     }
 
     @Override
     public ScheduledFuture<?> scheduleRepeatAsync(Runnable command, long initialDelay, long period, TimeUnit unit) {
-        return asyncThreadExecutor.scheduleAtFixedRate(command, initialDelay, period, unit);
+        return asyncThreadExecutor.scheduleAtFixedRate(() -> {
+            try {
+                command.run();
+            } catch (Exception e) {
+                log.warn("Error in scheduled task", e);
+            }
+        }, initialDelay, period, unit);
     }
 
     @Override
     public void callEvent(MSMEvent event) {
         List<CustomListener> listenersToCall = new ArrayList<>();
 
-        for(Map.Entry<CustomListener, HashSet<String>> listenerEntry : listeners.entrySet()) {
-            if(!event.getMinecraftServer().getSupportedProtocols().containsAll(listenerEntry.getValue())) continue;
+        for (Map.Entry<CustomListener, HashSet<String>> listenerEntry : listeners.entrySet()) {
+            if (!event.getMinecraftServer().getSupportedProtocols().containsAll(listenerEntry.getValue())) continue;
 
             listenersToCall.add(listenerEntry.getKey());
         }
 
         CustomEventExecutor.executeEvent(event, listenersToCall);
+    }
+
+    @Override
+    public void registerListener(CustomListener listener, String... requireProtocols) {
+        listeners.put(listener, new HashSet<>(Arrays.asList(requireProtocols)));
+    }
+
+    @Override
+    public void unregisterListener(CustomListener listener) {
+        listeners.remove(listener);
+    }
+
+    @Override
+    public void registerCommand(CommandInfo command) {
+        commandMap.put(command.getName(), command);
+
+        commandAliasMap.put(command.getName(), command);
+
+        for (String alias : command.getAliases()) {
+            commandAliasMap.put(alias, command);
+        }
+    }
+
+    @Override
+    public CommandInfo getCommand(String name) {
+        if (name == null) return null;
+
+        return commandAliasMap.get(name);
     }
 
     @Override
@@ -222,43 +256,43 @@ public class MSMServer implements Server {
 
     @Override
     public void broadcast(String message) {
-        for(MinecraftServer server : minecraftServerMap.values()) {
+        for (MinecraftServer server : minecraftServerMap.values()) {
             server.broadcast(message);
         }
     }
 
     @Override
-    public void registerListener(CustomListener listener, String... requireProtocols) {
-        listeners.put(listener, new HashSet<>(Arrays.asList(requireProtocols)));
+    public DirectoryWatcher getDirectoryWatcher() {
+        return directoryWatcher;
     }
 
     @Override
-    public void unregisterListener(CustomListener listener) {
-        listeners.remove(listener);
+    public void addLanguageLookup(LanguageLookup lookup) {
+        languageLookup.addLanguageLookup(lookup);
     }
 
-    @Override
-    public void registerCommand(CommandInfo command) {
-        commandMap.put(command.getName(), command);
+    public void addQuittingPlayer(MSMPlayer quitting) {
+        quittingPlayers.put(quitting.getUUID(), quitting);
 
-        commandAliasMap.put(command.getName(), command);
+        schedule(() -> {
+            if (quittingPlayers.remove(quitting.getUUID()) == null) return;
 
-        for(String alias : command.getAliases()) {
-            commandAliasMap.put(alias, command);
-        }
+            callEvent(new PlayerQuitEvent(quitting));
+        }, 1, TimeUnit.SECONDS);
     }
 
-    @Override
-    public CommandInfo getCommand(String name) {
-        if(name == null) return null;
+    public MSMPlayer removeQuittingPlayer(UUID uuid) {
+        MSMPlayer player = quittingPlayers.remove(uuid);
 
-        return commandAliasMap.get(name);
+        if (player != null) return player;
+
+        return getPlayer(uuid);
     }
 
     public MSMMinecraftServer assignMinecraftServerToConnection(Config config, MSMConnection connection) {
         MSMMinecraftServer server = getMinecraftServer(config.getString("name"));
 
-        if(server == null) {
+        if (server == null) {
             server = new MSMMinecraftServer(new MinecraftServerInfo(config), this);
             minecraftServerMap.put(config.getString("name"), server);
         } else server.getServerInfo().fromConfig(config);
@@ -290,7 +324,7 @@ public class MSMServer implements Server {
             log.info("Server started on port " + port);
 
             future.channel().closeFuture().addListener(unused1 -> {
-                for(ServerListener protocol : protocolToPluginMap.values()) {
+                for (ServerListener protocol : protocolToPluginMap.values()) {
                     protocol.serverStopped(this);
                 }
 
@@ -301,7 +335,7 @@ public class MSMServer implements Server {
             e.printStackTrace();
         }
 
-        for(ServerListener protocol : protocolToPluginMap.values()) {
+        for (ServerListener protocol : protocolToPluginMap.values()) {
             protocol.serverStarted(this);
         }
     }
