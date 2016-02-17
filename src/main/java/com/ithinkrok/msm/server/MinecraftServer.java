@@ -3,6 +3,7 @@ package com.ithinkrok.msm.server;
 import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.MinecraftServerType;
 import com.ithinkrok.msm.server.impl.MSMPlayer;
+import com.ithinkrok.util.lang.Messagable;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,7 +16,7 @@ import java.util.UUID;
  * Represents any kind of Minecraft Server (Vanilla/Bukkit/Spigot/Bungee etc...) that could be connected to this MSM
  * Server.
  */
-public interface MinecraftServer {
+public interface MinecraftServer extends Messagable {
 
     /**
      * @return If this MinecraftServer is currently connected to the MSM Server

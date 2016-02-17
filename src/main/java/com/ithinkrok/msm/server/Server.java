@@ -5,6 +5,8 @@ import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.util.event.CustomListener;
+import com.ithinkrok.util.lang.LanguageLookup;
+import com.ithinkrok.util.lang.Messagable;
 
 import java.util.Collection;
 import java.util.Set;
@@ -16,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by paul on 04/02/16.
  */
-public interface Server {
+public interface Server extends Messagable, LanguageLookup {
 
     Set<String> getAvailableProtocols();
 
@@ -66,4 +68,6 @@ public interface Server {
     void broadcast(String message);
 
     DirectoryWatcher getDirectoryWatcher();
+
+    void addLanguageLookup(LanguageLookup lookup);
 }

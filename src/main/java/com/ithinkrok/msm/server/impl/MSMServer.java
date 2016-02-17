@@ -18,6 +18,8 @@ import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.event.CustomEventExecutor;
 import com.ithinkrok.util.event.CustomListener;
+import com.ithinkrok.util.lang.LanguageLookup;
+import com.ithinkrok.util.lang.MultipleLanguageLookup;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -58,6 +60,8 @@ public class MSMServer implements Server {
 
     private final Map<UUID, MSMPlayer> quittingPlayers = new ConcurrentHashMap<>();
 
+    private final MultipleLanguageLookup languageLookup = new MultipleLanguageLookup();
+
     private final DirectoryWatcher directoryWatcher;
 
     public MSMServer(int port, Map<String, ? extends ServerListener> listeners) {
@@ -82,6 +86,11 @@ public class MSMServer implements Server {
     @Override
     public DirectoryWatcher getDirectoryWatcher() {
         return directoryWatcher;
+    }
+
+    @Override
+    public void addLanguageLookup(LanguageLookup lookup) {
+        languageLookup.addLanguageLookup(lookup);
     }
 
     public void registerProtocol(String name, ServerListener listener) {
@@ -309,4 +318,43 @@ public class MSMServer implements Server {
         pipeline.addLast("MSMConnection", new MSMConnection(this));
     }
 
+    @Override
+    public void sendMessage(String message) {
+        sendMessageNoPrefix(message);
+    }
+
+    @Override
+    public void sendMessageNoPrefix(String message) {
+        broadcast(message);
+    }
+
+    @Override
+    public void sendLocale(String locale, Object... args) {
+        sendLocaleNoPrefix(locale, args);
+    }
+
+    @Override
+    public void sendLocaleNoPrefix(String locale, Object... args) {
+        sendMessageNoPrefix(languageLookup.getLocale(locale, args));
+    }
+
+    @Override
+    public LanguageLookup getLanguageLookup() {
+        return languageLookup;
+    }
+
+    @Override
+    public String getLocale(String name) {
+        return languageLookup.getLocale(name);
+    }
+
+    @Override
+    public String getLocale(String name, Object... args) {
+        return languageLookup.getLocale(name, args);
+    }
+
+    @Override
+    public boolean hasLocale(String name) {
+        return languageLookup.hasLocale(name);
+    }
 }

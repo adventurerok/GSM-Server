@@ -8,6 +8,7 @@ import com.ithinkrok.msm.server.Player;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
+import com.ithinkrok.util.lang.LanguageLookup;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -198,5 +199,30 @@ public class MSMMinecraftServer implements MinecraftServer {
     public MSMPlayer getPlayer(String name) {
         if(name == null) return null;
         return namedPlayers.get(name);
+    }
+
+    @Override
+    public void sendMessage(String message) {
+        sendMessageNoPrefix(message);
+    }
+
+    @Override
+    public void sendMessageNoPrefix(String message) {
+        broadcast(message);
+    }
+
+    @Override
+    public void sendLocale(String locale, Object... args) {
+        sendLocaleNoPrefix(locale, args);
+    }
+
+    @Override
+    public void sendLocaleNoPrefix(String locale, Object... args) {
+        sendMessageNoPrefix(server.getLocale(locale, args));
+    }
+
+    @Override
+    public LanguageLookup getLanguageLookup() {
+        return server.getLanguageLookup();
     }
 }

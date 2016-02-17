@@ -5,6 +5,7 @@ import com.ithinkrok.msm.server.MinecraftServer;
 import com.ithinkrok.msm.server.Player;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
+import com.ithinkrok.util.lang.LanguageLookup;
 import org.apache.commons.lang.Validate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -77,9 +78,29 @@ public class MSMPlayer implements Player {
 
     @Override
     public void sendMessage(String message) {
+        sendMessageNoPrefix(message);
+    }
+
+    @Override
+    public void sendMessageNoPrefix(String message) {
         if (!isConnected()) return;
 
         minecraftServer.messagePlayers(message, this);
+    }
+
+    @Override
+    public void sendLocale(String locale, Object... args) {
+        sendLocaleNoPrefix(locale, args);
+    }
+
+    @Override
+    public void sendLocaleNoPrefix(String locale, Object... args) {
+        sendMessageNoPrefix(minecraftServer.getLanguageLookup().getLocale(locale, args));
+    }
+
+    @Override
+    public LanguageLookup getLanguageLookup() {
+        return minecraftServer.getLanguageLookup();
     }
 
     public boolean isConnected() {
