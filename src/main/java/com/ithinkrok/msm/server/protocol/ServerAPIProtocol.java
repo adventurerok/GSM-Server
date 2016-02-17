@@ -132,7 +132,7 @@ public class ServerAPIProtocol implements ServerListener {
             MinecraftServer oldServer = player.getServer();
 
             if (oldServer != null) {
-                ((MSMMinecraftServer) minecraftServer).removePlayer(playerUUID);
+                ((MSMMinecraftServer) oldServer).removePlayer(playerUUID);
             }
 
             player.setServer(minecraftServer);
