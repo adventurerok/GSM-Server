@@ -3,6 +3,9 @@ package com.ithinkrok.msm.server.protocol;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.*;
 import com.ithinkrok.msm.server.command.CommandInfo;
+import com.ithinkrok.msm.server.event.MSMEvent;
+import com.ithinkrok.msm.server.event.minecraftserver.MinecraftServerConnectEvent;
+import com.ithinkrok.msm.server.event.minecraftserver.MinecraftServerDisconnectEvent;
 import com.ithinkrok.msm.server.event.player.PlayerChangeServerEvent;
 import com.ithinkrok.msm.server.event.player.PlayerCommandEvent;
 import com.ithinkrok.msm.server.event.player.PlayerJoinEvent;
@@ -33,6 +36,9 @@ public class ServerAPIProtocol implements ServerListener {
     public void connectionOpened(Connection connection, Channel channel) {
         sendPermissionsPacket(connection.getConnectedTo(), channel);
         sendCommandsPacket(connection.getConnectedTo(), channel);
+
+        MSMEvent event = new MinecraftServerConnectEvent(connection.getMinecraftServer());
+        connection.getConnectedTo().callEvent(event);
     }
 
     private void sendPermissionsPacket(Server server, Channel channel) {
@@ -67,7 +73,8 @@ public class ServerAPIProtocol implements ServerListener {
 
     @Override
     public void connectionClosed(Connection connection) {
-
+        MSMEvent event = new MinecraftServerDisconnectEvent(connection.getMinecraftServer());
+        connection.getConnectedTo().callEvent(event);
     }
 
     @Override
