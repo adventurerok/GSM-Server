@@ -50,6 +50,14 @@ public class MSMPluginLoader {
         nameField.setAccessible(true);
         nameField.set(plugin, pluginYml.getString("name"));
 
+        Path pluginDirectory = plugin.getDataDirectory();
+        if(!Files.exists(pluginDirectory)) {
+            try {
+                Files.createDirectory(pluginDirectory);
+            } catch (IOException e) {
+                log.warn("Error while creating plugin data directory: " + e);
+            }
+        }
     }
 
     /**

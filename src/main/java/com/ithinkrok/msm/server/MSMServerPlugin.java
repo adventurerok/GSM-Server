@@ -10,6 +10,8 @@ import com.ithinkrok.util.event.CustomListener;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -87,6 +89,10 @@ public abstract class MSMServerPlugin {
 
     public void onCommand(PlayerCommandEvent event) {
 
+    }
+
+    public Path getDataDirectory() {
+        return Paths.get("plugins", getName());
     }
 
     public boolean isEnabled() {
