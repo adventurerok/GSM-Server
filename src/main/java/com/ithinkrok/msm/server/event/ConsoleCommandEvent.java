@@ -1,26 +1,30 @@
-package com.ithinkrok.msm.server.event.player;
+package com.ithinkrok.msm.server.event;
 
-import com.ithinkrok.msm.server.data.Player;
-import com.ithinkrok.msm.server.event.MSMCommandEvent;
+import com.ithinkrok.msm.server.Server;
+import com.ithinkrok.msm.server.command.ConsoleCommandSender;
 import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.command.CustomCommandSender;
-import com.ithinkrok.util.command.event.CustomCommandEvent;
 
 /**
- * Created by paul on 07/02/16.
+ * Created by paul on 18/02/16.
  */
-public class PlayerCommandEvent extends PlayerEvent implements MSMCommandEvent {
+public class ConsoleCommandEvent implements MSMCommandEvent {
 
-
+    private final ConsoleCommandSender sender;
     private final CustomCommand command;
 
     private boolean handled = false;
 
     private boolean validCommand = true;
 
-    public PlayerCommandEvent(Player player, CustomCommand command) {
-        super(player);
+    public ConsoleCommandEvent(ConsoleCommandSender sender, CustomCommand command) {
+        this.sender = sender;
         this.command = command;
+    }
+
+    @Override
+    public Server getMSMServer() {
+        return sender.getServer();
     }
 
     @Override
@@ -30,7 +34,7 @@ public class PlayerCommandEvent extends PlayerEvent implements MSMCommandEvent {
 
     @Override
     public CustomCommandSender getCommandSender() {
-        return getPlayer();
+        return sender;
     }
 
     @Override

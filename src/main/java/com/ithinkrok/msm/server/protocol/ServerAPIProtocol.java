@@ -255,6 +255,8 @@ public class ServerAPIProtocol implements ServerListener {
 
         if (!commandEvent.isValidCommand()) {
             player.sendMessage("Usage: " + commandInfo.getUsage());
+        } else if(!commandEvent.isHandled()) {
+            player.sendMessage("This command does not support players");
         }
     }
 }
