@@ -1,9 +1,6 @@
 package com.ithinkrok.msm.server;
 
-import com.ithinkrok.msm.server.command.CommandInfo;
-import com.ithinkrok.msm.server.command.ConsoleCommandSender;
-import com.ithinkrok.msm.server.command.RestartCommand;
-import com.ithinkrok.msm.server.command.StopCommand;
+import com.ithinkrok.msm.server.command.*;
 import com.ithinkrok.msm.server.event.ConsoleCommandEvent;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.msm.server.impl.MSMServer;
@@ -78,6 +75,8 @@ public class Program {
         CommandInfo restartInfo = new CommandInfo("mrestart", restartConfig, new RestartCommand());
 
         server.registerCommand(restartInfo);
+
+        server.registerCommand(ExecCommand.createCommandInfo());
     }
 
 
