@@ -96,6 +96,7 @@ public class ServerAPIProtocol implements ServerListener {
                 return;
             case "MinecraftConsoleMessage":
                 handleMinecraftConsoleMessage(connection.getConnectedTo(), payload);
+                return;
             case "HasPlayers":
                 handleHasPlayers(connection.getConnectedTo(), channel, payload);
                 return;
