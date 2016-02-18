@@ -85,5 +85,11 @@ public interface MinecraftServer extends Messagable {
 
     Player getPlayer(String name);
 
+    Ban getBan(UUID playerUUID);
 
+    boolean isBanned(UUID playerUUID);
+
+    boolean unbanPlayer(UUID playerUUID);
+
+    boolean banPlayer(Ban ban);
 }

@@ -3,6 +3,7 @@ package com.ithinkrok.msm.server.impl;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.MinecraftServerType;
+import com.ithinkrok.msm.server.data.Ban;
 import com.ithinkrok.msm.server.data.MinecraftServer;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.Server;
@@ -24,6 +25,8 @@ public class MSMMinecraftServer implements MinecraftServer {
     private MSMConnection connection;
 
     private final Map<UUID, MSMPlayer> players = new ConcurrentHashMap<>();
+
+    private final Map<UUID, Ban> bans = new ConcurrentHashMap<>();
 
     private final Map<String, MSMPlayer> namedPlayers = new ConcurrentHashMap<>();
 
@@ -199,6 +202,53 @@ public class MSMMinecraftServer implements MinecraftServer {
     public MSMPlayer getPlayer(String name) {
         if(name == null) return null;
         return namedPlayers.get(name);
+    }
+
+    @Override
+    public Ban getBan(UUID playerUUID) {
+        return bans.get(playerUUID);
+    }
+
+    @Override
+    public boolean isBanned(UUID playerUUID) {
+        return bans.containsKey(playerUUID);
+    }
+
+    @Override
+    public boolean unbanPlayer(UUID playerUUID) {
+        if(!isBanned(playerUUID)) return true;
+
+        Channel channel = getAPIChannel();
+        if(channel == null) return false;
+
+        bans.remove(playerUUID);
+
+        Config payload = new MemoryConfig();
+        payload.set("player", playerUUID.toString());
+        payload.set("mode", "Unban");
+
+        channel.write(payload);
+        return true;
+    }
+
+    @Override
+    public boolean banPlayer(Ban ban) {
+        if(ban.equals(getBan(ban.getPlayerUUID()))) return true;
+
+        Channel channel = getAPIChannel();
+        if(channel == null) return false;
+
+        addBan(ban);
+
+        Config payload = ban.toConfig();
+        payload.set("mode", "Ban");
+
+        channel.write(payload);
+        return true;
+    }
+
+    public void addBan(Ban ban) {
+        bans.put(ban.getPlayerUUID(), ban);
     }
 
     @Override

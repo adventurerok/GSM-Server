@@ -4,6 +4,7 @@ import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.util.ConfigUtils;
 import com.ithinkrok.msm.server.*;
 import com.ithinkrok.msm.server.command.CommandInfo;
+import com.ithinkrok.msm.server.data.Ban;
 import com.ithinkrok.msm.server.data.MinecraftServer;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.Server;
@@ -37,9 +38,6 @@ public class ServerAPIProtocol implements ServerListener {
     public void connectionOpened(Connection connection, Channel channel) {
         sendPermissionsPacket(connection.getConnectedTo(), channel);
         sendCommandsPacket(connection.getConnectedTo(), channel);
-
-        MSMEvent event = new MinecraftServerConnectEvent(connection.getMinecraftServer());
-        connection.getConnectedTo().callEvent(event);
     }
 
     private void sendPermissionsPacket(Server server, Channel channel) {
@@ -84,6 +82,9 @@ public class ServerAPIProtocol implements ServerListener {
             case "PlayerInfo":
                 handlePlayerInfo(connection.getMinecraftServer(), payload);
                 return;
+            case "BanInfo":
+                handleBanInfo(connection.getMinecraftServer(), payload);
+                return;
             case "Message":
                 handleMessage(connection.getConnectedTo(), payload);
                 return;
@@ -98,6 +99,26 @@ public class ServerAPIProtocol implements ServerListener {
                 return;
             case "ResourceUsage":
                 ((MSMMinecraftServer)connection.getMinecraftServer()).handleResourceUsagePacket(payload);
+                return;
+            case "ConnectInfo":
+                handleConnectInfo(connection.getMinecraftServer(), payload);
+
+        }
+    }
+
+    private void handleConnectInfo(MinecraftServer minecraftServer, Config payload) {
+        handlePlayerInfo(minecraftServer, payload);
+        handleBanInfo(minecraftServer, payload);
+
+        MSMEvent event = new MinecraftServerConnectEvent(minecraftServer);
+        minecraftServer.getConnectedTo().callEvent(event);
+    }
+
+    private void handleBanInfo(MinecraftServer minecraftServer, Config payload) {
+        List<Config> banConfigs = payload.getConfigList("bans");
+
+        for(Config banConfig : banConfigs) {
+            ((MSMMinecraftServer)minecraftServer).addBan(new Ban(banConfig));
         }
     }
 
