@@ -27,17 +27,33 @@ public class ExecCommand implements CustomListener {
         }
 
         String serverName = event.getCommand().getStringArg(0, "");
-        MinecraftServer server = event.getMSMServer().getMinecraftServer(serverName);
 
-        if(server == null) {
-            event.getCommandSender().sendMessage("Unknown minecraft server: " + serverName);
-            return;
+        if(serverName.startsWith("/") && serverName.endsWith("/")) {
+            serverName = serverName.substring(1, serverName.length() - 1);
+
+            for(MinecraftServer server : event.getMSMServer().getMinecraftServers()) {
+                if(!server.getName().matches(serverName)) continue;
+                if(!server.isConnected()) continue;
+
+                execCommand(server, event);
+            }
+        } else{
+            MinecraftServer server = event.getMSMServer().getMinecraftServer(serverName);
+
+            if (server == null || !server.isConnected()) {
+                event.getCommandSender().sendMessage("Unknown minecraft server: " + serverName);
+                return;
+            }
+
+            execCommand(server, event);
         }
+    }
 
+    private void execCommand(MinecraftServer server, MSMCommandEvent event) {
         Connection connection = server.getConnection();
 
         if(connection == null) {
-            event.getCommandSender().sendMessage("Minecraft server not connected: " + serverName);
+            event.getCommandSender().sendMessage("Minecraft server not connected: " + server.getName());
             return;
         }
 
