@@ -6,6 +6,7 @@ import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
+import com.ithinkrok.msm.server.ConsoleHandler;
 import com.ithinkrok.msm.server.data.MinecraftServer;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.Server;
@@ -71,6 +72,7 @@ public class MSMServer implements Server {
     private Channel channel;
 
     private boolean stopped = false;
+    private ConsoleHandler consoleHandler;
 
     public MSMServer(Config config, Map<String, ? extends ServerListener> listeners) {
         this.port = config.getInt("port", 30824);
@@ -285,8 +287,10 @@ public class MSMServer implements Server {
 
     public void stop() {
         if(stopped) return;
-
         stopped = true;
+
+        consoleHandler.setStopped(true);
+
         if(channel != null) channel.close();
 
         try {
@@ -294,6 +298,8 @@ public class MSMServer implements Server {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        System.exit(0);
     }
 
     public void restart() {
@@ -436,5 +442,9 @@ public class MSMServer implements Server {
     @Override
     public boolean hasLocale(String name) {
         return languageLookup.hasLocale(name);
+    }
+
+    public void setConsoleHandler(ConsoleHandler consoleHandler) {
+        this.consoleHandler = consoleHandler;
     }
 }

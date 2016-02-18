@@ -43,7 +43,21 @@ public class Program {
 
         server.start();
 
-        runConsole(server);
+        ConsoleReader reader;
+        try {
+            reader = new ConsoleReader();
+        } catch (IOException e) {
+            log.error("Failed to create console reader. Console input will be disabled", e);
+            return;
+        }
+
+        reader.setPrompt("> ");
+
+        ConsoleHandler consoleHandler = new ConsoleHandler(server, reader);
+
+        server.setConsoleHandler(consoleHandler);
+
+        consoleHandler.runConsole();
     }
 
     private static void registerDefaultCommands(Server server) {
@@ -66,46 +80,7 @@ public class Program {
         server.registerCommand(restartInfo);
     }
 
-    private static void runConsole(Server server) {
-        ConsoleReader reader;
-        try {
-            reader = new ConsoleReader();
-        } catch (IOException e) {
-            log.error("Failed to create console reader. Console input will be disabled", e);
-            return;
-        }
 
-        reader.setPrompt("> ");
-
-        ConsoleCommandSender commandSender = new ConsoleCommandSender(server);
-
-        String line;
-        try {
-            while((line = reader.readLine()) != null) {
-                CustomCommand command = new CustomCommand(line);
-
-                CommandInfo commandInfo = server.getCommand(command.getCommand());
-
-                if(commandInfo == null) {
-                    commandSender.sendMessage("Unknown MSM command: " + command.getCommand());
-                    continue;
-                }
-
-                ConsoleCommandEvent commandEvent = new ConsoleCommandEvent(commandSender, command);
-                commandEvent.setHandled(false);
-
-                CustomEventExecutor.executeEvent(commandEvent, commandInfo.getCommandListener());
-
-                if(!commandEvent.isValidCommand()) {
-                    commandSender.sendMessage("Usage: " + commandInfo.getUsage());
-                } else if(!commandEvent.isHandled()) {
-                    commandSender.sendMessage("This command does not support the console");
-                }
-            }
-        } catch (IOException e) {
-            log.error("Error while reading console line. Future console input disabled", e);
-        }
-    }
 
     private static MSMServer load() {
         MSMPluginLoader pluginLoader = new MSMPluginLoader();
