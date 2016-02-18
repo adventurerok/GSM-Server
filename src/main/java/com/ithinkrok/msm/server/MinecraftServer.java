@@ -2,7 +2,6 @@ package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.MinecraftServerType;
-import com.ithinkrok.msm.server.impl.MSMPlayer;
 import com.ithinkrok.util.lang.Messagable;
 
 import java.util.Arrays;

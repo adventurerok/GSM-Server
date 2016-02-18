@@ -2,8 +2,8 @@ package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.msm.server.impl.MSMServer;
-import com.ithinkrok.msm.server.protocol.ServerAutoUpdateProtocol;
 import com.ithinkrok.msm.server.protocol.ServerAPIProtocol;
+import com.ithinkrok.msm.server.protocol.ServerAutoUpdateProtocol;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
