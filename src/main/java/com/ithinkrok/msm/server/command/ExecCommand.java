@@ -71,7 +71,7 @@ public class ExecCommand implements CustomListener {
 
         Config payload = new MemoryConfig();
         payload.set("mode", "ExecCommand");
-        payload.set("command", event.getCommand().getRemainingArgsAndParamsAsString(1));
+        payload.set("command", event.getCommand().getRemainingArgsAndParamsAsString(1, "console", "c"));
 
         Config sender = new MemoryConfig();
 
@@ -88,6 +88,11 @@ public class ExecCommand implements CustomListener {
         }
 
         payload.set("sender", sender);
+
+        //Allows use of vanilla commands
+        if(event.getCommand().getBooleanParam("console", false) || event.getCommand().getBooleanParam("c", false)) {
+            payload.set("console", true);
+        }
 
         channel.write(payload);
     }
