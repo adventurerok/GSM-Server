@@ -1,6 +1,7 @@
 package com.ithinkrok.msm.server.command;
 
 import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.ConfigSerializable;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomListener;
 
@@ -9,7 +10,7 @@ import java.util.List;
 /**
  * Created by paul on 07/02/16.
  */
-public class CommandInfo {
+public class CommandInfo implements ConfigSerializable {
 
     private final String name;
     private final String usage;

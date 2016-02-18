@@ -1,6 +1,7 @@
 package com.ithinkrok.msm.server.protocol;
 
 import com.ithinkrok.msm.common.Channel;
+import com.ithinkrok.msm.common.util.ConfigUtils;
 import com.ithinkrok.msm.server.*;
 import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.event.MSMEvent;
@@ -42,14 +43,9 @@ public class ServerAPIProtocol implements ServerListener {
     }
 
     private void sendPermissionsPacket(Server server, Channel channel) {
-        List<Config> permissions = new ArrayList<>();
-
-        for(PermissionInfo permissionInfo : server.getRegisteredPermissions()){
-            permissions.add(permissionInfo.toConfig());
-        }
-
         Config payload = new MemoryConfig();
 
+        List<Config> permissions = ConfigUtils.collectionToConfigList(server.getRegisteredPermissions());
         payload.set("permissions", permissions);
         payload.set("mode", "RegisterPermissions");
 
@@ -57,14 +53,9 @@ public class ServerAPIProtocol implements ServerListener {
     }
 
     private void sendCommandsPacket(Server server, Channel channel) {
-        List<Config> commands = new ArrayList<>();
-
-        for (CommandInfo commandInfo : server.getRegisteredCommands()) {
-            commands.add(commandInfo.toConfig());
-        }
-
         Config payload = new MemoryConfig();
 
+        List<Config> commands = ConfigUtils.collectionToConfigList(server.getRegisteredCommands());
         payload.set("commands", commands);
         payload.set("mode", "RegisterCommands");
 

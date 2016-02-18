@@ -1,6 +1,7 @@
 package com.ithinkrok.msm.server.permission;
 
 import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.ConfigSerializable;
 import com.ithinkrok.util.config.MemoryConfig;
 
 import java.util.LinkedHashMap;
@@ -9,7 +10,7 @@ import java.util.Map;
 /**
  * Created by paul on 11/02/16.
  */
-public class PermissionInfo {
+public class PermissionInfo implements ConfigSerializable {
 
     private final String name;
     private final Map<String, Boolean> children = new LinkedHashMap<>();
