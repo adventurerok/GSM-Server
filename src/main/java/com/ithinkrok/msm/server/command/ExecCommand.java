@@ -12,6 +12,8 @@ import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomEventHandler;
 import com.ithinkrok.util.event.CustomListener;
 
+import java.util.regex.Pattern;
+
 /**
  * Created by paul on 18/02/16.
  */
@@ -31,8 +33,16 @@ public class ExecCommand implements CustomListener {
         if(serverName.startsWith("/") && serverName.endsWith("/")) {
             serverName = serverName.substring(1, serverName.length() - 1);
 
+            Pattern pattern;
+            try {
+                pattern = Pattern.compile(serverName);
+            } catch (Exception ignored) {
+                event.getCommandSender().sendMessage("Invalid regex: " + serverName);
+                return;
+            }
+
             for(MinecraftServer server : event.getMSMServer().getMinecraftServers()) {
-                if(!server.getName().matches(serverName)) continue;
+                if(!pattern.matcher(server.getName()).matches()) continue;
                 if(!server.isConnected()) continue;
 
                 execCommand(server, event);
