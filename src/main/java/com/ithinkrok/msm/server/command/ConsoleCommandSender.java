@@ -21,11 +21,13 @@ public class ConsoleCommandSender implements CustomCommandSender {
 
     @Override
     public void sendMessage(String message) {
-        log.info("[Command] " + message);
+        sendMessageNoPrefix("[Command] " + message);
     }
 
     @Override
     public void sendMessageNoPrefix(String message) {
+        message = message.replaceAll("[§&][0-9a-zA-Z]", "");
+
         log.info(message);
     }
 
