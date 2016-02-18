@@ -16,4 +16,6 @@ public interface Player extends CustomCommandSender {
     MinecraftServer getServer();
 
     void changeServer(MinecraftServer newServer);
+
+    void kick(String reason);
 }

@@ -65,11 +65,24 @@ public class MSMPlayer implements Player {
 
         Config payload = new MemoryConfig();
 
-        payload.set("player", uuid);
+        payload.set("player", uuid.toString());
         payload.set("target", newServer.getName());
         payload.set("mode", "ChangeServer");
 
         getAPIChannel().write(payload);
+    }
+
+    @Override
+    public void kick(String reason) {
+        Channel channel = getAPIChannel();
+        if(channel == null) return;
+
+        Config payload = new MemoryConfig();
+        payload.set("player", uuid.toString());
+        payload.set("reason", reason);
+        payload.set("mode", "Kick");
+
+        channel.write(payload);
     }
 
     private Channel getAPIChannel() {
