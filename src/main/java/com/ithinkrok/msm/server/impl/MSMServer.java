@@ -73,7 +73,7 @@ public class MSMServer implements Server {
     private boolean stopped = false;
 
     public MSMServer(Config config, Map<String, ? extends ServerListener> listeners) {
-        this.port = config.getInt("port", 80824);
+        this.port = config.getInt("port", 30824);
 
         this.restartScript = config.getString("restart_script");
 
@@ -284,6 +284,8 @@ public class MSMServer implements Server {
     }
 
     public void stop() {
+        if(stopped) return;
+
         stopped = true;
         if(channel != null) channel.close();
 
