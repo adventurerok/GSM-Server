@@ -14,15 +14,12 @@ import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
 import com.ithinkrok.msm.server.impl.MSMPlayer;
 import com.ithinkrok.msm.server.impl.MSMServer;
-import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomEventExecutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.MemoryConfiguration;
 
 import java.util.*;
 
@@ -195,7 +192,7 @@ public class ServerAPIProtocol implements ServerListener {
     }
 
     private void handleHasPlayers(Server connectedTo, Channel channel, Config payload) {
-        ConfigurationSection players = new MemoryConfiguration();
+        Config players = new MemoryConfig();
 
         for (String uuidString : payload.getStringList("players")) {
             Player player = connectedTo.getPlayer(UUID.fromString(uuidString));
