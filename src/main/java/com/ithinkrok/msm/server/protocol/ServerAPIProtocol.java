@@ -20,6 +20,7 @@ import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
 import com.ithinkrok.msm.server.impl.MSMPlayer;
 import com.ithinkrok.msm.server.impl.MSMServer;
+import com.ithinkrok.util.StringUtils;
 import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
@@ -90,6 +91,11 @@ public class ServerAPIProtocol implements ServerListener {
             case "Message":
                 handleMessage(connection.getConnectedTo(), payload);
                 return;
+            case "ConsoleMessage":
+                handleConsoleMessage(payload);
+                return;
+            case "MinecraftConsoleMessage":
+                handleMinecraftConsoleMessage(connection.getConnectedTo(), payload);
             case "HasPlayers":
                 handleHasPlayers(connection.getConnectedTo(), channel, payload);
                 return;
@@ -109,6 +115,22 @@ public class ServerAPIProtocol implements ServerListener {
                 handleConsoleCommand(connection.getMinecraftServer(), payload);
 
         }
+    }
+
+    private void handleMinecraftConsoleMessage(Server connectedTo, Config payload) {
+        String serverName = payload.getString("server");
+        MinecraftServer server = connectedTo.getMinecraftServer(serverName);
+        if(server == null) return;
+
+        server.getConsoleCommandSender().sendMessage(payload.getString("message"));
+    }
+
+    private void handleConsoleMessage(Config payload) {
+        String message = payload.getString("message");
+
+        message = StringUtils.removeMinecraftChatCodes(message);
+
+        log.info("[Command] " + message);
     }
 
     private void handleConsoleCommand(MinecraftServer minecraftServer, Config payload) {
