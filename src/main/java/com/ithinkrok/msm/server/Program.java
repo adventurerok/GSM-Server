@@ -2,6 +2,8 @@ package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.command.ConsoleCommandSender;
+import com.ithinkrok.msm.server.command.RestartCommand;
+import com.ithinkrok.msm.server.command.StopCommand;
 import com.ithinkrok.msm.server.event.ConsoleCommandEvent;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.msm.server.impl.MSMServer;
@@ -37,12 +39,34 @@ public class Program {
 
         log.info("Supported protocols: " + server.getAvailableProtocols());
 
+        registerDefaultCommands(server);
+
         server.start();
 
         runConsole(server);
     }
 
-    private static void runConsole(MSMServer server) {
+    private static void registerDefaultCommands(Server server) {
+        Config stopConfig = new MemoryConfig();
+        stopConfig.set("usage", "/<command>");
+        stopConfig.set("description", "Stops the MSM server");
+        stopConfig.set("permission", "msmserver.stop");
+
+        CommandInfo stopInfo = new CommandInfo("mstop", stopConfig, new StopCommand());
+
+        server.registerCommand(stopInfo);
+
+        Config restartConfig = new MemoryConfig();
+        stopConfig.set("usage", "/<command>");
+        stopConfig.set("description", "Stops the MSM server");
+        stopConfig.set("permission", "msmserver.restart");
+
+        CommandInfo restartInfo = new CommandInfo("mrestart", restartConfig, new RestartCommand());
+
+        server.registerCommand(restartInfo);
+    }
+
+    private static void runConsole(Server server) {
         ConsoleReader reader;
         try {
             reader = new ConsoleReader();
@@ -123,4 +147,5 @@ public class Program {
 
         return new MemoryConfig();
     }
+
 }
