@@ -4,6 +4,7 @@ import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.MinecraftServerType;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.Server;
+import com.ithinkrok.util.command.CustomCommandSender;
 import com.ithinkrok.util.lang.Messagable;
 
 import java.util.Arrays;
@@ -92,4 +93,6 @@ public interface MinecraftServer extends Messagable {
     boolean unbanPlayer(UUID playerUUID);
 
     boolean banPlayer(Ban ban);
+
+    CustomCommandSender getConsoleCommandSender();
 }

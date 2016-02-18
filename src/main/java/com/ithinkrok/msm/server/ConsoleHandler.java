@@ -1,10 +1,8 @@
 package com.ithinkrok.msm.server;
 
-import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.command.ConsoleCommandSender;
 import com.ithinkrok.msm.server.event.ConsoleCommandEvent;
 import com.ithinkrok.util.command.CustomCommand;
-import com.ithinkrok.util.event.CustomEventExecutor;
 import jline.console.ConsoleReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,22 +36,11 @@ public class ConsoleHandler {
         try {
             while((line = reader.readLine()) != null && !stopped) {
                 CustomCommand command = new CustomCommand(line);
-
-                CommandInfo commandInfo = commandSender.getServer().getCommand(command.getCommand());
-
-                if(commandInfo == null) {
-                    commandSender.sendMessage("Unknown MSM command: " + command.getCommand());
-                    continue;
-                }
-
                 ConsoleCommandEvent commandEvent = new ConsoleCommandEvent(commandSender, command);
-                commandEvent.setHandled(false);
 
-                CustomEventExecutor.executeEvent(commandEvent, commandInfo.getCommandListener());
+                if(!commandSender.getServer().executeCommand(commandEvent)) continue;
 
-                if(!commandEvent.isValidCommand()) {
-                    commandSender.sendMessage("Usage: " + commandInfo.getUsage());
-                } else if(!commandEvent.isHandled()) {
+                if(!commandEvent.isHandled()) {
                     commandSender.sendMessage("This command does not support the console");
                 }
             }

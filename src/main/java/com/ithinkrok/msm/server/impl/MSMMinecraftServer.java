@@ -7,6 +7,7 @@ import com.ithinkrok.msm.server.data.Ban;
 import com.ithinkrok.msm.server.data.MinecraftServer;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.Server;
+import com.ithinkrok.util.command.CustomCommandSender;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.lang.LanguageLookup;
@@ -29,6 +30,8 @@ public class MSMMinecraftServer implements MinecraftServer {
     private final Map<UUID, Ban> bans = new ConcurrentHashMap<>();
 
     private final Map<String, MSMPlayer> namedPlayers = new ConcurrentHashMap<>();
+
+    private final MinecraftCommandSender commandSender = new MinecraftCommandSender(this);
 
     private Collection<String> supportedProtocols;
 
@@ -245,6 +248,11 @@ public class MSMMinecraftServer implements MinecraftServer {
 
         channel.write(payload);
         return true;
+    }
+
+    @Override
+    public CustomCommandSender getConsoleCommandSender() {
+        return commandSender;
     }
 
     public void addBan(Ban ban) {

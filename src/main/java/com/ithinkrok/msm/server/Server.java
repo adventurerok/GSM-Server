@@ -4,8 +4,11 @@ import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.data.MinecraftServer;
 import com.ithinkrok.msm.server.data.Player;
+import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
+import com.ithinkrok.util.command.CustomCommand;
+import com.ithinkrok.util.command.CustomCommandSender;
 import com.ithinkrok.util.event.CustomListener;
 import com.ithinkrok.util.lang.LanguageLookup;
 import com.ithinkrok.util.lang.Messagable;
@@ -31,6 +34,8 @@ public interface Server extends Messagable, LanguageLookup {
     Player getPlayer(UUID uuid);
 
     Player getPlayer(String name);
+
+    boolean executeCommand(MSMCommandEvent commandEvent);
 
     <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit);
 

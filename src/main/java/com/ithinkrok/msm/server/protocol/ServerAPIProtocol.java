@@ -8,7 +8,9 @@ import com.ithinkrok.msm.server.data.Ban;
 import com.ithinkrok.msm.server.data.MinecraftServer;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.Server;
+import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
+import com.ithinkrok.msm.server.event.minecraftserver.MinecraftServerCommandEvent;
 import com.ithinkrok.msm.server.event.minecraftserver.MinecraftServerConnectEvent;
 import com.ithinkrok.msm.server.event.minecraftserver.MinecraftServerDisconnectEvent;
 import com.ithinkrok.msm.server.event.player.PlayerChangeServerEvent;
@@ -102,7 +104,23 @@ public class ServerAPIProtocol implements ServerListener {
                 return;
             case "ConnectInfo":
                 handleConnectInfo(connection.getMinecraftServer(), payload);
+                return;
+            case "ConsoleCommand":
+                handleConsoleCommand(connection.getMinecraftServer(), payload);
 
+        }
+    }
+
+    private void handleConsoleCommand(MinecraftServer minecraftServer, Config payload) {
+        String fullCommand = payload.getString("command");
+        CustomCommand command = new CustomCommand(fullCommand);
+
+        MSMCommandEvent commandEvent = new MinecraftServerCommandEvent(minecraftServer, command);
+
+        if(!minecraftServer.getConnectedTo().executeCommand(commandEvent)) return;
+
+        if(!commandEvent.isHandled()) {
+            commandEvent.getCommandSender().sendMessage("This command does not support minecraft consoles");
         }
     }
 
@@ -242,21 +260,11 @@ public class ServerAPIProtocol implements ServerListener {
         String fullCommand = payload.getString("command");
         CustomCommand command = new CustomCommand(fullCommand);
 
-        CommandInfo commandInfo = minecraftServer.getConnectedTo().getCommand(command.getCommand());
-
-        if (commandInfo == null) {
-            player.sendMessage("Unknown MSM command: " + command.getCommand());
-            return;
-        }
-
         PlayerCommandEvent commandEvent = new PlayerCommandEvent(player, command);
-        commandEvent.setHandled(false);
 
-        CustomEventExecutor.executeEvent(commandEvent, commandInfo.getCommandListener());
+        if(!minecraftServer.getConnectedTo().executeCommand(commandEvent)) return;
 
-        if (!commandEvent.isValidCommand()) {
-            player.sendMessage("Usage: " + commandInfo.getUsage());
-        } else if(!commandEvent.isHandled()) {
+        if(!commandEvent.isHandled()) {
             player.sendMessage("This command does not support players");
         }
     }

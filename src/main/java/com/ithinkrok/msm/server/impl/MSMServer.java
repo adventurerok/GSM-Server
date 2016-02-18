@@ -12,12 +12,16 @@ import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.command.CommandInfo;
+import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
+import com.ithinkrok.util.command.CustomCommand;
+import com.ithinkrok.util.command.CustomCommandSender;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.event.CustomEventExecutor;
+import com.ithinkrok.util.event.CustomEventHandler;
 import com.ithinkrok.util.event.CustomListener;
 import com.ithinkrok.util.lang.LanguageLookup;
 import com.ithinkrok.util.lang.MultipleLanguageLookup;
@@ -142,6 +146,26 @@ public class MSMServer implements Server {
         }
 
         return null;
+    }
+
+    @CustomEventHandler
+    public boolean executeCommand(MSMCommandEvent event) {
+        event.setHandled(false);
+
+        CommandInfo commandInfo = getCommand(event.getCommand().getCommand());
+        if(commandInfo == null) {
+            event.getCommandSender().sendMessage("Unknown MSM command: " + event.getCommand().getCommand());
+            return false;
+        }
+
+        CustomEventExecutor.executeEvent(event, commandInfo.getCommandListener());
+
+        if(!event.isValidCommand()) {
+            event.getCommandSender().sendMessage("Usage: " + commandInfo.getUsage());
+            return false;
+        }
+
+        return true;
     }
 
     @Override
