@@ -3,7 +3,7 @@ package com.ithinkrok.msm.server.protocol;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.util.io.DirectoryListener;
 import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftServer;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.util.FIleUtil;

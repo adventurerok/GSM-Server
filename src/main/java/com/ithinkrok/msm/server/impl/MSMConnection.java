@@ -5,7 +5,7 @@ import com.google.common.collect.HashBiMap;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.Packet;
 import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftServer;
 import com.ithinkrok.util.config.Config;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;

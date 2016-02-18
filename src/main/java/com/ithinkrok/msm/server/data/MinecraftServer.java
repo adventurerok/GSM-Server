@@ -1,7 +1,9 @@
-package com.ithinkrok.msm.server;
+package com.ithinkrok.msm.server.data;
 
 import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.common.MinecraftServerType;
+import com.ithinkrok.msm.server.Connection;
+import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.lang.Messagable;
 
 import java.util.Arrays;
@@ -82,4 +84,6 @@ public interface MinecraftServer extends Messagable {
     Player getPlayer(UUID uuid);
 
     Player getPlayer(String name);
+
+
 }

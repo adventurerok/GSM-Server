@@ -2,6 +2,8 @@ package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.command.CommandInfo;
+import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.util.event.CustomListener;

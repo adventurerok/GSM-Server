@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server.event;
 
-import com.ithinkrok.msm.server.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftServer;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.event.CustomEvent;
 

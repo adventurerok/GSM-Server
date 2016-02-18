@@ -1,8 +1,8 @@
 package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.common.Channel;
-import com.ithinkrok.msm.server.MinecraftServer;
-import com.ithinkrok.msm.server.Player;
+import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.lang.LanguageLookup;

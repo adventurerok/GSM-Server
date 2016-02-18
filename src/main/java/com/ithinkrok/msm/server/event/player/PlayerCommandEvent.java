@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server.event.player;
 
-import com.ithinkrok.msm.server.Player;
+import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.command.CustomCommandSender;
 import com.ithinkrok.util.command.event.CustomCommandEvent;
