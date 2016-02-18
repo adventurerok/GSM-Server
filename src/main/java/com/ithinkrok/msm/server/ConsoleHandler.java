@@ -35,6 +35,8 @@ public class ConsoleHandler {
         String line;
         try {
             while((line = reader.readLine()) != null && !stopped) {
+                if(line.trim().isEmpty()) continue;
+
                 CustomCommand command = new CustomCommand(line);
                 ConsoleCommandEvent commandEvent = new ConsoleCommandEvent(commandSender, command);
 
