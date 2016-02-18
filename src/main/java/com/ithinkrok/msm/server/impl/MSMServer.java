@@ -312,14 +312,12 @@ public class MSMServer implements Server {
         b.childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                //TODO move this method to better location
                 setupPipeline(ch.pipeline());
             }
         });
         b.childOption(ChannelOption.SO_KEEPALIVE, true);
 
         try {
-            //TODO move MSMClient and MSMServer to Base and Controller
             ChannelFuture future = b.bind(port).sync();
             log.info("Server started on port " + port);
 
