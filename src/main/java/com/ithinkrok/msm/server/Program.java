@@ -8,12 +8,16 @@ import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.msm.server.protocol.ServerAPIProtocol;
 import com.ithinkrok.msm.server.protocol.ServerAutoUpdateProtocol;
 import com.ithinkrok.util.command.CustomCommand;
+import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.MemoryConfig;
+import com.ithinkrok.util.config.YamlConfigIO;
 import com.ithinkrok.util.event.CustomEventExecutor;
 import jline.console.ConsoleReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -92,7 +96,7 @@ public class Program {
         listenerMap.put("MSMAutoUpdate", new ServerAutoUpdateProtocol(Paths.get("updates/bukkit_plugins")));
         listenerMap.put("MSMAPI", new ServerAPIProtocol());
 
-        MSMServer server = new MSMServer(30824, listenerMap);
+        MSMServer server = new MSMServer(loadConfig(), listenerMap);
 
         for(MSMServerPlugin plugin : plugins) {
             plugin.setServer(server);
@@ -106,5 +110,17 @@ public class Program {
             server.registerProtocols(plugin.getProtocols());
         }
         return server;
+    }
+
+    private static Config loadConfig() {
+        Path configPath = Paths.get("config.yml");
+
+        try{
+            return YamlConfigIO.loadToConfig(configPath, new MemoryConfig());
+        } catch (IOException e) {
+            log.warn("Failed to load config", e);
+        }
+
+        return new MemoryConfig();
     }
 }

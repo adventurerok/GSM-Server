@@ -30,6 +30,9 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -64,8 +67,15 @@ public class MSMServer implements Server {
 
     private final DirectoryWatcher directoryWatcher;
 
-    public MSMServer(int port, Map<String, ? extends ServerListener> listeners) {
-        this.port = port;
+    private final String restartScript;
+    private Channel channel;
+
+    private boolean stopped = false;
+
+    public MSMServer(Config config, Map<String, ? extends ServerListener> listeners) {
+        this.port = config.getInt("port", 80824);
+
+        this.restartScript = config.getString("restart_script");
 
         //Add the ServerLoginProtocol
         protocolToPluginMap.put("MSMLogin", new ServerLoginProtocol());
@@ -159,22 +169,12 @@ public class MSMServer implements Server {
         }, initialDelay, period, unit);
     }
 
-    private <V> ScheduledFuture<V> scheduleOnService(Callable<V> callable, long delay, TimeUnit unit,
-                                                     ScheduledExecutorService service) {
-        return service.schedule(() -> {
-            try {
-                return callable.call();
-            } catch (Exception e) {
-                log.warn("Error in scheduled task", e);
-                return null;
-            }
-        }, delay, unit);
-    }
-
     @Override
     public <V> ScheduledFuture<V> scheduleAsync(Callable<V> callable, long delay, TimeUnit unit) {
         return scheduleOnService(callable, delay, unit, asyncThreadExecutor);
     }
+
+
 
     @Override
     public ScheduledFuture<?> scheduleAsync(Runnable command, long delay, TimeUnit unit) {
@@ -271,6 +271,50 @@ public class MSMServer implements Server {
         languageLookup.addLanguageLookup(lookup);
     }
 
+    private <V> ScheduledFuture<V> scheduleOnService(Callable<V> callable, long delay, TimeUnit unit,
+                                                     ScheduledExecutorService service) {
+        return service.schedule(() -> {
+            try {
+                return callable.call();
+            } catch (Exception e) {
+                log.warn("Error in scheduled task", e);
+                return null;
+            }
+        }, delay, unit);
+    }
+
+    public void stop() {
+        stopped = true;
+        if(channel != null) channel.close();
+
+        try {
+            Thread.sleep(100L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void restart() {
+        if (restartScript == null || !Files.exists(Paths.get(restartScript))) {
+            log.warn("No restart script specified");
+        } else {
+            Thread shutdownHook = new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        Runtime.getRuntime().exec(new String[]{"sh", restartScript});
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            shutdownHook.setDaemon(true);
+            Runtime.getRuntime().addShutdownHook(shutdownHook);
+        }
+
+        stop();
+    }
+
     public void addQuittingPlayer(MSMPlayer quitting) {
         quittingPlayers.put(quitting.getUUID(), quitting);
 
@@ -329,6 +373,8 @@ public class MSMServer implements Server {
                 workerGroup.shutdownGracefully();
                 bossGroup.shutdownGracefully();
             });
+
+            this.channel = future.channel();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
