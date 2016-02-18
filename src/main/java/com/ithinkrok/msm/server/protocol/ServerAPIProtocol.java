@@ -250,6 +250,7 @@ public class ServerAPIProtocol implements ServerListener {
         }
 
         PlayerCommandEvent commandEvent = new PlayerCommandEvent(player, command);
+        commandEvent.setHandled(false);
 
         CustomEventExecutor.executeEvent(commandEvent, commandInfo.getCommandListener());
 

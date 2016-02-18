@@ -64,6 +64,7 @@ public class Program {
                 }
 
                 ConsoleCommandEvent commandEvent = new ConsoleCommandEvent(commandSender, command);
+                commandEvent.setHandled(false);
 
                 CustomEventExecutor.executeEvent(commandEvent, commandInfo.getCommandListener());
 
