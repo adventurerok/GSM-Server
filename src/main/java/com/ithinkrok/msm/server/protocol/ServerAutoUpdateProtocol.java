@@ -154,7 +154,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
 
     @Override
     public void connectionClosed(Connection connection) {
-
+        clientVersionsMap.remove(connection.getMinecraftServer());
     }
 
     @Override
