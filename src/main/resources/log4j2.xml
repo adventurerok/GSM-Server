@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Configuration packages="com.ithinkrok.msm.server.console">
     <Appenders>
-        <FormattedConsole name="STDOUT" target="SYSTEM_OUT">
+        <FormattedConsole name="STDOUT">
             <PatternLayout pattern="[%d{yyyy-MM-dd}] [%d{HH:mm:ss}] [%t/%p]: %m%n" />
         </FormattedConsole>
         <RollingFile name="ROLLING" fileName="logs/server.log" filePattern="logs/server-%d{yyyy-MM-dd}.log">
