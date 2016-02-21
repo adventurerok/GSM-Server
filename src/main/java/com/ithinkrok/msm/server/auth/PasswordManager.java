@@ -26,16 +26,18 @@ public class PasswordManager {
         this.passwordsPath = passwordsPath;
 
         Config tempConfig;
+        boolean created = true;
         try {
             tempConfig = BinaryConfigIO.loadConfig(this.passwordsPath);
+            created = false;
         } catch (IOException e) {
             log.warn("Failed to load passwords config. Creating new one", e);
             tempConfig = new MemoryConfig();
-
-            savePasswords();
         }
 
         this.passwordsConfig = tempConfig;
+
+        if(created) savePasswords();
     }
 
     private void savePasswords() {
