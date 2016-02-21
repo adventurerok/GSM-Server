@@ -4,6 +4,7 @@ import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.command.ExecCommand;
 import com.ithinkrok.msm.server.command.RestartCommand;
 import com.ithinkrok.msm.server.command.StopCommand;
+import com.ithinkrok.msm.server.console.ConsoleHandler;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.msm.server.protocol.ServerAPIProtocol;
@@ -16,7 +17,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;

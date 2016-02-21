@@ -1,8 +1,8 @@
-package com.ithinkrok.msm.server;
+package com.ithinkrok.msm.server.console;
 
+import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.command.ConsoleCommandSender;
 import com.ithinkrok.msm.server.event.ConsoleCommandEvent;
-import com.ithinkrok.msm.server.util.FormattedConsoleOutputStream;
 import com.ithinkrok.util.command.CustomCommand;
 import jline.console.ConsoleReader;
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +21,8 @@ public class ConsoleHandler {
     private final ConsoleReader reader;
     private final ConsoleCommandSender commandSender;
 
+    public static PrintStream out = System.out;
+
     private boolean stopped = false;
 
     public ConsoleHandler(Server server, ConsoleReader reader) {
@@ -28,10 +30,10 @@ public class ConsoleHandler {
 
         this.commandSender = new ConsoleCommandSender(server);
 
-        FormattedConsoleOutputStream out = new FormattedConsoleOutputStream(reader);
+        FormattedConsoleOutputStream consoleWriter = new FormattedConsoleOutputStream(reader);
 
-        System.setOut(new PrintStream(out));
-        System.setErr(new PrintStream(out));
+        System.setOut(out = new PrintStream(consoleWriter, true));
+        System.setErr(new PrintStream(consoleWriter, true));
     }
 
     public void setStopped(boolean stopped) {

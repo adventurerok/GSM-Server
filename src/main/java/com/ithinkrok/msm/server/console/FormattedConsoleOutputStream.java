@@ -1,4 +1,4 @@
-package com.ithinkrok.msm.server.util;
+package com.ithinkrok.msm.server.console;
 
 import com.google.common.base.Charsets;
 import com.ithinkrok.util.StringUtils;
@@ -62,6 +62,7 @@ public class FormattedConsoleOutputStream extends ByteArrayOutputStream {
         if (!contents.trim().isEmpty() && !contents.equals("\n") && !contents.equals("\r\n")) {
             logThread.queue(contents);
         }
+        logThread.queue("Arrrr");
     }
 
     private void print(String text) {
