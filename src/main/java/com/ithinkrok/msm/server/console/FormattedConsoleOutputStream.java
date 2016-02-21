@@ -62,7 +62,6 @@ public class FormattedConsoleOutputStream extends ByteArrayOutputStream {
         if (!contents.trim().isEmpty() && !contents.equals("\n") && !contents.equals("\r\n")) {
             logThread.queue(contents);
         }
-        logThread.queue("Arrrr");
     }
 
     private void print(String text) {
