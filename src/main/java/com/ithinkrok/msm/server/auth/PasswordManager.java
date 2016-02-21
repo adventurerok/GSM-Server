@@ -66,6 +66,10 @@ public class PasswordManager {
         return Arrays.equals(expected, actual);
     }
 
+    public boolean hasServer(String serverName) {
+        return passwordsConfig.contains(serverName);
+    }
+
     public void registerServer(String serverName, byte[] password) {
         PasswordHasher.ScryptParameters parameters = new PasswordHasher.ScryptParameters();
 

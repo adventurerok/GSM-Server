@@ -6,6 +6,8 @@ import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
+import com.ithinkrok.msm.server.auth.PasswordManager;
+import com.ithinkrok.msm.server.command.RegisterServerCommand;
 import com.ithinkrok.msm.server.console.ConsoleHandler;
 import com.ithinkrok.msm.server.data.MinecraftServer;
 import com.ithinkrok.msm.server.data.Player;
@@ -80,8 +82,10 @@ public class MSMServer implements Server {
 
         this.restartScript = config.getString("restart_script");
 
-        //Add the ServerLoginProtocol
-        protocolToPluginMap.put("MSMLogin", new ServerLoginProtocol());
+        //Add the ServerLoginProtocol and the registerserver command
+        PasswordManager passwordManager = new PasswordManager(Paths.get("passwords.dat"));
+        protocolToPluginMap.put("MSMLogin", new ServerLoginProtocol(passwordManager));
+        registerCommand(RegisterServerCommand.createCommandInfo(passwordManager));
 
         protocolToPluginMap.putAll(listeners);
 

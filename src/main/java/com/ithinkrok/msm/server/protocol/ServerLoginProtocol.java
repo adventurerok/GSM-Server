@@ -4,6 +4,7 @@ import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.MinecraftServerInfo;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.ServerListener;
+import com.ithinkrok.msm.server.auth.PasswordManager;
 import com.ithinkrok.msm.server.impl.MSMConnection;
 import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.util.config.BinaryConfigIO;
@@ -25,6 +26,12 @@ import java.util.Set;
 public class ServerLoginProtocol implements ServerListener {
 
     private static final Logger log = LogManager.getLogger(ServerLoginProtocol.class);
+
+    private final PasswordManager passwordManager;
+
+    public ServerLoginProtocol(PasswordManager passwordManager) {
+        this.passwordManager = passwordManager;
+    }
 
     @Override
     public void connectionOpened(Connection connection, Channel channel) {
