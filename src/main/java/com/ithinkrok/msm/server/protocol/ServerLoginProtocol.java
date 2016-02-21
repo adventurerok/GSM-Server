@@ -31,7 +31,7 @@ public class ServerLoginProtocol implements ServerListener {
 
     @Override
     public void connectionClosed(Connection connection) {
-        ((MSMMinecraftServer)connection.getMinecraftServer()).setConnection(null);
+
     }
 
     @Override

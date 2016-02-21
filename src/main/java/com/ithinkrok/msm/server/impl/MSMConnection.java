@@ -121,6 +121,8 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     public void operationComplete(ChannelFuture future) throws Exception {
         log.info("MinecraftServer " + minecraftServer.getName() + " disconnected");
 
+        minecraftServer.setConnection(null);
+
         for(Map.Entry<Integer, String> entry : idToProtocolMap.entrySet()) {
             msmServer.getListenerForProtocol(entry.getValue()).connectionClosed(this);
         }
