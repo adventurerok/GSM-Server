@@ -73,6 +73,11 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     }
 
     @Override
+    public void close() {
+        channel.close();
+    }
+
+    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         //Pass on Objects that are not Packets to the next handler
         if (!Packet.class.isInstance(msg)) {

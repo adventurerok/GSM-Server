@@ -23,4 +23,6 @@ public interface Connection {
     MinecraftServer getMinecraftServer();
 
     Collection<String> getSupportedProtocols();
+
+    void close();
 }
