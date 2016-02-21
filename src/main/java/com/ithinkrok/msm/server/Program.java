@@ -1,16 +1,16 @@
 package com.ithinkrok.msm.server;
 
-import com.ithinkrok.msm.server.command.*;
-import com.ithinkrok.msm.server.event.ConsoleCommandEvent;
+import com.ithinkrok.msm.server.command.CommandInfo;
+import com.ithinkrok.msm.server.command.ExecCommand;
+import com.ithinkrok.msm.server.command.RestartCommand;
+import com.ithinkrok.msm.server.command.StopCommand;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.msm.server.protocol.ServerAPIProtocol;
 import com.ithinkrok.msm.server.protocol.ServerAutoUpdateProtocol;
-import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.config.YamlConfigIO;
-import com.ithinkrok.util.event.CustomEventExecutor;
 import jline.console.ConsoleReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,8 +47,6 @@ public class Program {
             log.error("Failed to create console reader. Console input will be disabled", e);
             return;
         }
-
-        reader.setPrompt("> ");
 
         ConsoleHandler consoleHandler = new ConsoleHandler(server, reader);
 
