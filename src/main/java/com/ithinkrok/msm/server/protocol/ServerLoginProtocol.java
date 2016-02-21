@@ -51,6 +51,15 @@ public class ServerLoginProtocol implements ServerListener {
 
         //Get the clients server info
         Config serverInfoConfig = payload.getConfigOrNull("server_info");
+
+        String serverName = serverInfoConfig.getString("name");
+        byte[] password = payload.getByteArray("password");
+        if (!passwordManager.loginServer(serverName, password)) {
+            log.warn("Disconnecting server " + serverName + ". It either sent the wrong password or is not registered");
+            connection.close();
+            return;
+        }
+
         MinecraftServerInfo minecraftServerInfo = new MinecraftServerInfo(serverInfoConfig);
 
         //Assign a MinecraftServer object to the connection

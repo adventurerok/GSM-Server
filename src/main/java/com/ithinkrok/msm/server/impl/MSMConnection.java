@@ -124,6 +124,13 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
 
     @Override
     public void operationComplete(ChannelFuture future) throws Exception {
+        if(minecraftServer == null) {
+            //This server is being disconnected due to invalid password.
+            // We already log a message to console about this.
+            return;
+        }
+
+
         log.info("MinecraftServer " + minecraftServer.getName() + " disconnected");
 
         minecraftServer.setConnection(null);
