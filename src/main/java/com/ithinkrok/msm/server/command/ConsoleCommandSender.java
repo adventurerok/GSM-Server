@@ -27,8 +27,6 @@ public class ConsoleCommandSender implements CustomCommandSender {
 
     @Override
     public void sendMessageNoPrefix(String message) {
-        message = StringUtils.removeMinecraftChatCodes(message);
-
         log.info(message);
     }
 

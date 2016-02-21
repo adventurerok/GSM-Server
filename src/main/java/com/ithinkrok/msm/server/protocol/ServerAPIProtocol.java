@@ -129,8 +129,6 @@ public class ServerAPIProtocol implements ServerListener {
     private void handleConsoleMessage(Config payload) {
         String message = payload.getString("message");
 
-        message = StringUtils.removeMinecraftChatCodes(message);
-
         log.info("[Command] " + message);
     }
 
