@@ -1,5 +1,8 @@
 package com.ithinkrok.msm.server.console;
 
+import com.google.common.base.Charsets;
+import com.ithinkrok.util.config.Config;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
@@ -45,6 +48,16 @@ public class FormattedConsoleAppender extends AbstractAppender {
         synchronized (lock) {
             try {
                 final byte[] bytes = getLayout().toByteArray(event);
+
+                if(event.getLevel() == Level.WARN) {
+                    ConsoleHandler.out.write("§c".getBytes(Charsets.UTF_8));
+                } else if(event.getLevel() == Level.ERROR || event.getLevel() == Level.FATAL) {
+                    ConsoleHandler.out.write("§4".getBytes(Charsets.UTF_8));
+                } else if(event.getLevel() == Level.DEBUG) {
+                    ConsoleHandler.out.write("§3".getBytes(Charsets.UTF_8));
+                }
+
+
                 ConsoleHandler.out.write(bytes);
                 ConsoleHandler.out.flush();
             } catch (Exception e) {
