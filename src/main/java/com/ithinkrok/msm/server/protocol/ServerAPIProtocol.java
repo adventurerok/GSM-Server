@@ -5,7 +5,7 @@ import com.ithinkrok.msm.common.util.ConfigUtils;
 import com.ithinkrok.msm.server.*;
 import com.ithinkrok.msm.server.data.Ban;
 import com.ithinkrok.msm.server.data.MinecraftClient;
-import com.ithinkrok.msm.server.data.Player;
+import com.ithinkrok.msm.server.data.MinecraftPlayer;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
@@ -17,7 +17,7 @@ import com.ithinkrok.msm.server.event.player.PlayerCommandEvent;
 import com.ithinkrok.msm.server.event.player.PlayerJoinEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.impl.MSMMinecraftClient;
-import com.ithinkrok.msm.server.impl.MSMPlayer;
+import com.ithinkrok.msm.server.impl.MSMMinecraftPlayer;
 import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.config.Config;
@@ -160,7 +160,7 @@ public class ServerAPIProtocol implements ServerListener {
 
     private void handleChangeServer(Server connectedTo, Config payload) {
         UUID playerUUID = UUID.fromString(payload.getString("player"));
-        Player player = connectedTo.getPlayer(playerUUID);
+        MinecraftPlayer player = connectedTo.getPlayer(playerUUID);
 
         if(player == null) {
             log.debug("Unknown player " + playerUUID + " in ChangeServer request");
@@ -181,7 +181,7 @@ public class ServerAPIProtocol implements ServerListener {
     private void handlePlayerJoin(MinecraftClient minecraftClient, Config payload, boolean alreadyOn) {
         UUID playerUUID = UUID.fromString(payload.getString("uuid"));
 
-        MSMPlayer player = ((MSMServer) minecraftClient.getConnectedTo()).removeQuittingPlayer(playerUUID);
+        MSMMinecraftPlayer player = ((MSMServer) minecraftClient.getConnectedTo()).removeQuittingPlayer(playerUUID);
 
         if (player != null) {
             MinecraftClient oldServer = player.getServer();
@@ -195,7 +195,7 @@ public class ServerAPIProtocol implements ServerListener {
 
             if (!alreadyOn) minecraftClient.getConnectedTo().callEvent(new PlayerChangeServerEvent(player, oldServer));
         } else {
-            player = new MSMPlayer(minecraftClient, payload);
+            player = new MSMMinecraftPlayer(minecraftClient, payload);
             ((MSMMinecraftClient) minecraftClient).addPlayer(player);
 
             if (!alreadyOn) minecraftClient.getConnectedTo().callEvent(new PlayerJoinEvent(player));
@@ -205,16 +205,16 @@ public class ServerAPIProtocol implements ServerListener {
     private void handlePlayerQuit(MinecraftClient minecraftClient, Config payload) {
         UUID playerUUID = UUID.fromString(payload.getString("uuid"));
 
-        Player player = ((MSMMinecraftClient) minecraftClient).removePlayer(playerUUID);
+        MinecraftPlayer player = ((MSMMinecraftClient) minecraftClient).removePlayer(playerUUID);
 
         //The connect packet from the new server was received before the disconnect packet from this server
         if(player == null) return;
 
         if (!minecraftClient.getServerInfo().hasBungee()) {
             minecraftClient.getConnectedTo().callEvent(new PlayerQuitEvent(player));
-            ((MSMPlayer) player).setServer(null);
+            ((MSMMinecraftPlayer) player).setServer(null);
         } else {
-            ((MSMServer) minecraftClient.getConnectedTo()).addQuittingPlayer((MSMPlayer) player);
+            ((MSMServer) minecraftClient.getConnectedTo()).addQuittingPlayer((MSMMinecraftPlayer) player);
         }
     }
 
@@ -225,14 +225,14 @@ public class ServerAPIProtocol implements ServerListener {
     }
 
     private void handleMessage(Server connectedTo, Config payload) {
-        Map<MinecraftClient, Set<Player>> messagePackets = new HashMap<>();
+        Map<MinecraftClient, Set<MinecraftPlayer>> messagePackets = new HashMap<>();
 
         for (String uuidString : payload.getStringList("recipients")) {
-            Player player = connectedTo.getPlayer(UUID.fromString(uuidString));
+            MinecraftPlayer player = connectedTo.getPlayer(UUID.fromString(uuidString));
 
             if (player == null || player.getServer() == null) continue;
 
-            Set<Player> playersForServer = messagePackets.get(player.getServer());
+            Set<MinecraftPlayer> playersForServer = messagePackets.get(player.getServer());
 
             if (playersForServer == null) {
                 playersForServer = new HashSet<>();
@@ -244,7 +244,7 @@ public class ServerAPIProtocol implements ServerListener {
 
         String message = payload.getString("message");
 
-        for (Map.Entry<MinecraftClient, Set<Player>> messageEntry : messagePackets.entrySet()) {
+        for (Map.Entry<MinecraftClient, Set<MinecraftPlayer>> messageEntry : messagePackets.entrySet()) {
             if (!messageEntry.getKey().isConnected()) continue;
 
             messageEntry.getKey().messagePlayers(message, messageEntry.getValue());
@@ -255,7 +255,7 @@ public class ServerAPIProtocol implements ServerListener {
         Config players = new MemoryConfig();
 
         for (String uuidString : payload.getStringList("players")) {
-            Player player = connectedTo.getPlayer(UUID.fromString(uuidString));
+            MinecraftPlayer player = connectedTo.getPlayer(UUID.fromString(uuidString));
 
             if (player == null) players.set(uuidString, "NONE");
             else players.set(uuidString, player.getServer().getName());
@@ -272,7 +272,7 @@ public class ServerAPIProtocol implements ServerListener {
 
     private void handlePlayerCommand(MinecraftClient minecraftClient, Config payload) {
         String playerUUID = payload.getString("player");
-        Player player = minecraftClient.getPlayer(UUID.fromString(playerUUID));
+        MinecraftPlayer player = minecraftClient.getPlayer(UUID.fromString(playerUUID));
         if (player == null) return;
 
         String fullCommand = payload.getString("command");

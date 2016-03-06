@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server.event.player;
 
-import com.ithinkrok.msm.server.data.Player;
+import com.ithinkrok.msm.server.data.MinecraftPlayer;
 import com.ithinkrok.msm.server.event.MSMEvent;
 
 /**
@@ -8,14 +8,14 @@ import com.ithinkrok.msm.server.event.MSMEvent;
  */
 public class PlayerEvent extends MSMEvent {
 
-    private final Player player;
+    private final MinecraftPlayer player;
 
-    public PlayerEvent(Player player) {
+    public PlayerEvent(MinecraftPlayer player) {
         super(player.getServer());
         this.player = player;
     }
 
-    public Player getPlayer() {
+    public MinecraftPlayer getPlayer() {
         return player;
     }
 }

@@ -10,7 +10,7 @@ import com.ithinkrok.msm.server.auth.PasswordManager;
 import com.ithinkrok.msm.server.command.RegisterServerCommand;
 import com.ithinkrok.msm.server.console.ConsoleHandler;
 import com.ithinkrok.msm.server.data.MinecraftClient;
-import com.ithinkrok.msm.server.data.Player;
+import com.ithinkrok.msm.server.data.MinecraftPlayer;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.command.CommandInfo;
@@ -65,7 +65,7 @@ public class MSMServer implements Server {
 
     private final Map<String, PermissionInfo> permissionMap = new ConcurrentHashMap<>();
 
-    private final Map<UUID, MSMPlayer> quittingPlayers = new ConcurrentHashMap<>();
+    private final Map<UUID, MSMMinecraftPlayer> quittingPlayers = new ConcurrentHashMap<>();
 
     private final MultipleLanguageLookup languageLookup = new MultipleLanguageLookup();
 
@@ -128,9 +128,9 @@ public class MSMServer implements Server {
     }
 
     @Override
-    public MSMPlayer getPlayer(UUID uuid) {
+    public MSMMinecraftPlayer getPlayer(UUID uuid) {
         for (MSMMinecraftClient minecraftServer : minecraftServerMap.values()) {
-            MSMPlayer player = minecraftServer.getPlayer(uuid);
+            MSMMinecraftPlayer player = minecraftServer.getPlayer(uuid);
 
             if (player != null) return player;
         }
@@ -139,9 +139,9 @@ public class MSMServer implements Server {
     }
 
     @Override
-    public Player getPlayer(String name) {
+    public MinecraftPlayer getPlayer(String name) {
         for (MSMMinecraftClient minecraftServer : minecraftServerMap.values()) {
-            MSMPlayer player = minecraftServer.getPlayer(name);
+            MSMMinecraftPlayer player = minecraftServer.getPlayer(name);
 
             if (player != null) return player;
         }
@@ -348,7 +348,7 @@ public class MSMServer implements Server {
         stop();
     }
 
-    public void addQuittingPlayer(MSMPlayer quitting) {
+    public void addQuittingPlayer(MSMMinecraftPlayer quitting) {
         quittingPlayers.put(quitting.getUUID(), quitting);
 
         schedule(() -> {
@@ -358,8 +358,8 @@ public class MSMServer implements Server {
         }, 1, TimeUnit.SECONDS);
     }
 
-    public MSMPlayer removeQuittingPlayer(UUID uuid) {
-        MSMPlayer player = quittingPlayers.remove(uuid);
+    public MSMMinecraftPlayer removeQuittingPlayer(UUID uuid) {
+        MSMMinecraftPlayer player = quittingPlayers.remove(uuid);
 
         if (player != null) return player;
 

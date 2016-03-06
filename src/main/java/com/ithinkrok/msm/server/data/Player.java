@@ -5,17 +5,15 @@ import com.ithinkrok.util.command.CustomCommandSender;
 import java.util.UUID;
 
 /**
- * Created by paul on 06/02/16.
+ * Created by paul on 06/03/16.
  */
-public interface Player extends CustomCommandSender {
+public interface Player<T extends Client<?>> extends CustomCommandSender {
 
     String getName();
 
     UUID getUUID();
 
-    MinecraftClient getServer();
-
-    void changeServer(MinecraftClient newServer);
-
     void kick(String reason);
+
+    T getServer();
 }

@@ -2,7 +2,7 @@ package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.data.MinecraftClient;
-import com.ithinkrok.msm.server.data.Player;
+import com.ithinkrok.msm.server.data.MinecraftPlayer;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.lang.LanguageLookup;
@@ -15,15 +15,15 @@ import java.util.UUID;
 /**
  * Created by paul on 06/02/16.
  */
-public class MSMPlayer implements Player {
+public class MSMMinecraftPlayer implements MinecraftPlayer {
 
-    private static final Logger log = LogManager.getLogger(MSMPlayer.class);
+    private static final Logger log = LogManager.getLogger(MSMMinecraftPlayer.class);
 
     private final UUID uuid;
     private String name;
     private MinecraftClient minecraftClient;
 
-    public MSMPlayer(MinecraftClient server, Config config) {
+    public MSMMinecraftPlayer(MinecraftClient server, Config config) {
         uuid = UUID.fromString(config.getString("uuid"));
         minecraftClient = server;
 

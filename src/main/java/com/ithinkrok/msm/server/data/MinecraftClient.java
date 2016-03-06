@@ -2,10 +2,6 @@ package com.ithinkrok.msm.server.data;
 
 import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.common.MinecraftClientType;
-import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.Server;
-import com.ithinkrok.util.command.CustomCommandSender;
-import com.ithinkrok.util.lang.Messagable;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,19 +14,7 @@ import java.util.UUID;
  * Represents any kind of Minecraft Server (Vanilla/Bukkit/Spigot/Bungee etc...) that could be connected to this MSM
  * Server.
  */
-public interface MinecraftClient extends Messagable {
-
-    /**
-     * @return If this MinecraftClient is currently connected to the MSM Server
-     */
-    default boolean isConnected() {
-        return getConnection() != null;
-    }
-
-    /**
-     * @return The Connection representing this MinecraftClient, or {@code null} if none exists
-     */
-    Connection getConnection();
+public interface MinecraftClient extends Client<MinecraftPlayer> {
 
     /**
      * Gets an estimate of the average tps of the server over the last 60 seconds.
@@ -39,59 +23,13 @@ public interface MinecraftClient extends Messagable {
      */
     double getTPS();
 
-    /**
-     * @return An estimate of the average ram usage (in MiB) of the server over the last 60 seconds, within 10% of the
-     * actual value
-     */
-    double getRamUsage();
-
-    /**
-     * @return The max ram (in MiB) that the server can use
-     */
-    double getMaxRam();
-
-    /**
-     * @return The current allocated ram (in MiB) of the server
-     */
-    double getAllocatedRam();
-
-    Collection<String> getSupportedProtocols();
-
     MinecraftClientInfo getServerInfo();
-
-    String getName();
 
     MinecraftClientType getType();
 
     boolean hasBungee();
 
-    int getMaxPlayerCount();
-
     List<String> getPlugins();
 
-    Collection<? extends Player> getPlayers();
 
-    Server getConnectedTo();
-
-    default void messagePlayers(String message, Player... players) {
-        messagePlayers(message, Arrays.asList(players));
-    }
-
-    void messagePlayers(String message, Collection<? extends Player> players);
-
-    void broadcast(String message);
-
-    Player getPlayer(UUID uuid);
-
-    Player getPlayer(String name);
-
-    Ban getBan(UUID playerUUID);
-
-    boolean isBanned(UUID playerUUID);
-
-    boolean unbanPlayer(UUID playerUUID);
-
-    boolean banPlayer(Ban ban);
-
-    CustomCommandSender getConsoleCommandSender();
 }

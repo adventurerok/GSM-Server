@@ -3,7 +3,7 @@ package com.ithinkrok.msm.server;
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.data.MinecraftClient;
-import com.ithinkrok.msm.server.data.Player;
+import com.ithinkrok.msm.server.data.MinecraftPlayer;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
@@ -29,9 +29,9 @@ public interface Server extends Messagable, LanguageLookup {
 
     Collection<MinecraftClient> getMinecraftServers();
 
-    Player getPlayer(UUID uuid);
+    MinecraftPlayer getPlayer(UUID uuid);
 
-    Player getPlayer(String name);
+    MinecraftPlayer getPlayer(String name);
 
     boolean executeCommand(MSMCommandEvent commandEvent);
 

@@ -5,8 +5,9 @@ import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.common.MinecraftClientType;
 import com.ithinkrok.msm.server.data.Ban;
 import com.ithinkrok.msm.server.data.MinecraftClient;
-import com.ithinkrok.msm.server.data.Player;
+import com.ithinkrok.msm.server.data.MinecraftPlayer;
 import com.ithinkrok.msm.server.Server;
+import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.util.command.CustomCommandSender;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
@@ -25,11 +26,11 @@ public class MSMMinecraftClient implements MinecraftClient {
 
     private MSMConnection connection;
 
-    private final Map<UUID, MSMPlayer> players = new ConcurrentHashMap<>();
+    private final Map<UUID, MSMMinecraftPlayer> players = new ConcurrentHashMap<>();
 
     private final Map<UUID, Ban> bans = new ConcurrentHashMap<>();
 
-    private final Map<String, MSMPlayer> namedPlayers = new ConcurrentHashMap<>();
+    private final Map<String, MSMMinecraftPlayer> namedPlayers = new ConcurrentHashMap<>();
 
     private final MinecraftCommandSender commandSender = new MinecraftCommandSender(this);
 
@@ -84,11 +85,11 @@ public class MSMMinecraftClient implements MinecraftClient {
     }
 
     @Override
-    public Collection<? extends Player> getPlayers() {
+    public Collection<? extends MinecraftPlayer> getPlayers() {
         return players.values();
     }
 
-    public void addPlayer(MSMPlayer player) {
+    public void addPlayer(MSMMinecraftPlayer player) {
         players.put(player.getUUID(), player);
 
         namedPlayers.put(player.getName(), player);
@@ -105,8 +106,8 @@ public class MSMMinecraftClient implements MinecraftClient {
         return "MSMMinecraftClient{" + "name=" + serverInfo.getName() + "}";
     }
 
-    public MSMPlayer removePlayer(UUID playerUUID) {
-        MSMPlayer player = players.remove(playerUUID);
+    public MSMMinecraftPlayer removePlayer(UUID playerUUID) {
+        MSMMinecraftPlayer player = players.remove(playerUUID);
 
         if(player != null) {
             namedPlayers.remove(player.getName());
@@ -166,11 +167,11 @@ public class MSMMinecraftClient implements MinecraftClient {
     }
 
     @Override
-    public void messagePlayers(String message, Collection<? extends Player> players) {
+    public void messagePlayers(String message, Collection<? extends Player<?>> players) {
         if(getAPIChannel() == null) return;
         List<String> playerUUIDs = new ArrayList<>();
 
-        for(Player player : players) {
+        for(Player<?> player : players) {
             playerUUIDs.add(player.getUUID().toString());
         }
 
@@ -196,13 +197,13 @@ public class MSMMinecraftClient implements MinecraftClient {
     }
 
     @Override
-    public MSMPlayer getPlayer(UUID uuid) {
+    public MSMMinecraftPlayer getPlayer(UUID uuid) {
         if(uuid == null) return null;
         return players.get(uuid);
     }
 
     @Override
-    public MSMPlayer getPlayer(String name) {
+    public MSMMinecraftPlayer getPlayer(String name) {
         if(name == null) return null;
         return namedPlayers.get(name);
     }
