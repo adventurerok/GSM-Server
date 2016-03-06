@@ -1,7 +1,6 @@
 package com.ithinkrok.msm.server.data;
 
 import com.ithinkrok.msm.common.ClientInfo;
-import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.command.CustomCommandSender;
@@ -53,15 +52,15 @@ public interface Client<T extends Player<?>> extends Messagable {
     Collection<String> getSupportedProtocols();
 
     default String getName(){
-        return getServerInfo().getName();
+        return getClientInfo().getName();
     }
 
     default String getType(){
-        return getServerInfo().getType();
+        return getClientInfo().getType();
     }
 
     default int getMaxPlayerCount(){
-        return getServerInfo().getMaxPlayerCount();
+        return getClientInfo().getMaxPlayerCount();
     }
 
     Server getConnectedTo();
@@ -90,7 +89,7 @@ public interface Client<T extends Player<?>> extends Messagable {
 
     boolean banPlayer(Ban ban);
 
-    ClientInfo getServerInfo();
+    ClientInfo getClientInfo();
 
     T createPlayer(Config config);
 }

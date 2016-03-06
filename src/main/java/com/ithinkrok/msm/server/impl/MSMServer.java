@@ -1,7 +1,6 @@
 package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.common.ClientInfo;
-import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
@@ -14,17 +13,13 @@ import com.ithinkrok.msm.server.console.ConsoleHandler;
 import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.data.PlayerIdentifier;
-import com.ithinkrok.msm.server.minecraft.MinecraftClient;
 import com.ithinkrok.msm.server.minecraft.MinecraftLoginHandler;
-import com.ithinkrok.msm.server.minecraft.MinecraftPlayer;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
-import com.ithinkrok.msm.server.minecraft.impl.MSMMinecraftClient;
-import com.ithinkrok.msm.server.minecraft.impl.MSMMinecraftPlayer;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
 import com.ithinkrok.util.config.Config;
@@ -130,19 +125,19 @@ public class MSMServer implements Server {
     }
 
     @Override
-    public Client<?> getMinecraftServer(String name) {
+    public Client<?> getClient(String name) {
         return minecraftServerMap.get(name);
     }
 
     @Override
-    public Collection<Client<?>> getMinecraftServers() {
+    public Collection<Client<?>> getClients() {
         return new ArrayList<>(minecraftServerMap.values());
     }
 
     @Override
     public Player<?> getPlayer(PlayerIdentifier identifier) {
         for (Client<?> minecraftServer : minecraftServerMap.values()) {
-            if(!minecraftServer.getType().equals(identifier.getServerType())) continue;
+            if(!minecraftServer.getType().equals(identifier.getClientType())) continue;
 
             Player<?> player = minecraftServer.getPlayer(identifier.getUuid());
 
@@ -153,9 +148,9 @@ public class MSMServer implements Server {
     }
 
     @Override
-    public Player<?> getPlayer(String serverType, String name) {
+    public Player<?> getPlayer(String clientType, String name) {
         for (Client<?> minecraftServer : minecraftServerMap.values()) {
-            if(!minecraftServer.getType().equals(serverType)) continue;
+            if(!minecraftServer.getType().equals(clientType)) continue;
 
             Player<?> player = minecraftServer.getPlayer(name);
 
@@ -246,7 +241,7 @@ public class MSMServer implements Server {
         List<CustomListener> listenersToCall = new ArrayList<>();
 
         for (Map.Entry<CustomListener, HashSet<String>> listenerEntry : listeners.entrySet()) {
-            if (!event.getMinecraftClient().getSupportedProtocols().containsAll(listenerEntry.getValue())) continue;
+            if (!event.getClient().getSupportedProtocols().containsAll(listenerEntry.getValue())) continue;
 
             listenersToCall.add(listenerEntry.getKey());
         }
@@ -383,7 +378,7 @@ public class MSMServer implements Server {
     }
 
     public Client<?> assignMinecraftClientToConnection(Config config, MSMConnection connection) {
-        Client<?> server = getMinecraftServer(config.getString("name"));
+        Client<?> server = getClient(config.getString("name"));
 
         String type = config.getString("type");
         LoginHandler loginHandler = loginHandlerMap.get(type);
@@ -393,9 +388,9 @@ public class MSMServer implements Server {
 
             server = loginHandler.createClient(clientInfo, this);
             minecraftServerMap.put(config.getString("name"), server);
-        } else server.getServerInfo().fromConfig(config);
+        } else server.getClientInfo().fromConfig(config);
 
-        connection.setMinecraftServer(server);
+        connection.setClient(server);
 
         return server;
     }

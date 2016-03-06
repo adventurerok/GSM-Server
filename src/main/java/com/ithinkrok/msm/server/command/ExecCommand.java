@@ -3,10 +3,9 @@ package com.ithinkrok.msm.server.command;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.data.Client;
-import com.ithinkrok.msm.server.minecraft.MinecraftClient;
 import com.ithinkrok.msm.server.event.ConsoleCommandEvent;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
-import com.ithinkrok.msm.server.event.minecraftserver.MinecraftServerCommandEvent;
+import com.ithinkrok.msm.server.event.minecraftserver.ClientCommandEvent;
 import com.ithinkrok.msm.server.event.player.PlayerCommandEvent;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
@@ -42,14 +41,14 @@ public class ExecCommand implements CustomListener {
                 return;
             }
 
-            for(Client<?> server : event.getMSMServer().getMinecraftServers()) {
+            for(Client<?> server : event.getMSMServer().getClients()) {
                 if(!pattern.matcher(server.getName()).matches()) continue;
                 if(!server.isConnected()) continue;
 
                 execCommand(server, event);
             }
         } else{
-            Client<?> server = event.getMSMServer().getMinecraftServer(serverName);
+            Client<?> server = event.getMSMServer().getClient(serverName);
 
             if (server == null || !server.isConnected()) {
                 event.getCommandSender().sendMessage("Unknown minecraft server: " + serverName);
@@ -81,9 +80,9 @@ public class ExecCommand implements CustomListener {
             sender.set("uuid", ((PlayerCommandEvent) event).getPlayer().getUUID());
         } else if(event instanceof ConsoleCommandEvent) {
             sender.set("type", "msm_console");
-        } else if(event instanceof MinecraftServerCommandEvent) {
+        } else if(event instanceof ClientCommandEvent) {
             sender.set("type", "minecraft");
-            sender.set("name", ((MinecraftServerCommandEvent) event).getMinecraftClient().getName());
+            sender.set("name", ((ClientCommandEvent) event).getClient().getName());
         } else {
             sender.set("type", "unknown");
         }

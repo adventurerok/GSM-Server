@@ -51,7 +51,7 @@ public class ServerMinecraftRequestProtocol implements ServerListener {
         String targetName = payload.getString("target");
         MinecraftClient target = null;
         try {
-            target = (MinecraftClient) connectedTo.getMinecraftServer(targetName);
+            target = (MinecraftClient) connectedTo.getClient(targetName);
         } catch (Exception ignored) {
             //The server exists, but is not a minecraft server
         }

@@ -1,7 +1,6 @@
 package com.ithinkrok.msm.server.event.minecraftserver;
 
 import com.ithinkrok.msm.server.data.Client;
-import com.ithinkrok.msm.server.minecraft.MinecraftClient;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.util.command.CustomCommand;
@@ -10,12 +9,12 @@ import com.ithinkrok.util.command.CustomCommandSender;
 /**
  * Created by paul on 18/02/16.
  */
-public class MinecraftServerCommandEvent extends MSMEvent implements MSMCommandEvent {
+public class ClientCommandEvent extends MSMEvent implements MSMCommandEvent {
 
     private final CustomCommand command;
 
-    public MinecraftServerCommandEvent(Client<?> minecraftClient, CustomCommand command) {
-        super(minecraftClient);
+    public ClientCommandEvent(Client<?> client, CustomCommand command) {
+        super(client);
         this.command = command;
     }
 
@@ -30,7 +29,7 @@ public class MinecraftServerCommandEvent extends MSMEvent implements MSMCommandE
 
     @Override
     public CustomCommandSender getCommandSender() {
-        return getMinecraftClient().getConsoleCommandSender();
+        return getClient().getConsoleCommandSender();
     }
 
     @Override

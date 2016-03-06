@@ -24,7 +24,7 @@ public interface MinecraftClient extends Client<MinecraftPlayer> {
      */
     double getTPS();
 
-    MinecraftClientInfo getServerInfo();
+    MinecraftClientInfo getClientInfo();
 
     MinecraftClientType getSubType();
 

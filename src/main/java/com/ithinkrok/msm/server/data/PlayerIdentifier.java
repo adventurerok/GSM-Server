@@ -9,19 +9,19 @@ import java.util.UUID;
  */
 public class PlayerIdentifier {
 
-    private final String serverType;
+    private final String clientType;
     private final UUID uuid;
 
-    public PlayerIdentifier(String serverType, UUID uuid) {
-        Validate.notNull(serverType, "serverType cannot be null");
+    public PlayerIdentifier(String clientType, UUID uuid) {
+        Validate.notNull(clientType, "clientType cannot be null");
         Validate.notNull(uuid, "uuid cannot be null");
 
-        this.serverType = serverType;
+        this.clientType = clientType;
         this.uuid = uuid;
     }
 
-    public String getServerType() {
-        return serverType;
+    public String getClientType() {
+        return clientType;
     }
 
     public UUID getUuid() {
@@ -35,14 +35,14 @@ public class PlayerIdentifier {
 
         PlayerIdentifier that = (PlayerIdentifier) o;
 
-        if (!serverType.equals(that.serverType)) return false;
+        if (!clientType.equals(that.clientType)) return false;
         return uuid.equals(that.uuid);
 
     }
 
     @Override
     public int hashCode() {
-        int result = serverType.hashCode();
+        int result = clientType.hashCode();
         result = 31 * result + uuid.hashCode();
         return result;
     }

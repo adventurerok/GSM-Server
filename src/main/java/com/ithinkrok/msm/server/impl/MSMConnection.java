@@ -54,12 +54,12 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     }
 
     @Override
-    public Client<?> getMinecraftServer() {
+    public Client<?> getClient() {
         return minecraftServer;
     }
 
     @Override
-    public void setMinecraftServer(Client<?> minecraftServer) {
+    public void setClient(Client<?> minecraftServer) {
         if (minecraftServer.isConnected() && minecraftServer.getConnection() != this) {
             throw new RuntimeException("Minecraft server " + minecraftServer + " is already connected");
         }

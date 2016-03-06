@@ -20,9 +20,9 @@ public interface Connection {
     /**
      * @return The MinecraftClient this Connection is representing.
      */
-    Client<?> getMinecraftServer();
+    Client<?> getClient();
 
-    void setMinecraftServer(Client<?> client);
+    void setClient(Client<?> client);
 
     Collection<String> getSupportedProtocols();
 

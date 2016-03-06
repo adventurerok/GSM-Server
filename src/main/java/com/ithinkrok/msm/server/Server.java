@@ -28,17 +28,17 @@ public interface Server extends Messagable, LanguageLookup {
 
     Set<String> getAvailableProtocols();
 
-    Client<?> getMinecraftServer(String name);
+    Client<?> getClient(String name);
 
-    Collection<Client<?>> getMinecraftServers();
+    Collection<Client<?>> getClients();
 
-    default Player<?> getPlayer(String serverType, UUID uuid){
-        return getPlayer(new PlayerIdentifier(serverType, uuid));
+    default Player<?> getPlayer(String clientType, UUID uuid){
+        return getPlayer(new PlayerIdentifier(clientType, uuid));
     }
 
     Player<?> getPlayer(PlayerIdentifier playerIdentifier);
 
-    Player<?> getPlayer(String serverType, String name);
+    Player<?> getPlayer(String clientType, String name);
 
     boolean executeCommand(MSMCommandEvent commandEvent);
 

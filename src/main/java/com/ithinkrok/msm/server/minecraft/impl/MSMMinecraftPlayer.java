@@ -53,11 +53,11 @@ public class MSMMinecraftPlayer implements MinecraftPlayer {
     }
 
     @Override
-    public MinecraftClient getServer() {
+    public MinecraftClient getClient() {
         return minecraftClient;
     }
 
-    public void setServer(MinecraftClient minecraftClient) {
+    public void setClient(MinecraftClient minecraftClient) {
         this.minecraftClient = minecraftClient;
     }
 

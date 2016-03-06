@@ -7,9 +7,9 @@ import com.ithinkrok.msm.server.event.MSMEvent;
 /**
  * Created by paul on 17/02/16.
  */
-public class MinecraftServerDisconnectEvent extends MSMEvent {
+public class ClientConnectEvent extends MSMEvent {
 
-    public MinecraftServerDisconnectEvent(Client<?> minecraftClient) {
+    public ClientConnectEvent(Client<?> minecraftClient) {
         super(minecraftClient);
     }
 }

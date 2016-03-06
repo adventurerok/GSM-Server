@@ -5,7 +5,6 @@ import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.common.MinecraftClientType;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.data.Ban;
-import com.ithinkrok.msm.server.impl.MSMConnection;
 import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.msm.server.minecraft.MinecraftClient;
 import com.ithinkrok.msm.server.minecraft.MinecraftPlayer;
@@ -64,23 +63,23 @@ public class MSMMinecraftClient implements MinecraftClient {
     }
 
     @Override
-    public MinecraftClientInfo getServerInfo() {
+    public MinecraftClientInfo getClientInfo() {
         return serverInfo;
     }
 
     @Override
     public MinecraftClientType getSubType() {
-        return getServerInfo().getSubType();
+        return getClientInfo().getSubType();
     }
 
     @Override
     public boolean hasBungee() {
-        return getServerInfo().hasBungee();
+        return getClientInfo().hasBungee();
     }
 
     @Override
     public List<String> getPlugins() {
-        return getServerInfo().getPlugins();
+        return getClientInfo().getPlugins();
     }
 
     public boolean isConnected() {
@@ -141,7 +140,7 @@ public class MSMMinecraftClient implements MinecraftClient {
 
     @Override
     public int getMaxPlayerCount() {
-        return getServerInfo().getMaxPlayerCount();
+        return getClientInfo().getMaxPlayerCount();
     }
 
     @Override
