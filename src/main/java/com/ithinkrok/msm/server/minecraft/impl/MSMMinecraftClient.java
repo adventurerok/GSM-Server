@@ -26,17 +26,11 @@ public class MSMMinecraftClient implements MinecraftClient {
 
     private final MinecraftClientInfo serverInfo;
     private final MSMServer server;
-
-    private Connection connection;
-
-    private final Map<UUID, MSMMinecraftPlayer> players = new ConcurrentHashMap<>();
-
+    private final Map<UUID, MinecraftPlayer> players = new ConcurrentHashMap<>();
     private final Map<UUID, Ban> bans = new ConcurrentHashMap<>();
-
-    private final Map<String, MSMMinecraftPlayer> namedPlayers = new ConcurrentHashMap<>();
-
+    private final Map<String, MinecraftPlayer> namedPlayers = new ConcurrentHashMap<>();
     private final MinecraftCommandSender commandSender = new MinecraftCommandSender(this);
-
+    private Connection connection;
     private Collection<String> supportedProtocols;
 
     private double tps;
@@ -53,18 +47,25 @@ public class MSMMinecraftClient implements MinecraftClient {
     }
 
     @Override
-    public Connection getConnection() {
-        return connection;
+    public String toString() {
+        return "MSMMinecraftClient{" + "name=" + serverInfo.getName() + "}";
+    }
+
+    public void handleResourceUsagePacket(Config payload) {
+        tps = payload.getDouble("average_tps");
+        ramUsage = payload.getDouble("average_ram");
+        maxRam = payload.getDouble("max_ram");
+        allocatedRam = payload.getDouble("allocated_ram");
+    }
+
+    @Override
+    public double getTPS() {
+        return tps;
     }
 
     @Override
     public MinecraftClientInfo getServerInfo() {
         return serverInfo;
-    }
-
-    @Override
-    public String getName() {
-        return serverInfo.getName();
     }
 
     @Override
@@ -78,57 +79,39 @@ public class MSMMinecraftClient implements MinecraftClient {
     }
 
     @Override
-    public int getMaxPlayerCount() {
-        return getServerInfo().getMaxPlayerCount();
-    }
-
-    @Override
     public List<String> getPlugins() {
         return getServerInfo().getPlugins();
     }
 
-    @Override
-    public Collection<? extends MinecraftPlayer> getPlayers() {
-        return players.values();
+    public boolean isConnected() {
+        return connection != null;
     }
 
-    public void addPlayer(MSMMinecraftPlayer player) {
-        players.put(player.getUUID(), player);
-
-        namedPlayers.put(player.getName(), player);
+    @Override
+    public Connection getConnection() {
+        return connection;
     }
 
     public void setConnection(Connection connection) {
         this.connection = connection;
 
-        if(connection != null) setSupportedProtocols(connection.getSupportedProtocols());
+        if (connection != null) setSupportedProtocols(connection.getSupportedProtocols());
     }
 
-    @Override
-    public String toString() {
-        return "MSMMinecraftClient{" + "name=" + serverInfo.getName() + "}";
-    }
+    public MinecraftPlayer removePlayer(UUID playerUUID) {
+        MinecraftPlayer player = players.remove(playerUUID);
 
-    public MSMMinecraftPlayer removePlayer(UUID playerUUID) {
-        MSMMinecraftPlayer player = players.remove(playerUUID);
-
-        if(player != null) {
+        if (player != null) {
             namedPlayers.remove(player.getName());
         }
 
         return player;
     }
 
-    public void handleResourceUsagePacket(Config payload) {
-        tps = payload.getDouble("average_tps");
-        ramUsage = payload.getDouble("average_ram");
-        maxRam = payload.getDouble("max_ram");
-        allocatedRam = payload.getDouble("allocated_ram");
-    }
+    public void addPlayer(MinecraftPlayer player) {
+        players.put(player.getUUID(), player);
 
-    @Override
-    public double getTPS() {
-        return tps;
+        namedPlayers.put(player.getName(), player);
     }
 
     @Override
@@ -151,17 +134,14 @@ public class MSMMinecraftClient implements MinecraftClient {
         return supportedProtocols;
     }
 
-    public void setSupportedProtocols(Collection<String> supportedProtocols) {
-        this.supportedProtocols = supportedProtocols;
+    @Override
+    public String getName() {
+        return serverInfo.getName();
     }
 
-    private Channel getAPIChannel() {
-        if(connection == null) return null;
-        return connection.getChannel("MSMAPI");
-    }
-
-    public boolean isConnected() {
-        return connection != null;
+    @Override
+    public int getMaxPlayerCount() {
+        return getServerInfo().getMaxPlayerCount();
     }
 
     @Override
@@ -170,11 +150,21 @@ public class MSMMinecraftClient implements MinecraftClient {
     }
 
     @Override
+    public CustomCommandSender getConsoleCommandSender() {
+        return commandSender;
+    }
+
+    @Override
+    public Collection<? extends MinecraftPlayer> getPlayers() {
+        return players.values();
+    }
+
+    @Override
     public void messagePlayers(String message, Collection<? extends Player<?>> players) {
-        if(getAPIChannel() == null) return;
+        if (getAPIChannel() == null) return;
         List<String> playerUUIDs = new ArrayList<>();
 
-        for(Player<?> player : players) {
+        for (Player<?> player : players) {
             playerUUIDs.add(player.getUUID().toString());
         }
 
@@ -187,9 +177,26 @@ public class MSMMinecraftClient implements MinecraftClient {
         getAPIChannel().write(payload);
     }
 
+    private Channel getAPIChannel() {
+        if (connection == null) return null;
+        return connection.getChannel("MSMAPI");
+    }
+
+    @Override
+    public MinecraftPlayer getPlayer(UUID uuid) {
+        if (uuid == null) return null;
+        return players.get(uuid);
+    }
+
+    @Override
+    public MinecraftPlayer getPlayer(String name) {
+        if (name == null) return null;
+        return namedPlayers.get(name);
+    }
+
     @Override
     public void broadcast(String message) {
-        if(getAPIChannel() == null) return;
+        if (getAPIChannel() == null) return;
 
         Config payload = new MemoryConfig();
 
@@ -197,18 +204,6 @@ public class MSMMinecraftClient implements MinecraftClient {
         payload.set("mode", "Broadcast");
 
         getAPIChannel().write(payload);
-    }
-
-    @Override
-    public MSMMinecraftPlayer getPlayer(UUID uuid) {
-        if(uuid == null) return null;
-        return players.get(uuid);
-    }
-
-    @Override
-    public MSMMinecraftPlayer getPlayer(String name) {
-        if(name == null) return null;
-        return namedPlayers.get(name);
     }
 
     @Override
@@ -223,10 +218,10 @@ public class MSMMinecraftClient implements MinecraftClient {
 
     @Override
     public boolean unbanPlayer(UUID playerUUID) {
-        if(!isBanned(playerUUID)) return true;
+        if (!isBanned(playerUUID)) return true;
 
         Channel channel = getAPIChannel();
-        if(channel == null) return false;
+        if (channel == null) return false;
 
         bans.remove(playerUUID);
 
@@ -240,10 +235,10 @@ public class MSMMinecraftClient implements MinecraftClient {
 
     @Override
     public boolean banPlayer(Ban ban) {
-        if(ban.equals(getBan(ban.getPlayerUUID()))) return true;
+        if (ban.equals(getBan(ban.getPlayerUUID()))) return true;
 
         Channel channel = getAPIChannel();
-        if(channel == null) return false;
+        if (channel == null) return false;
 
         addBan(ban);
 
@@ -255,12 +250,16 @@ public class MSMMinecraftClient implements MinecraftClient {
     }
 
     @Override
-    public CustomCommandSender getConsoleCommandSender() {
-        return commandSender;
+    public MinecraftPlayer createPlayer(Config config) {
+        return new MSMMinecraftPlayer(this, config);
     }
 
     public void addBan(Ban ban) {
         bans.put(ban.getPlayerUUID(), ban);
+    }
+
+    public void setSupportedProtocols(Collection<String> supportedProtocols) {
+        this.supportedProtocols = supportedProtocols;
     }
 
     @Override

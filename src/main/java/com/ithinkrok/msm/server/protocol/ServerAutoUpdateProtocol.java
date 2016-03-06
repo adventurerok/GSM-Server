@@ -154,6 +154,8 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
 
     @Override
     public void connectionClosed(Connection connection) {
+        if (!(connection.getMinecraftServer() instanceof MinecraftClient)) return;
+
         clientVersionsMap.remove(connection.getMinecraftServer());
     }
 
@@ -183,11 +185,13 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
             log.trace("Client plugin: " + name + ", " + modified);
         }
 
-        clientVersionsMap.put(connection.getMinecraftServer(), newPlugins);
+        MinecraftClient minecraftClient = (MinecraftClient) connection.getMinecraftServer();
+
+        clientVersionsMap.put(minecraftClient, newPlugins);
 
         //Check for plugin updates. This cannot be done in the loop above as it uses the clientVersionsMap
         for (String pluginName : newPlugins.keySet()) {
-            checkUpdate(connection.getMinecraftServer(), pluginName);
+            checkUpdate(minecraftClient, pluginName);
         }
     }
 

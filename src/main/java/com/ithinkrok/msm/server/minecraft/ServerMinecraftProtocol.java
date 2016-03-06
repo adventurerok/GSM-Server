@@ -1,0 +1,61 @@
+package com.ithinkrok.msm.server.minecraft;
+
+import com.ithinkrok.msm.common.Channel;
+import com.ithinkrok.msm.server.Connection;
+import com.ithinkrok.msm.server.Server;
+import com.ithinkrok.msm.server.ServerListener;
+import com.ithinkrok.util.config.Config;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.UUID;
+
+/**
+ * Created by paul on 06/03/16.
+ */
+public class ServerMinecraftProtocol implements ServerListener {
+
+    private final Logger log = LogManager.getLogger(ServerMinecraftProtocol.class);
+
+    @Override
+    public void connectionOpened(Connection connection, Channel channel) {
+
+    }
+
+    @Override
+    public void connectionClosed(Connection connection) {
+
+    }
+
+    @Override
+    public void packetRecieved(Connection connection, Channel channel, Config payload) {
+        String mode = payload.getString("mode");
+
+        if (mode == null) return;
+
+        switch (mode) {
+            case "ChangeServer":
+                handleChangeServer(connection.getConnectedTo(), payload);
+        }
+    }
+
+    private void handleChangeServer(Server connectedTo, Config payload) {
+        UUID playerUUID = UUID.fromString(payload.getString("player"));
+        MinecraftPlayer player = (MinecraftPlayer) connectedTo.getPlayer("minecraft", playerUUID);
+
+        if(player == null) {
+            log.debug("Unknown player " + playerUUID + " in ChangeServer request");
+            return;
+        }
+
+        String targetName = payload.getString("target");
+        MinecraftClient target = (MinecraftClient) connectedTo.getMinecraftServer(targetName);
+
+        if(target == null) {
+            log.debug("Unknown minecraft server " + targetName + " in ChangeServer request");
+            return;
+        }
+
+        player.changeServer(target);
+    }
+}

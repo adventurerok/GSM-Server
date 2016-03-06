@@ -1,5 +1,6 @@
 package com.ithinkrok.msm.server.event.minecraftserver;
 
+import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.msm.server.minecraft.MinecraftClient;
 import com.ithinkrok.msm.server.event.MSMEvent;
 
@@ -8,7 +9,7 @@ import com.ithinkrok.msm.server.event.MSMEvent;
  */
 public class MinecraftServerConnectEvent extends MSMEvent {
 
-    public MinecraftServerConnectEvent(MinecraftClient minecraftClient) {
+    public MinecraftServerConnectEvent(Client<?> minecraftClient) {
         super(minecraftClient);
     }
 }

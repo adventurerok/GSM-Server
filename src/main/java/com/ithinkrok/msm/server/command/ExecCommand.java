@@ -2,6 +2,7 @@ package com.ithinkrok.msm.server.command;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.Connection;
+import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.msm.server.minecraft.MinecraftClient;
 import com.ithinkrok.msm.server.event.ConsoleCommandEvent;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
@@ -41,14 +42,14 @@ public class ExecCommand implements CustomListener {
                 return;
             }
 
-            for(MinecraftClient server : event.getMSMServer().getMinecraftServers()) {
+            for(Client<?> server : event.getMSMServer().getMinecraftServers()) {
                 if(!pattern.matcher(server.getName()).matches()) continue;
                 if(!server.isConnected()) continue;
 
                 execCommand(server, event);
             }
         } else{
-            MinecraftClient server = event.getMSMServer().getMinecraftServer(serverName);
+            Client<?> server = event.getMSMServer().getMinecraftServer(serverName);
 
             if (server == null || !server.isConnected()) {
                 event.getCommandSender().sendMessage("Unknown minecraft server: " + serverName);
@@ -59,7 +60,7 @@ public class ExecCommand implements CustomListener {
         }
     }
 
-    private void execCommand(MinecraftClient server, MSMCommandEvent event) {
+    private void execCommand(Client<?> server, MSMCommandEvent event) {
         Connection connection = server.getConnection();
 
         if(connection == null) {

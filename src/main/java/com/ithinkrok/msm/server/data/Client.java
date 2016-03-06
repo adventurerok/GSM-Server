@@ -5,6 +5,7 @@ import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.command.CustomCommandSender;
+import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.lang.Messagable;
 
 import java.util.Arrays;
@@ -28,6 +29,10 @@ public interface Client<T extends Player<?>> extends Messagable {
     Connection getConnection();
 
     void setConnection(Connection connection);
+
+    T removePlayer(UUID playerUUID);
+
+    void addPlayer(T player);
 
     /**
      * @return An estimate of the average ram usage (in MiB) of the server over the last 60 seconds, within 10% of the
@@ -86,4 +91,6 @@ public interface Client<T extends Player<?>> extends Messagable {
     boolean banPlayer(Ban ban);
 
     ClientInfo getServerInfo();
+
+    T createPlayer(Config config);
 }

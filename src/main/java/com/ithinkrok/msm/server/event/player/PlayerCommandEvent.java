@@ -1,5 +1,6 @@
 package com.ithinkrok.msm.server.event.player;
 
+import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.minecraft.MinecraftPlayer;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.util.command.CustomCommand;
@@ -17,7 +18,7 @@ public class PlayerCommandEvent extends PlayerEvent implements MSMCommandEvent {
 
     private boolean validCommand = true;
 
-    public PlayerCommandEvent(MinecraftPlayer player, CustomCommand command) {
+    public PlayerCommandEvent(Player<?> player, CustomCommand command) {
         super(player);
         this.command = command;
     }

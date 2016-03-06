@@ -18,4 +18,6 @@ public interface Player<T extends Client<?>> extends CustomCommandSender {
     void kick(String reason);
 
     T getServer();
+
+    void setServer(T client);
 }
