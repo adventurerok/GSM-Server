@@ -1,5 +1,7 @@
 package com.ithinkrok.msm.server.data;
 
+import com.ithinkrok.msm.common.ClientInfo;
+import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.command.CustomCommandSender;
@@ -25,6 +27,8 @@ public interface Client<T extends Player<?>> extends Messagable {
      */
     Connection getConnection();
 
+    void setConnection(Connection connection);
+
     /**
      * @return An estimate of the average ram usage (in MiB) of the server over the last 60 seconds, within 10% of the
      * actual value
@@ -43,9 +47,17 @@ public interface Client<T extends Player<?>> extends Messagable {
 
     Collection<String> getSupportedProtocols();
 
-    String getName();
+    default String getName(){
+        return getServerInfo().getName();
+    }
 
-    int getMaxPlayerCount();
+    default String getType(){
+        return getServerInfo().getType();
+    }
+
+    default int getMaxPlayerCount(){
+        return getServerInfo().getMaxPlayerCount();
+    }
 
     Server getConnectedTo();
 
@@ -72,4 +84,6 @@ public interface Client<T extends Player<?>> extends Messagable {
     boolean unbanPlayer(UUID playerUUID);
 
     boolean banPlayer(Ban ban);
+
+    ClientInfo getServerInfo();
 }

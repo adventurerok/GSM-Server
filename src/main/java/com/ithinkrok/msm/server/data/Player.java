@@ -13,6 +13,8 @@ public interface Player<T extends Client<?>> extends CustomCommandSender {
 
     UUID getUUID();
 
+    PlayerIdentifier getIdentifier();
+
     void kick(String reason);
 
     T getServer();

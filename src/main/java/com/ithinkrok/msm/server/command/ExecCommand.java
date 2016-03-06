@@ -2,7 +2,7 @@ package com.ithinkrok.msm.server.command;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.data.MinecraftClient;
+import com.ithinkrok.msm.server.minecraft.MinecraftClient;
 import com.ithinkrok.msm.server.event.ConsoleCommandEvent;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.minecraftserver.MinecraftServerCommandEvent;

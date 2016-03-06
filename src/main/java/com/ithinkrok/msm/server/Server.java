@@ -2,8 +2,11 @@ package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.command.CommandInfo;
-import com.ithinkrok.msm.server.data.MinecraftClient;
-import com.ithinkrok.msm.server.data.MinecraftPlayer;
+import com.ithinkrok.msm.server.data.Client;
+import com.ithinkrok.msm.server.data.Player;
+import com.ithinkrok.msm.server.data.PlayerIdentifier;
+import com.ithinkrok.msm.server.minecraft.MinecraftClient;
+import com.ithinkrok.msm.server.minecraft.MinecraftPlayer;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
@@ -25,13 +28,17 @@ public interface Server extends Messagable, LanguageLookup {
 
     Set<String> getAvailableProtocols();
 
-    MinecraftClient getMinecraftServer(String name);
+    Client<?> getMinecraftServer(String name);
 
-    Collection<MinecraftClient> getMinecraftServers();
+    Collection<Client<?>> getMinecraftServers();
 
-    MinecraftPlayer getPlayer(UUID uuid);
+    default Player<?> getPlayer(String serverType, UUID uuid){
+        return getPlayer(new PlayerIdentifier(serverType, uuid));
+    }
 
-    MinecraftPlayer getPlayer(String name);
+    Player<?> getPlayer(PlayerIdentifier playerIdentifier);
+
+    Player<?> getPlayer(String serverType, String name);
 
     boolean executeCommand(MSMCommandEvent commandEvent);
 

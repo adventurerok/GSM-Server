@@ -1,7 +1,8 @@
-package com.ithinkrok.msm.server.data;
+package com.ithinkrok.msm.server.minecraft;
 
 import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.common.MinecraftClientType;
+import com.ithinkrok.msm.server.data.Client;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -25,7 +26,7 @@ public interface MinecraftClient extends Client<MinecraftPlayer> {
 
     MinecraftClientInfo getServerInfo();
 
-    MinecraftClientType getType();
+    MinecraftClientType getSubType();
 
     boolean hasBungee();
 

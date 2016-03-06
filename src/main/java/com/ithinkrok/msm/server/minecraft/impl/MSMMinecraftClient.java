@@ -1,11 +1,14 @@
-package com.ithinkrok.msm.server.impl;
+package com.ithinkrok.msm.server.minecraft.impl;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.common.MinecraftClientType;
+import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.data.Ban;
-import com.ithinkrok.msm.server.data.MinecraftClient;
-import com.ithinkrok.msm.server.data.MinecraftPlayer;
+import com.ithinkrok.msm.server.impl.MSMConnection;
+import com.ithinkrok.msm.server.impl.MSMServer;
+import com.ithinkrok.msm.server.minecraft.MinecraftClient;
+import com.ithinkrok.msm.server.minecraft.MinecraftPlayer;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.util.command.CustomCommandSender;
@@ -24,7 +27,7 @@ public class MSMMinecraftClient implements MinecraftClient {
     private final MinecraftClientInfo serverInfo;
     private final MSMServer server;
 
-    private MSMConnection connection;
+    private Connection connection;
 
     private final Map<UUID, MSMMinecraftPlayer> players = new ConcurrentHashMap<>();
 
@@ -50,7 +53,7 @@ public class MSMMinecraftClient implements MinecraftClient {
     }
 
     @Override
-    public MSMConnection getConnection() {
+    public Connection getConnection() {
         return connection;
     }
 
@@ -65,7 +68,7 @@ public class MSMMinecraftClient implements MinecraftClient {
     }
 
     @Override
-    public MinecraftClientType getType() {
+    public MinecraftClientType getSubType() {
         return getServerInfo().getSubType();
     }
 
@@ -95,7 +98,7 @@ public class MSMMinecraftClient implements MinecraftClient {
         namedPlayers.put(player.getName(), player);
     }
 
-    public void setConnection(MSMConnection connection) {
+    public void setConnection(Connection connection) {
         this.connection = connection;
 
         if(connection != null) setSupportedProtocols(connection.getSupportedProtocols());

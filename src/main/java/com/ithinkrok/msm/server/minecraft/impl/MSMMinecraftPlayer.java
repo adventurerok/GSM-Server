@@ -1,8 +1,9 @@
-package com.ithinkrok.msm.server.impl;
+package com.ithinkrok.msm.server.minecraft.impl;
 
 import com.ithinkrok.msm.common.Channel;
-import com.ithinkrok.msm.server.data.MinecraftClient;
-import com.ithinkrok.msm.server.data.MinecraftPlayer;
+import com.ithinkrok.msm.server.data.PlayerIdentifier;
+import com.ithinkrok.msm.server.minecraft.MinecraftClient;
+import com.ithinkrok.msm.server.minecraft.MinecraftPlayer;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.lang.LanguageLookup;
@@ -19,12 +20,14 @@ public class MSMMinecraftPlayer implements MinecraftPlayer {
 
     private static final Logger log = LogManager.getLogger(MSMMinecraftPlayer.class);
 
-    private final UUID uuid;
+    private final PlayerIdentifier identifier;
     private String name;
     private MinecraftClient minecraftClient;
 
     public MSMMinecraftPlayer(MinecraftClient server, Config config) {
-        uuid = UUID.fromString(config.getString("uuid"));
+        UUID uuid = UUID.fromString(config.getString("uuid"));
+        identifier = new PlayerIdentifier(server.getType(), uuid);
+
         minecraftClient = server;
 
         fromConfig(config);
@@ -41,7 +44,12 @@ public class MSMMinecraftPlayer implements MinecraftPlayer {
 
     @Override
     public UUID getUUID() {
-        return uuid;
+        return identifier.getUuid();
+    }
+
+    @Override
+    public PlayerIdentifier getIdentifier() {
+        return identifier;
     }
 
     @Override
@@ -65,7 +73,7 @@ public class MSMMinecraftPlayer implements MinecraftPlayer {
 
         Config payload = new MemoryConfig();
 
-        payload.set("player", uuid.toString());
+        payload.set("player", identifier.getUuid().toString());
         payload.set("target", newServer.getName());
         payload.set("mode", "ChangeServer");
 
@@ -78,7 +86,7 @@ public class MSMMinecraftPlayer implements MinecraftPlayer {
         if(channel == null) return;
 
         Config payload = new MemoryConfig();
-        payload.set("player", uuid.toString());
+        payload.set("player", identifier.getUuid().toString());
         payload.set("reason", reason);
         payload.set("mode", "Kick");
 

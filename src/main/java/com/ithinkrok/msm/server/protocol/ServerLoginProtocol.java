@@ -1,9 +1,11 @@
 package com.ithinkrok.msm.server.protocol;
 
 import com.ithinkrok.msm.common.Channel;
+import com.ithinkrok.msm.common.ClientInfo;
 import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.ServerListener;
+import com.ithinkrok.msm.server.auth.LoginHandler;
 import com.ithinkrok.msm.server.auth.PasswordManager;
 import com.ithinkrok.msm.server.impl.MSMConnection;
 import com.ithinkrok.msm.server.impl.MSMServer;
@@ -12,10 +14,7 @@ import com.ithinkrok.util.config.MemoryConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by paul on 04/02/16.
@@ -25,9 +24,11 @@ public class ServerLoginProtocol implements ServerListener {
     private static final Logger log = LogManager.getLogger(ServerLoginProtocol.class);
 
     private final PasswordManager passwordManager;
+    private final Map<String, LoginHandler> loginHandlerMap;
 
-    public ServerLoginProtocol(PasswordManager passwordManager) {
+    public ServerLoginProtocol(PasswordManager passwordManager, Map<String, LoginHandler> loginHandlerMap) {
         this.passwordManager = passwordManager;
+        this.loginHandlerMap = loginHandlerMap;
     }
 
     @Override
@@ -57,7 +58,16 @@ public class ServerLoginProtocol implements ServerListener {
             return;
         }
 
-        MinecraftClientInfo minecraftClientInfo = new MinecraftClientInfo(clientInfoConfig);
+        String type = clientInfoConfig.getString("type");
+
+        LoginHandler loginHandler = loginHandlerMap.get(type);
+        if(loginHandler == null) {
+            log.warn("No LoginHandler for client type: " + type);
+            connection.close();
+            return;
+        }
+
+        ClientInfo clientInfo = loginHandler.loadClientInfo(clientInfoConfig);
 
         //Assign a MinecraftClient object to the connection
         ((MSMServer) connection.getConnectedTo())
@@ -73,7 +83,7 @@ public class ServerLoginProtocol implements ServerListener {
             if (serverProtocols.contains(protocol)) sharedProtocols.add(protocol);
         }
 
-        log.info("New client " + minecraftClientInfo + " connected with protocols: " + sharedProtocols);
+        log.info("New client " + clientInfo + " connected with protocols: " + sharedProtocols);
 
         ((MSMConnection) connection).setSupportedProtocols(new ArrayList<>(sharedProtocols));
 

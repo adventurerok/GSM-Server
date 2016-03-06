@@ -1,22 +1,30 @@
 package com.ithinkrok.msm.server.impl;
 
+import com.ithinkrok.msm.common.ClientInfo;
 import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
+import com.ithinkrok.msm.server.auth.LoginHandler;
 import com.ithinkrok.msm.server.auth.PasswordManager;
 import com.ithinkrok.msm.server.command.RegisterServerCommand;
 import com.ithinkrok.msm.server.console.ConsoleHandler;
-import com.ithinkrok.msm.server.data.MinecraftClient;
-import com.ithinkrok.msm.server.data.MinecraftPlayer;
+import com.ithinkrok.msm.server.data.Client;
+import com.ithinkrok.msm.server.data.Player;
+import com.ithinkrok.msm.server.data.PlayerIdentifier;
+import com.ithinkrok.msm.server.minecraft.MinecraftClient;
+import com.ithinkrok.msm.server.minecraft.MinecraftLoginHandler;
+import com.ithinkrok.msm.server.minecraft.MinecraftPlayer;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
+import com.ithinkrok.msm.server.minecraft.impl.MSMMinecraftClient;
+import com.ithinkrok.msm.server.minecraft.impl.MSMMinecraftPlayer;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
 import com.ithinkrok.util.config.Config;
@@ -53,7 +61,7 @@ public class MSMServer implements Server {
 
     private final Map<String, ServerListener> protocolToPluginMap = new HashMap<>();
 
-    private final Map<String, MSMMinecraftClient> minecraftServerMap = new ConcurrentHashMap<>();
+    private final Map<String, Client<?>> minecraftServerMap = new ConcurrentHashMap<>();
 
     private final ScheduledThreadPoolExecutor mainThreadExecutor, asyncThreadExecutor;
 
@@ -65,9 +73,11 @@ public class MSMServer implements Server {
 
     private final Map<String, PermissionInfo> permissionMap = new ConcurrentHashMap<>();
 
-    private final Map<UUID, MSMMinecraftPlayer> quittingPlayers = new ConcurrentHashMap<>();
+    private final Map<PlayerIdentifier, Player<?>> quittingPlayers = new ConcurrentHashMap<>();
 
     private final MultipleLanguageLookup languageLookup = new MultipleLanguageLookup();
+
+    private final Map<String, LoginHandler> loginHandlerMap = new ConcurrentHashMap<>();
 
     private final DirectoryWatcher directoryWatcher;
 
@@ -84,8 +94,10 @@ public class MSMServer implements Server {
 
         //Add the ServerLoginProtocol and the registerserver command
         PasswordManager passwordManager = new PasswordManager(Paths.get("passwords.dat"));
-        protocolToPluginMap.put("MSMLogin", new ServerLoginProtocol(passwordManager));
+        protocolToPluginMap.put("MSMLogin", new ServerLoginProtocol(passwordManager, loginHandlerMap));
         registerCommand(RegisterServerCommand.createCommandInfo(passwordManager));
+
+        loginHandlerMap.put("minecraft", new MinecraftLoginHandler());
 
         protocolToPluginMap.putAll(listeners);
 
@@ -118,19 +130,21 @@ public class MSMServer implements Server {
     }
 
     @Override
-    public MSMMinecraftClient getMinecraftServer(String name) {
+    public Client<?> getMinecraftServer(String name) {
         return minecraftServerMap.get(name);
     }
 
     @Override
-    public Collection<MinecraftClient> getMinecraftServers() {
+    public Collection<Client<?>> getMinecraftServers() {
         return new ArrayList<>(minecraftServerMap.values());
     }
 
     @Override
-    public MSMMinecraftPlayer getPlayer(UUID uuid) {
-        for (MSMMinecraftClient minecraftServer : minecraftServerMap.values()) {
-            MSMMinecraftPlayer player = minecraftServer.getPlayer(uuid);
+    public Player<?> getPlayer(PlayerIdentifier identifier) {
+        for (Client<?> minecraftServer : minecraftServerMap.values()) {
+            if(!minecraftServer.getType().equals(identifier.getServerType())) continue;
+
+            Player<?> player = minecraftServer.getPlayer(identifier.getUuid());
 
             if (player != null) return player;
         }
@@ -139,9 +153,11 @@ public class MSMServer implements Server {
     }
 
     @Override
-    public MinecraftPlayer getPlayer(String name) {
-        for (MSMMinecraftClient minecraftServer : minecraftServerMap.values()) {
-            MSMMinecraftPlayer player = minecraftServer.getPlayer(name);
+    public Player<?> getPlayer(String serverType, String name) {
+        for (Client<?> minecraftServer : minecraftServerMap.values()) {
+            if(!minecraftServer.getType().equals(serverType)) continue;
+
+            Player<?> player = minecraftServer.getPlayer(name);
 
             if (player != null) return player;
         }
@@ -283,7 +299,7 @@ public class MSMServer implements Server {
 
     @Override
     public void broadcast(String message) {
-        for (MinecraftClient server : minecraftServerMap.values()) {
+        for (Client<?> server : minecraftServerMap.values()) {
             server.broadcast(message);
         }
     }
@@ -348,29 +364,34 @@ public class MSMServer implements Server {
         stop();
     }
 
-    public void addQuittingPlayer(MSMMinecraftPlayer quitting) {
-        quittingPlayers.put(quitting.getUUID(), quitting);
+    public void addQuittingPlayer(Player<?> quitting) {
+        quittingPlayers.put(quitting.getIdentifier(), quitting);
 
         schedule(() -> {
-            if (quittingPlayers.remove(quitting.getUUID()) == null) return;
+            if (quittingPlayers.remove(quitting.getIdentifier()) == null) return;
 
             callEvent(new PlayerQuitEvent(quitting));
         }, 1, TimeUnit.SECONDS);
     }
 
-    public MSMMinecraftPlayer removeQuittingPlayer(UUID uuid) {
-        MSMMinecraftPlayer player = quittingPlayers.remove(uuid);
+    public Player<? extends Client<?>> removeQuittingPlayer(PlayerIdentifier identifier) {
+        Player<?> player = quittingPlayers.remove(identifier);
 
         if (player != null) return player;
 
-        return getPlayer(uuid);
+        return getPlayer(identifier);
     }
 
-    public MSMMinecraftClient assignMinecraftClientToConnection(Config config, MSMConnection connection) {
-        MSMMinecraftClient server = getMinecraftServer(config.getString("name"));
+    public Client<?> assignMinecraftClientToConnection(Config config, MSMConnection connection) {
+        Client<?> server = getMinecraftServer(config.getString("name"));
+
+        String type = config.getString("type");
+        LoginHandler loginHandler = loginHandlerMap.get(type);
 
         if (server == null) {
-            server = new MSMMinecraftClient(new MinecraftClientInfo(config), this);
+            ClientInfo clientInfo = loginHandler.loadClientInfo(config);
+
+            server = loginHandler.createClient(clientInfo, this);
             minecraftServerMap.put(config.getString("name"), server);
         } else server.getServerInfo().fromConfig(config);
 

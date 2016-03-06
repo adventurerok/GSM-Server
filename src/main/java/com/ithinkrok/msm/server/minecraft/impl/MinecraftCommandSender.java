@@ -1,8 +1,8 @@
-package com.ithinkrok.msm.server.impl;
+package com.ithinkrok.msm.server.minecraft.impl;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.data.MinecraftClient;
+import com.ithinkrok.msm.server.minecraft.MinecraftClient;
 import com.ithinkrok.util.command.CustomCommandSender;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
