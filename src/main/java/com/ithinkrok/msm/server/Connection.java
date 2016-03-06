@@ -1,7 +1,7 @@
 package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.common.Channel;
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 
 import java.util.Collection;
 
@@ -18,9 +18,9 @@ public interface Connection {
     Server getConnectedTo();
 
     /**
-     * @return The MinecraftServer this Connection is representing.
+     * @return The MinecraftClient this Connection is representing.
      */
-    MinecraftServer getMinecraftServer();
+    MinecraftClient getMinecraftServer();
 
     Collection<String> getSupportedProtocols();
 

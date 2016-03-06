@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server.impl;
 
-import com.ithinkrok.msm.common.MinecraftServerInfo;
+import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
@@ -9,7 +9,7 @@ import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.auth.PasswordManager;
 import com.ithinkrok.msm.server.command.RegisterServerCommand;
 import com.ithinkrok.msm.server.console.ConsoleHandler;
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
@@ -53,7 +53,7 @@ public class MSMServer implements Server {
 
     private final Map<String, ServerListener> protocolToPluginMap = new HashMap<>();
 
-    private final Map<String, MSMMinecraftServer> minecraftServerMap = new ConcurrentHashMap<>();
+    private final Map<String, MSMMinecraftClient> minecraftServerMap = new ConcurrentHashMap<>();
 
     private final ScheduledThreadPoolExecutor mainThreadExecutor, asyncThreadExecutor;
 
@@ -118,18 +118,18 @@ public class MSMServer implements Server {
     }
 
     @Override
-    public MSMMinecraftServer getMinecraftServer(String name) {
+    public MSMMinecraftClient getMinecraftServer(String name) {
         return minecraftServerMap.get(name);
     }
 
     @Override
-    public Collection<MinecraftServer> getMinecraftServers() {
+    public Collection<MinecraftClient> getMinecraftServers() {
         return new ArrayList<>(minecraftServerMap.values());
     }
 
     @Override
     public MSMPlayer getPlayer(UUID uuid) {
-        for (MSMMinecraftServer minecraftServer : minecraftServerMap.values()) {
+        for (MSMMinecraftClient minecraftServer : minecraftServerMap.values()) {
             MSMPlayer player = minecraftServer.getPlayer(uuid);
 
             if (player != null) return player;
@@ -140,7 +140,7 @@ public class MSMServer implements Server {
 
     @Override
     public Player getPlayer(String name) {
-        for (MSMMinecraftServer minecraftServer : minecraftServerMap.values()) {
+        for (MSMMinecraftClient minecraftServer : minecraftServerMap.values()) {
             MSMPlayer player = minecraftServer.getPlayer(name);
 
             if (player != null) return player;
@@ -230,7 +230,7 @@ public class MSMServer implements Server {
         List<CustomListener> listenersToCall = new ArrayList<>();
 
         for (Map.Entry<CustomListener, HashSet<String>> listenerEntry : listeners.entrySet()) {
-            if (!event.getMinecraftServer().getSupportedProtocols().containsAll(listenerEntry.getValue())) continue;
+            if (!event.getMinecraftClient().getSupportedProtocols().containsAll(listenerEntry.getValue())) continue;
 
             listenersToCall.add(listenerEntry.getKey());
         }
@@ -283,7 +283,7 @@ public class MSMServer implements Server {
 
     @Override
     public void broadcast(String message) {
-        for (MinecraftServer server : minecraftServerMap.values()) {
+        for (MinecraftClient server : minecraftServerMap.values()) {
             server.broadcast(message);
         }
     }
@@ -366,11 +366,11 @@ public class MSMServer implements Server {
         return getPlayer(uuid);
     }
 
-    public MSMMinecraftServer assignMinecraftServerToConnection(Config config, MSMConnection connection) {
-        MSMMinecraftServer server = getMinecraftServer(config.getString("name"));
+    public MSMMinecraftClient assignMinecraftClientToConnection(Config config, MSMConnection connection) {
+        MSMMinecraftClient server = getMinecraftServer(config.getString("name"));
 
         if (server == null) {
-            server = new MSMMinecraftServer(new MinecraftServerInfo(config), this);
+            server = new MSMMinecraftClient(new MinecraftClientInfo(config), this);
             minecraftServerMap.put(config.getString("name"), server);
         } else server.getServerInfo().fromConfig(config);
 

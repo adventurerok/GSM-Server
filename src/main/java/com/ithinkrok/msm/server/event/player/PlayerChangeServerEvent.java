@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server.event.player;
 
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 import com.ithinkrok.msm.server.data.Player;
 
 /**
@@ -8,18 +8,18 @@ import com.ithinkrok.msm.server.data.Player;
  */
 public class PlayerChangeServerEvent extends PlayerEvent {
 
-    private final MinecraftServer oldServer;
+    private final MinecraftClient oldServer;
 
-    public PlayerChangeServerEvent(Player player, MinecraftServer oldServer) {
+    public PlayerChangeServerEvent(Player player, MinecraftClient oldServer) {
         super(player);
         this.oldServer = oldServer;
     }
 
-    public MinecraftServer getOldServer() {
+    public MinecraftClient getOldServer() {
         return oldServer;
     }
 
-    public MinecraftServer getNewServer() {
-        return getMinecraftServer();
+    public MinecraftClient getNewServer() {
+        return getMinecraftClient();
     }
 }

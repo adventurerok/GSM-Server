@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server.event.minecraftserver;
 
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 import com.ithinkrok.msm.server.event.MSMEvent;
 
 /**
@@ -8,7 +8,7 @@ import com.ithinkrok.msm.server.event.MSMEvent;
  */
 public class MinecraftServerDisconnectEvent extends MSMEvent {
 
-    public MinecraftServerDisconnectEvent(MinecraftServer minecraftServer) {
-        super(minecraftServer);
+    public MinecraftServerDisconnectEvent(MinecraftClient minecraftClient) {
+        super(minecraftClient);
     }
 }

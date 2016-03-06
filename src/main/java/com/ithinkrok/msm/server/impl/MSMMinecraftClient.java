@@ -1,10 +1,10 @@
 package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.common.Channel;
-import com.ithinkrok.msm.common.MinecraftServerInfo;
-import com.ithinkrok.msm.common.MinecraftServerType;
+import com.ithinkrok.msm.common.MinecraftClientInfo;
+import com.ithinkrok.msm.common.MinecraftClientType;
 import com.ithinkrok.msm.server.data.Ban;
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.command.CustomCommandSender;
@@ -18,9 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by paul on 05/02/16.
  */
-public class MSMMinecraftServer implements MinecraftServer {
+public class MSMMinecraftClient implements MinecraftClient {
 
-    private final MinecraftServerInfo serverInfo;
+    private final MinecraftClientInfo serverInfo;
     private final MSMServer server;
 
     private MSMConnection connection;
@@ -43,7 +43,7 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     private double maxRam;
 
-    public MSMMinecraftServer(MinecraftServerInfo serverInfo, MSMServer server) {
+    public MSMMinecraftClient(MinecraftClientInfo serverInfo, MSMServer server) {
         this.serverInfo = serverInfo;
         this.server = server;
     }
@@ -54,7 +54,7 @@ public class MSMMinecraftServer implements MinecraftServer {
     }
 
     @Override
-    public MinecraftServerInfo getServerInfo() {
+    public MinecraftClientInfo getServerInfo() {
         return serverInfo;
     }
 
@@ -64,7 +64,7 @@ public class MSMMinecraftServer implements MinecraftServer {
     }
 
     @Override
-    public MinecraftServerType getType() {
+    public MinecraftClientType getType() {
         return getServerInfo().getType();
     }
 
@@ -102,7 +102,7 @@ public class MSMMinecraftServer implements MinecraftServer {
 
     @Override
     public String toString() {
-        return "MSMMinecraftServer{" + "name=" + serverInfo.getName() + "}";
+        return "MSMMinecraftClient{" + "name=" + serverInfo.getName() + "}";
     }
 
     public MSMPlayer removePlayer(UUID playerUUID) {

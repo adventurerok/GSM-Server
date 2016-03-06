@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server.event;
 
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.event.CustomEvent;
 
@@ -9,17 +9,17 @@ import com.ithinkrok.util.event.CustomEvent;
  */
 public abstract class MSMEvent implements CustomEvent {
 
-    private final MinecraftServer minecraftServer;
+    private final MinecraftClient minecraftClient;
 
-    public MSMEvent(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public MSMEvent(MinecraftClient minecraftClient) {
+        this.minecraftClient = minecraftClient;
     }
 
-    public MinecraftServer getMinecraftServer() {
-        return minecraftServer;
+    public MinecraftClient getMinecraftClient() {
+        return minecraftClient;
     }
 
     public Server getMSMServer() {
-        return minecraftServer.getConnectedTo();
+        return minecraftClient.getConnectedTo();
     }
 }

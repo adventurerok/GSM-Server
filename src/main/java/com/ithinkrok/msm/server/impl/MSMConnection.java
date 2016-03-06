@@ -5,7 +5,7 @@ import com.google.common.collect.HashBiMap;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.Packet;
 import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 import com.ithinkrok.util.config.Config;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -30,7 +30,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     private final BiMap<Integer, String> idToProtocolMap = HashBiMap.create();
     private final Map<Integer, MSMConnectionChannel> channelMap = new HashMap<>();
 
-    private MSMMinecraftServer minecraftServer;
+    private MSMMinecraftClient minecraftServer;
 
     private io.netty.channel.Channel channel;
 
@@ -52,11 +52,11 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     }
 
     @Override
-    public MinecraftServer getMinecraftServer() {
+    public MinecraftClient getMinecraftServer() {
         return minecraftServer;
     }
 
-    public void setMinecraftServer(MSMMinecraftServer minecraftServer) {
+    public void setMinecraftServer(MSMMinecraftClient minecraftServer) {
         if (minecraftServer.isConnected() && minecraftServer.getConnection() != this) {
             throw new RuntimeException("Minecraft server " + minecraftServer + " is already connected");
         }
@@ -131,7 +131,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
         }
 
 
-        log.info("MinecraftServer " + minecraftServer.getName() + " disconnected");
+        log.info("MinecraftClient " + minecraftServer.getName() + " disconnected");
 
         minecraftServer.setConnection(null);
 

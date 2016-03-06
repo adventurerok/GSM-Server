@@ -3,9 +3,8 @@ package com.ithinkrok.msm.server.protocol;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.util.ConfigUtils;
 import com.ithinkrok.msm.server.*;
-import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.data.Ban;
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
@@ -17,14 +16,12 @@ import com.ithinkrok.msm.server.event.player.PlayerChangeServerEvent;
 import com.ithinkrok.msm.server.event.player.PlayerCommandEvent;
 import com.ithinkrok.msm.server.event.player.PlayerJoinEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
-import com.ithinkrok.msm.server.impl.MSMMinecraftServer;
+import com.ithinkrok.msm.server.impl.MSMMinecraftClient;
 import com.ithinkrok.msm.server.impl.MSMPlayer;
 import com.ithinkrok.msm.server.impl.MSMServer;
-import com.ithinkrok.util.StringUtils;
 import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
-import com.ithinkrok.util.event.CustomEventExecutor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -107,7 +104,7 @@ public class ServerAPIProtocol implements ServerListener {
                 handleChangeServer(connection.getConnectedTo(), payload);
                 return;
             case "ResourceUsage":
-                ((MSMMinecraftServer)connection.getMinecraftServer()).handleResourceUsagePacket(payload);
+                ((MSMMinecraftClient)connection.getMinecraftServer()).handleResourceUsagePacket(payload);
                 return;
             case "ConnectInfo":
                 handleConnectInfo(connection.getMinecraftServer(), payload);
@@ -120,7 +117,7 @@ public class ServerAPIProtocol implements ServerListener {
 
     private void handleMinecraftConsoleMessage(Server connectedTo, Config payload) {
         String serverName = payload.getString("server");
-        MinecraftServer server = connectedTo.getMinecraftServer(serverName);
+        MinecraftClient server = connectedTo.getMinecraftServer(serverName);
         if(server == null) return;
 
         server.getConsoleCommandSender().sendMessage(payload.getString("message"));
@@ -132,32 +129,32 @@ public class ServerAPIProtocol implements ServerListener {
         log.info("[Command] " + message);
     }
 
-    private void handleConsoleCommand(MinecraftServer minecraftServer, Config payload) {
+    private void handleConsoleCommand(MinecraftClient minecraftClient, Config payload) {
         String fullCommand = payload.getString("command");
         CustomCommand command = new CustomCommand(fullCommand);
 
-        MSMCommandEvent commandEvent = new MinecraftServerCommandEvent(minecraftServer, command);
+        MSMCommandEvent commandEvent = new MinecraftServerCommandEvent(minecraftClient, command);
 
-        if(!minecraftServer.getConnectedTo().executeCommand(commandEvent)) return;
+        if(!minecraftClient.getConnectedTo().executeCommand(commandEvent)) return;
 
         if(!commandEvent.isHandled()) {
             commandEvent.getCommandSender().sendMessage("This command does not support minecraft consoles");
         }
     }
 
-    private void handleConnectInfo(MinecraftServer minecraftServer, Config payload) {
-        handlePlayerInfo(minecraftServer, payload);
-        handleBanInfo(minecraftServer, payload);
+    private void handleConnectInfo(MinecraftClient minecraftClient, Config payload) {
+        handlePlayerInfo(minecraftClient, payload);
+        handleBanInfo(minecraftClient, payload);
 
-        MSMEvent event = new MinecraftServerConnectEvent(minecraftServer);
-        minecraftServer.getConnectedTo().callEvent(event);
+        MSMEvent event = new MinecraftServerConnectEvent(minecraftClient);
+        minecraftClient.getConnectedTo().callEvent(event);
     }
 
-    private void handleBanInfo(MinecraftServer minecraftServer, Config payload) {
+    private void handleBanInfo(MinecraftClient minecraftClient, Config payload) {
         List<Config> banConfigs = payload.getConfigList("bans");
 
         for(Config banConfig : banConfigs) {
-            ((MSMMinecraftServer)minecraftServer).addBan(new Ban(banConfig));
+            ((MSMMinecraftClient) minecraftClient).addBan(new Ban(banConfig));
         }
     }
 
@@ -171,7 +168,7 @@ public class ServerAPIProtocol implements ServerListener {
         }
 
         String targetName = payload.getString("target");
-        MinecraftServer target = connectedTo.getMinecraftServer(targetName);
+        MinecraftClient target = connectedTo.getMinecraftServer(targetName);
 
         if(target == null) {
             log.debug("Unknown minecraft server " + targetName + " in ChangeServer request");
@@ -181,54 +178,54 @@ public class ServerAPIProtocol implements ServerListener {
         player.changeServer(target);
     }
 
-    private void handlePlayerJoin(MinecraftServer minecraftServer, Config payload, boolean alreadyOn) {
+    private void handlePlayerJoin(MinecraftClient minecraftClient, Config payload, boolean alreadyOn) {
         UUID playerUUID = UUID.fromString(payload.getString("uuid"));
 
-        MSMPlayer player = ((MSMServer) minecraftServer.getConnectedTo()).removeQuittingPlayer(playerUUID);
+        MSMPlayer player = ((MSMServer) minecraftClient.getConnectedTo()).removeQuittingPlayer(playerUUID);
 
         if (player != null) {
-            MinecraftServer oldServer = player.getServer();
+            MinecraftClient oldServer = player.getServer();
 
             if (oldServer != null) {
-                ((MSMMinecraftServer) oldServer).removePlayer(playerUUID);
+                ((MSMMinecraftClient) oldServer).removePlayer(playerUUID);
             }
 
-            player.setServer(minecraftServer);
-            ((MSMMinecraftServer) minecraftServer).addPlayer(player);
+            player.setServer(minecraftClient);
+            ((MSMMinecraftClient) minecraftClient).addPlayer(player);
 
-            if (!alreadyOn) minecraftServer.getConnectedTo().callEvent(new PlayerChangeServerEvent(player, oldServer));
+            if (!alreadyOn) minecraftClient.getConnectedTo().callEvent(new PlayerChangeServerEvent(player, oldServer));
         } else {
-            player = new MSMPlayer(minecraftServer, payload);
-            ((MSMMinecraftServer) minecraftServer).addPlayer(player);
+            player = new MSMPlayer(minecraftClient, payload);
+            ((MSMMinecraftClient) minecraftClient).addPlayer(player);
 
-            if (!alreadyOn) minecraftServer.getConnectedTo().callEvent(new PlayerJoinEvent(player));
+            if (!alreadyOn) minecraftClient.getConnectedTo().callEvent(new PlayerJoinEvent(player));
         }
     }
 
-    private void handlePlayerQuit(MinecraftServer minecraftServer, Config payload) {
+    private void handlePlayerQuit(MinecraftClient minecraftClient, Config payload) {
         UUID playerUUID = UUID.fromString(payload.getString("uuid"));
 
-        Player player = ((MSMMinecraftServer) minecraftServer).removePlayer(playerUUID);
+        Player player = ((MSMMinecraftClient) minecraftClient).removePlayer(playerUUID);
 
         //The connect packet from the new server was received before the disconnect packet from this server
         if(player == null) return;
 
-        if (!minecraftServer.getServerInfo().hasBungee()) {
-            minecraftServer.getConnectedTo().callEvent(new PlayerQuitEvent(player));
+        if (!minecraftClient.getServerInfo().hasBungee()) {
+            minecraftClient.getConnectedTo().callEvent(new PlayerQuitEvent(player));
             ((MSMPlayer) player).setServer(null);
         } else {
-            ((MSMServer) minecraftServer.getConnectedTo()).addQuittingPlayer((MSMPlayer) player);
+            ((MSMServer) minecraftClient.getConnectedTo()).addQuittingPlayer((MSMPlayer) player);
         }
     }
 
-    private void handlePlayerInfo(MinecraftServer minecraftServer, Config payload) {
+    private void handlePlayerInfo(MinecraftClient minecraftClient, Config payload) {
         for (Config playerInfo : payload.getConfigList("players")) {
-            handlePlayerJoin(minecraftServer, playerInfo, true);
+            handlePlayerJoin(minecraftClient, playerInfo, true);
         }
     }
 
     private void handleMessage(Server connectedTo, Config payload) {
-        Map<MinecraftServer, Set<Player>> messagePackets = new HashMap<>();
+        Map<MinecraftClient, Set<Player>> messagePackets = new HashMap<>();
 
         for (String uuidString : payload.getStringList("recipients")) {
             Player player = connectedTo.getPlayer(UUID.fromString(uuidString));
@@ -247,7 +244,7 @@ public class ServerAPIProtocol implements ServerListener {
 
         String message = payload.getString("message");
 
-        for (Map.Entry<MinecraftServer, Set<Player>> messageEntry : messagePackets.entrySet()) {
+        for (Map.Entry<MinecraftClient, Set<Player>> messageEntry : messagePackets.entrySet()) {
             if (!messageEntry.getKey().isConnected()) continue;
 
             messageEntry.getKey().messagePlayers(message, messageEntry.getValue());
@@ -273,9 +270,9 @@ public class ServerAPIProtocol implements ServerListener {
         channel.write(reply);
     }
 
-    private void handlePlayerCommand(MinecraftServer minecraftServer, Config payload) {
+    private void handlePlayerCommand(MinecraftClient minecraftClient, Config payload) {
         String playerUUID = payload.getString("player");
-        Player player = minecraftServer.getPlayer(UUID.fromString(playerUUID));
+        Player player = minecraftClient.getPlayer(UUID.fromString(playerUUID));
         if (player == null) return;
 
         String fullCommand = payload.getString("command");
@@ -283,7 +280,7 @@ public class ServerAPIProtocol implements ServerListener {
 
         PlayerCommandEvent commandEvent = new PlayerCommandEvent(player, command);
 
-        if(!minecraftServer.getConnectedTo().executeCommand(commandEvent)) return;
+        if(!minecraftClient.getConnectedTo().executeCommand(commandEvent)) return;
 
         if(!commandEvent.isHandled()) {
             player.sendMessage("This command does not support players");

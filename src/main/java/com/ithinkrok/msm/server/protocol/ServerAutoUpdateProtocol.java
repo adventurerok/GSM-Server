@@ -3,7 +3,7 @@ package com.ithinkrok.msm.server.protocol;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.util.io.DirectoryListener;
 import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.util.FIleUtil;
@@ -30,7 +30,7 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
     private final Logger log = LogManager.getLogger(ServerAutoUpdateProtocol.class);
 
     private final Map<String, ServerVersionInfo> updatesMap = new ConcurrentHashMap<>();
-    private final Map<MinecraftServer, Map<String, Instant>> clientVersionsMap = new ConcurrentHashMap<>();
+    private final Map<MinecraftClient, Map<String, Instant>> clientVersionsMap = new ConcurrentHashMap<>();
 
     private final Path updatedPluginsPath;
     private final Map<Path, Future<?>> modifiedPaths = new ConcurrentHashMap<>();
@@ -96,17 +96,17 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
     }
 
     private void checkUpdates(String pluginName) {
-        for (MinecraftServer minecraftServer : clientVersionsMap.keySet()) {
-            if (!minecraftServer.isConnected()) continue;
+        for (MinecraftClient minecraftClient : clientVersionsMap.keySet()) {
+            if (!minecraftClient.isConnected()) continue;
 
-            checkUpdate(minecraftServer, pluginName);
+            checkUpdate(minecraftClient, pluginName);
         }
     }
 
-    private void checkUpdate(MinecraftServer minecraftServer, String pluginName) {
+    private void checkUpdate(MinecraftClient minecraftClient, String pluginName) {
         if (!updatesMap.containsKey(pluginName)) return;
 
-        Map<String, Instant> clientVersions = clientVersionsMap.get(minecraftServer);
+        Map<String, Instant> clientVersions = clientVersionsMap.get(minecraftClient);
         if (clientVersions == null || !clientVersions.containsKey(pluginName)) return;
 
         ServerVersionInfo serverVersionInfo = updatesMap.get(pluginName);
@@ -118,8 +118,8 @@ public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListen
 
         clientVersions.put(pluginName, serverVersion);
 
-        log.info("Updating plugin \"" + pluginName + "\" on bukkit/spigot server: " + minecraftServer);
-        doUpdate(minecraftServer.getConnection().getChannel("MSMAutoUpdate"), pluginName, serverVersionInfo.pluginPath);
+        log.info("Updating plugin \"" + pluginName + "\" on bukkit/spigot server: " + minecraftClient);
+        doUpdate(minecraftClient.getConnection().getChannel("MSMAutoUpdate"), pluginName, serverVersionInfo.pluginPath);
     }
 
     private void doUpdate(Channel channel, String plugin, Path pluginPath) {

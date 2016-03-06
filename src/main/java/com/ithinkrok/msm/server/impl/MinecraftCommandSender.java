@@ -2,7 +2,7 @@ package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 import com.ithinkrok.util.command.CustomCommandSender;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
@@ -13,10 +13,10 @@ import com.ithinkrok.util.lang.LanguageLookup;
  */
 public class MinecraftCommandSender implements CustomCommandSender {
 
-    private final MinecraftServer minecraftServer;
+    private final MinecraftClient minecraftClient;
 
-    public MinecraftCommandSender(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public MinecraftCommandSender(MinecraftClient minecraftClient) {
+        this.minecraftClient = minecraftClient;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class MinecraftCommandSender implements CustomCommandSender {
 
     @Override
     public void sendMessageNoPrefix(String message) {
-        Connection connection = minecraftServer.getConnection();
+        Connection connection = minecraftClient.getConnection();
         if(connection == null) return;
 
         Channel channel = connection.getChannel("MSMAPI");
@@ -51,6 +51,6 @@ public class MinecraftCommandSender implements CustomCommandSender {
 
     @Override
     public LanguageLookup getLanguageLookup() {
-        return minecraftServer.getLanguageLookup();
+        return minecraftClient.getLanguageLookup();
     }
 }

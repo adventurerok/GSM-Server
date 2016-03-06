@@ -1,6 +1,5 @@
 package com.ithinkrok.msm.server.data;
 
-import com.ithinkrok.msm.server.data.MinecraftServer;
 import com.ithinkrok.util.command.CustomCommandSender;
 
 import java.util.UUID;
@@ -14,9 +13,9 @@ public interface Player extends CustomCommandSender {
 
     UUID getUUID();
 
-    MinecraftServer getServer();
+    MinecraftClient getServer();
 
-    void changeServer(MinecraftServer newServer);
+    void changeServer(MinecraftClient newServer);
 
     void kick(String reason);
 }

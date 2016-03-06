@@ -1,20 +1,17 @@
 package com.ithinkrok.msm.server.protocol;
 
 import com.ithinkrok.msm.common.Channel;
-import com.ithinkrok.msm.common.MinecraftServerInfo;
+import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.auth.PasswordManager;
 import com.ithinkrok.msm.server.impl.MSMConnection;
 import com.ithinkrok.msm.server.impl.MSMServer;
-import com.ithinkrok.util.config.BinaryConfigIO;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -50,9 +47,9 @@ public class ServerLoginProtocol implements ServerListener {
         if (version != 0) throw new RuntimeException("Unsupported version: " + version);
 
         //Get the clients server info
-        Config serverInfoConfig = payload.getConfigOrNull("server_info");
+        Config clientInfoConfig = payload.getConfigOrNull("server_info");
 
-        String serverName = serverInfoConfig.getString("name");
+        String serverName = clientInfoConfig.getString("name");
         byte[] password = payload.getByteArray("password");
         if (!passwordManager.loginServer(serverName, password)) {
             log.warn("Disconnecting server " + serverName + ". It either sent the wrong password or is not registered");
@@ -60,11 +57,11 @@ public class ServerLoginProtocol implements ServerListener {
             return;
         }
 
-        MinecraftServerInfo minecraftServerInfo = new MinecraftServerInfo(serverInfoConfig);
+        MinecraftClientInfo minecraftClientInfo = new MinecraftClientInfo(clientInfoConfig);
 
-        //Assign a MinecraftServer object to the connection
+        //Assign a MinecraftClient object to the connection
         ((MSMServer) connection.getConnectedTo())
-                .assignMinecraftServerToConnection(serverInfoConfig, (MSMConnection) connection);
+                .assignMinecraftClientToConnection(clientInfoConfig, (MSMConnection) connection);
 
         //Get the client protocol list and the server protocol list
         List<String> clientProtocols = payload.getStringList("protocols");
@@ -76,7 +73,7 @@ public class ServerLoginProtocol implements ServerListener {
             if (serverProtocols.contains(protocol)) sharedProtocols.add(protocol);
         }
 
-        log.info("New client " + minecraftServerInfo + " connected with protocols: " + sharedProtocols);
+        log.info("New client " + minecraftClientInfo + " connected with protocols: " + sharedProtocols);
 
         ((MSMConnection) connection).setSupportedProtocols(new ArrayList<>(sharedProtocols));
 

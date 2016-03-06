@@ -1,7 +1,7 @@
 package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.common.Channel;
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
@@ -21,11 +21,11 @@ public class MSMPlayer implements Player {
 
     private final UUID uuid;
     private String name;
-    private MinecraftServer minecraftServer;
+    private MinecraftClient minecraftClient;
 
-    public MSMPlayer(MinecraftServer server, Config config) {
+    public MSMPlayer(MinecraftClient server, Config config) {
         uuid = UUID.fromString(config.getString("uuid"));
-        minecraftServer = server;
+        minecraftClient = server;
 
         fromConfig(config);
     }
@@ -45,20 +45,20 @@ public class MSMPlayer implements Player {
     }
 
     @Override
-    public MinecraftServer getServer() {
-        return minecraftServer;
+    public MinecraftClient getServer() {
+        return minecraftClient;
     }
 
-    public void setServer(MinecraftServer minecraftServer) {
-        this.minecraftServer = minecraftServer;
+    public void setServer(MinecraftClient minecraftClient) {
+        this.minecraftClient = minecraftClient;
     }
 
     @Override
-    public void changeServer(MinecraftServer newServer) {
+    public void changeServer(MinecraftClient newServer) {
         Validate.notNull(newServer, "newServer cannot be null");
 
-        log.trace("ChangeServer player \"" + name + "\": " + minecraftServer.getName() + " -> " + newServer.getName());
-        if (!minecraftServer.hasBungee() || !newServer.hasBungee()) {
+        log.trace("ChangeServer player \"" + name + "\": " + minecraftClient.getName() + " -> " + newServer.getName());
+        if (!minecraftClient.hasBungee() || !newServer.hasBungee()) {
             log.debug("Blocked ChangeServer request as one of the servers involved does not support bungee");
             return;
         }
@@ -86,7 +86,7 @@ public class MSMPlayer implements Player {
     }
 
     private Channel getAPIChannel() {
-        return minecraftServer.getConnection().getChannel("MSMAPI");
+        return minecraftClient.getConnection().getChannel("MSMAPI");
     }
 
     @Override
@@ -98,7 +98,7 @@ public class MSMPlayer implements Player {
     public void sendMessageNoPrefix(String message) {
         if (!isConnected()) return;
 
-        minecraftServer.messagePlayers(message, this);
+        minecraftClient.messagePlayers(message, this);
     }
 
     @Override
@@ -108,15 +108,15 @@ public class MSMPlayer implements Player {
 
     @Override
     public void sendLocaleNoPrefix(String locale, Object... args) {
-        sendMessageNoPrefix(minecraftServer.getLanguageLookup().getLocale(locale, args));
+        sendMessageNoPrefix(minecraftClient.getLanguageLookup().getLocale(locale, args));
     }
 
     @Override
     public LanguageLookup getLanguageLookup() {
-        return minecraftServer.getLanguageLookup();
+        return minecraftClient.getLanguageLookup();
     }
 
     public boolean isConnected() {
-        return minecraftServer != null && minecraftServer.getConnection() != null;
+        return minecraftClient != null && minecraftClient.getConnection() != null;
     }
 }

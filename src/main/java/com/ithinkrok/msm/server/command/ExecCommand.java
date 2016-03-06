@@ -2,7 +2,7 @@ package com.ithinkrok.msm.server.command;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.data.MinecraftServer;
+import com.ithinkrok.msm.server.data.MinecraftClient;
 import com.ithinkrok.msm.server.event.ConsoleCommandEvent;
 import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.minecraftserver.MinecraftServerCommandEvent;
@@ -41,14 +41,14 @@ public class ExecCommand implements CustomListener {
                 return;
             }
 
-            for(MinecraftServer server : event.getMSMServer().getMinecraftServers()) {
+            for(MinecraftClient server : event.getMSMServer().getMinecraftServers()) {
                 if(!pattern.matcher(server.getName()).matches()) continue;
                 if(!server.isConnected()) continue;
 
                 execCommand(server, event);
             }
         } else{
-            MinecraftServer server = event.getMSMServer().getMinecraftServer(serverName);
+            MinecraftClient server = event.getMSMServer().getMinecraftServer(serverName);
 
             if (server == null || !server.isConnected()) {
                 event.getCommandSender().sendMessage("Unknown minecraft server: " + serverName);
@@ -59,7 +59,7 @@ public class ExecCommand implements CustomListener {
         }
     }
 
-    private void execCommand(MinecraftServer server, MSMCommandEvent event) {
+    private void execCommand(MinecraftClient server, MSMCommandEvent event) {
         Connection connection = server.getConnection();
 
         if(connection == null) {
@@ -82,7 +82,7 @@ public class ExecCommand implements CustomListener {
             sender.set("type", "msm_console");
         } else if(event instanceof MinecraftServerCommandEvent) {
             sender.set("type", "minecraft");
-            sender.set("name", ((MinecraftServerCommandEvent) event).getMinecraftServer().getName());
+            sender.set("name", ((MinecraftServerCommandEvent) event).getMinecraftClient().getName());
         } else {
             sender.set("type", "unknown");
         }

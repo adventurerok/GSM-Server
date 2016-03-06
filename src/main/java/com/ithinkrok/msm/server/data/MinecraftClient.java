@@ -1,7 +1,7 @@
 package com.ithinkrok.msm.server.data;
 
-import com.ithinkrok.msm.common.MinecraftServerInfo;
-import com.ithinkrok.msm.common.MinecraftServerType;
+import com.ithinkrok.msm.common.MinecraftClientInfo;
+import com.ithinkrok.msm.common.MinecraftClientType;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.command.CustomCommandSender;
@@ -18,17 +18,17 @@ import java.util.UUID;
  * Represents any kind of Minecraft Server (Vanilla/Bukkit/Spigot/Bungee etc...) that could be connected to this MSM
  * Server.
  */
-public interface MinecraftServer extends Messagable {
+public interface MinecraftClient extends Messagable {
 
     /**
-     * @return If this MinecraftServer is currently connected to the MSM Server
+     * @return If this MinecraftClient is currently connected to the MSM Server
      */
     default boolean isConnected() {
         return getConnection() != null;
     }
 
     /**
-     * @return The Connection representing this MinecraftServer, or {@code null} if none exists
+     * @return The Connection representing this MinecraftClient, or {@code null} if none exists
      */
     Connection getConnection();
 
@@ -57,12 +57,11 @@ public interface MinecraftServer extends Messagable {
 
     Collection<String> getSupportedProtocols();
 
-    MinecraftServerInfo getServerInfo();
+    MinecraftClientInfo getServerInfo();
 
     String getName();
 
-
-    MinecraftServerType getType();
+    MinecraftClientType getType();
 
     boolean hasBungee();
 
