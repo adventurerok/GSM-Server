@@ -47,7 +47,7 @@ public class ServerLoginProtocol implements ServerListener {
         if (version != 0) throw new RuntimeException("Unsupported version: " + version);
 
         //Get the clients server info
-        Config clientInfoConfig = payload.getConfigOrNull("server_info");
+        Config clientInfoConfig = payload.getConfigOrNull("client_info");
 
         String serverName = clientInfoConfig.getString("name");
         byte[] password = payload.getByteArray("password");

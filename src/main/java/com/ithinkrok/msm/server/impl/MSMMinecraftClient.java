@@ -65,7 +65,7 @@ public class MSMMinecraftClient implements MinecraftClient {
 
     @Override
     public MinecraftClientType getType() {
-        return getServerInfo().getType();
+        return getServerInfo().getSubType();
     }
 
     @Override
