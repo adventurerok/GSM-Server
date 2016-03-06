@@ -57,7 +57,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     }
 
     public void setMinecraftServer(MSMMinecraftServer minecraftServer) {
-        if(minecraftServer.isConnected() && minecraftServer.getConnection() != this) {
+        if (minecraftServer.isConnected() && minecraftServer.getConnection() != this) {
             throw new RuntimeException("Minecraft server " + minecraftServer + " is already connected");
         }
 
@@ -66,15 +66,41 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
     }
 
     @Override
-    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-        channel = ctx.channel();
-
-        channel.closeFuture().addListener(this);
+    public Collection<String> getSupportedProtocols() {
+        return idToProtocolMap.values();
     }
 
     @Override
     public void close() {
         channel.close();
+    }
+
+    public void setSupportedProtocols(List<String> supportedProtocols) {
+        idToProtocolMap.clear();
+
+        int counter = 0;
+
+        for (String protocol : supportedProtocols) {
+            idToProtocolMap.put(counter++, protocol);
+        }
+    }
+
+    private MSMConnectionChannel getChannel(int id) {
+        MSMConnectionChannel channel = channelMap.get(id);
+
+        if (channel == null) {
+            channel = new MSMConnectionChannel(id);
+            channelMap.put(id, channel);
+        }
+
+        return channel;
+    }
+
+    @Override
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+        channel = ctx.channel();
+
+        channel.closeFuture().addListener(this);
     }
 
     @Override
@@ -96,35 +122,9 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
         msmServer.getListenerForProtocol(protocol).packetRecieved(MSMConnection.this, channel, packet.getPayload());
     }
 
-    private MSMConnectionChannel getChannel(int id) {
-        MSMConnectionChannel channel = channelMap.get(id);
-
-        if (channel == null) {
-            channel = new MSMConnectionChannel(id);
-            channelMap.put(id, channel);
-        }
-
-        return channel;
-    }
-
-    @Override
-    public Collection<String> getSupportedProtocols() {
-        return idToProtocolMap.values();
-    }
-
-    public void setSupportedProtocols(List<String> supportedProtocols) {
-        idToProtocolMap.clear();
-
-        int counter = 0;
-
-        for (String protocol : supportedProtocols) {
-            idToProtocolMap.put(counter++, protocol);
-        }
-    }
-
     @Override
     public void operationComplete(ChannelFuture future) throws Exception {
-        if(minecraftServer == null) {
+        if (minecraftServer == null) {
             //This server is being disconnected due to invalid password.
             // We already log a message to console about this.
             return;
@@ -135,7 +135,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
 
         minecraftServer.setConnection(null);
 
-        for(Map.Entry<Integer, String> entry : idToProtocolMap.entrySet()) {
+        for (Map.Entry<Integer, String> entry : idToProtocolMap.entrySet()) {
             msmServer.getListenerForProtocol(entry.getValue()).connectionClosed(this);
         }
     }
@@ -150,6 +150,7 @@ public class MSMConnection extends ChannelInboundHandlerAdapter implements Conne
 
         @Override
         public void write(Config packet) {
+            log.trace("Sent packet for protocol " + idToProtocolMap.get(id));
             channel.writeAndFlush(new Packet(id, packet));
         }
     }
