@@ -7,6 +7,7 @@ import com.ithinkrok.msm.server.command.StopCommand;
 import com.ithinkrok.msm.server.console.ConsoleHandler;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.msm.server.impl.MSMServer;
+import com.ithinkrok.msm.server.minecraft.ServerMinecraftRequestProtocol;
 import com.ithinkrok.msm.server.protocol.ServerAPIProtocol;
 import com.ithinkrok.msm.server.protocol.ServerAutoUpdateProtocol;
 import com.ithinkrok.util.config.Config;
@@ -92,6 +93,7 @@ public class Program {
         //Add all default protocols (except MSMLogin)
         listenerMap.put("MSMAutoUpdate", new ServerAutoUpdateProtocol(Paths.get("updates/bukkit_plugins")));
         listenerMap.put("MSMAPI", new ServerAPIProtocol());
+        listenerMap.put("MinecraftRequest", new ServerMinecraftRequestProtocol());
 
         MSMServer server = new MSMServer(loadConfig(), listenerMap);
 
