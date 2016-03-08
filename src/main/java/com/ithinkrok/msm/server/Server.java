@@ -14,9 +14,7 @@ import com.ithinkrok.util.event.CustomListener;
 import com.ithinkrok.util.lang.LanguageLookup;
 import com.ithinkrok.util.lang.Messagable;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -82,4 +80,18 @@ public interface Server extends Messagable, LanguageLookup {
     DirectoryWatcher getDirectoryWatcher();
 
     void addLanguageLookup(LanguageLookup lookup);
+
+    default void addTabCompletionItems(String listName, String...items) {
+        addTabCompletionItems(listName, Arrays.asList(items));
+    }
+
+    void addTabCompletionItems(String listName, Iterable<String> items);
+
+    default void removeTabCompletionItems(String listName, String...items) {
+        removeTabCompletionItems(listName, Arrays.asList(items));
+    }
+
+    void removeTabCompletionItems(String listName, Iterable<String> items);
+
+    Set<String> getTabCompletionItems(String listName);
 }

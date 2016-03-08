@@ -74,6 +74,12 @@ public class MSMServer implements Server {
 
     private final Map<String, LoginHandler> loginHandlerMap = new ConcurrentHashMap<>();
 
+    /**
+     * Maps tab-completion list names to the set of items they contain. A copy of this list is maintained on every
+     * client for tab-completion.
+     */
+    private final Map<String, Set<String>> tabCompletionLists = new ConcurrentHashMap<>();
+
     private final DirectoryWatcher directoryWatcher;
 
     private final String restartScript;
