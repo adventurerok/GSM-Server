@@ -21,6 +21,7 @@ import com.ithinkrok.msm.server.event.command.TabCompletionSetModifiedEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.minecraft.MinecraftLoginHandler;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
+import com.ithinkrok.msm.server.protocol.ServerAPIProtocol;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
@@ -329,6 +330,9 @@ public class MSMServer implements Server {
             if (quittingPlayers.remove(quitting.getIdentifier()) == null) return;
 
             callEvent(new PlayerQuitEvent(quitting));
+
+            CommandHandler commandHandler = getCommandHandler();
+            commandHandler.removeTabCompletionItems(ServerAPIProtocol.TABSET_GSM_PLAYERS, quitting.getName());
         }, 1, TimeUnit.SECONDS);
     }
 

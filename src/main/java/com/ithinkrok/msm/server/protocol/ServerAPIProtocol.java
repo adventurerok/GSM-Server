@@ -32,6 +32,9 @@ import java.util.*;
  */
 public class ServerAPIProtocol implements ServerListener {
 
+    public static final String TABSET_GSM_PLAYERS = "gsmPlayers";
+    public static final String TABSET_GSM_GAMES = "gsmGames";
+
     private final Logger log = LogManager.getLogger(ServerAPIProtocol.class);
 
     @Override
@@ -39,26 +42,9 @@ public class ServerAPIProtocol implements ServerListener {
         sendPermissionsPacket(connection.getConnectedTo(), channel);
         sendCommandsPacket(connection.getConnectedTo(), channel);
         sendTabCompletionPacket(connection.getConnectedTo(), channel);
-    }
 
-    private void sendTabCompletionPacket(Server connectedTo, Channel channel) {
-        Config payload = new MemoryConfig();
-
-        payload.set("mode", "TabSets");
-
-        Config tabSets = new MemoryConfig();
-
-        CommandHandler commandHandler = connectedTo.getCommandHandler();
-
-        for(String setName : commandHandler.getTabCompletionSetNames()) {
-            Set<String> tabSet = commandHandler.getTabCompletionItems(setName);
-
-            tabSets.set(setName, tabSet);
-        }
-
-        payload.set("tab_sets", tabSets);
-
-        channel.write(payload);
+        CommandHandler commandHandler = connection.getConnectedTo().getCommandHandler();
+        commandHandler.addTabCompletionItems(TABSET_GSM_GAMES, connection.getClient().getType());
     }
 
     private void sendPermissionsPacket(Server server, Channel channel) {
@@ -82,10 +68,39 @@ public class ServerAPIProtocol implements ServerListener {
         channel.write(payload);
     }
 
+    private void sendTabCompletionPacket(Server connectedTo, Channel channel) {
+        Config payload = new MemoryConfig();
+
+        payload.set("mode", "TabSets");
+
+        Config tabSets = new MemoryConfig();
+
+        CommandHandler commandHandler = connectedTo.getCommandHandler();
+
+        for (String setName : commandHandler.getTabCompletionSetNames()) {
+            Set<String> tabSet = commandHandler.getTabCompletionItems(setName);
+
+            tabSets.set(setName, tabSet);
+        }
+
+        payload.set("tab_sets", tabSets);
+
+        channel.write(payload);
+    }
+
     @Override
     public void connectionClosed(Connection connection) {
         MSMEvent event = new ClientDisconnectEvent(connection.getClient());
         connection.getConnectedTo().callEvent(event);
+
+        Collection<String> playerNames = new ArrayList<>();
+
+        for(Player<?> player : connection.getClient().getPlayers()) {
+            playerNames.add(player.getName());
+        }
+
+        CommandHandler commandHandler = connection.getConnectedTo().getCommandHandler();
+        commandHandler.removeTabCompletionItems(TABSET_GSM_PLAYERS, playerNames);
     }
 
     @Override
@@ -96,7 +111,7 @@ public class ServerAPIProtocol implements ServerListener {
 
         switch (mode) {
             case "PlayerJoin":
-                handlePlayerJoin(connection.getClient(), payload, false);
+                handlePlayerJoin(connection.getClient(), payload, false, true);
                 return;
             case "PlayerQuit":
                 handlePlayerQuit(connection.getClient(), payload);
@@ -135,7 +150,8 @@ public class ServerAPIProtocol implements ServerListener {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Player<?>> void handlePlayerJoin(Client<T> minecraftClient, Config payload, boolean alreadyOn) {
+    private <T extends Player<?>> T handlePlayerJoin(Client<T> minecraftClient, Config payload, boolean alreadyOn,
+                                                        boolean addTabCompletion) {
         UUID playerUUID = UUID.fromString(payload.getString("uuid"));
         PlayerIdentifier identifier = new PlayerIdentifier(minecraftClient.getType(), playerUUID);
 
@@ -159,6 +175,13 @@ public class ServerAPIProtocol implements ServerListener {
 
             if (!alreadyOn) minecraftClient.getConnectedTo().callEvent(new PlayerJoinEvent(player));
         }
+
+        if(!addTabCompletion) return (T) player;
+
+        CommandHandler commandHandler = minecraftClient.getConnectedTo().getCommandHandler();
+        commandHandler.addTabCompletionItems(TABSET_GSM_PLAYERS);
+
+        return (T) player;
     }
 
     private void handlePlayerQuit(Client<?> minecraftClient, Config payload) {
@@ -170,13 +193,19 @@ public class ServerAPIProtocol implements ServerListener {
         if (player == null) return;
 
         ((MSMServer) minecraftClient.getConnectedTo()).addQuittingPlayer(player);
-
     }
 
     private void handlePlayerInfo(Client<?> minecraftClient, Config payload) {
+        Collection<String> playerNames = new ArrayList<>();
+
         for (Config playerInfo : payload.getConfigList("players")) {
-            handlePlayerJoin(minecraftClient, playerInfo, true);
+            Player<?> player = handlePlayerJoin(minecraftClient, playerInfo, true, false);
+
+            playerNames.add(player.getName());
         }
+
+        CommandHandler commandHandler = minecraftClient.getConnectedTo().getCommandHandler();
+        commandHandler.addTabCompletionItems(TABSET_GSM_PLAYERS, playerNames);
     }
 
     private void handleBanInfo(Client<?> minecraftClient, Config payload) {
