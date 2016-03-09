@@ -1,7 +1,7 @@
 package com.ithinkrok.msm.server.event.minecraftserver;
 
 import com.ithinkrok.msm.server.data.Client;
-import com.ithinkrok.msm.server.event.MSMCommandEvent;
+import com.ithinkrok.msm.server.event.command.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.command.CustomCommandSender;

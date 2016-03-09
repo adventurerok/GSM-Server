@@ -1,4 +1,4 @@
-package com.ithinkrok.msm.server.event;
+package com.ithinkrok.msm.server.event.command;
 
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.command.event.CustomCommandEvent;

@@ -2,7 +2,7 @@ package com.ithinkrok.msm.server.command;
 
 import com.google.common.base.Charsets;
 import com.ithinkrok.msm.server.auth.PasswordManager;
-import com.ithinkrok.msm.server.event.MSMCommandEvent;
+import com.ithinkrok.msm.server.event.command.MSMCommandEvent;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomEventHandler;

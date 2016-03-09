@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server.command;
 
-import com.ithinkrok.msm.server.event.MSMCommandEvent;
+import com.ithinkrok.msm.server.event.command.MSMCommandEvent;
 import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.util.event.CustomEventHandler;
 import com.ithinkrok.util.event.CustomListener;

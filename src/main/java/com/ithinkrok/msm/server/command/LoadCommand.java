@@ -1,7 +1,7 @@
 package com.ithinkrok.msm.server.command;
 
 import com.ithinkrok.msm.server.data.Client;
-import com.ithinkrok.msm.server.event.MSMCommandEvent;
+import com.ithinkrok.msm.server.event.command.MSMCommandEvent;
 import com.ithinkrok.msm.server.minecraft.MinecraftClient;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;

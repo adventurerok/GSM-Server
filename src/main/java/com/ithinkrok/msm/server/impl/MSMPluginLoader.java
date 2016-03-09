@@ -1,6 +1,7 @@
 package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.server.MSMServerPlugin;
+import com.ithinkrok.msm.server.command.CommandHandler;
 import com.ithinkrok.msm.server.command.CommandInfo;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.util.FIleUtil;
@@ -247,8 +248,10 @@ public class MSMPluginLoader {
     }
 
     private void setupPluginCommandsAndPermissions(MSMServerPlugin plugin) {
+        CommandHandler commandHandler = plugin.getServer().getCommandHandler();
+
         for(CommandInfo commandInfo : plugin.getCommands().values()) {
-            plugin.getServer().registerCommand(commandInfo);
+            commandHandler.registerCommand(commandInfo);
         }
 
         for(PermissionInfo permissionInfo : plugin.getPermissions()) {

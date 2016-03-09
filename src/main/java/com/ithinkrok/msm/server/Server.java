@@ -1,13 +1,10 @@
 package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
-import com.ithinkrok.msm.server.command.CommandInfo;
+import com.ithinkrok.msm.server.command.CommandHandler;
 import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.data.PlayerIdentifier;
-import com.ithinkrok.msm.server.minecraft.MinecraftClient;
-import com.ithinkrok.msm.server.minecraft.MinecraftPlayer;
-import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.util.event.CustomListener;
@@ -38,8 +35,6 @@ public interface Server extends Messagable, LanguageLookup {
 
     Player<?> getPlayer(String clientType, String name);
 
-    boolean executeCommand(MSMCommandEvent commandEvent);
-
     <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit);
 
     ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit);
@@ -65,12 +60,6 @@ public interface Server extends Messagable, LanguageLookup {
 
     void unregisterListener(CustomListener listener);
 
-    void registerCommand(CommandInfo command);
-
-    CommandInfo getCommand(String name);
-
-    Collection<CommandInfo> getRegisteredCommands();
-
     Collection<PermissionInfo> getRegisteredPermissions();
 
     void registerPermission(PermissionInfo permission);
@@ -81,17 +70,7 @@ public interface Server extends Messagable, LanguageLookup {
 
     void addLanguageLookup(LanguageLookup lookup);
 
-    default void addTabCompletionItems(String listName, String...items) {
-        addTabCompletionItems(listName, Arrays.asList(items));
-    }
+    CommandHandler getCommandHandler();
 
-    void addTabCompletionItems(String listName, Iterable<String> items);
 
-    default void removeTabCompletionItems(String listName, String...items) {
-        removeTabCompletionItems(listName, Arrays.asList(items));
-    }
-
-    void removeTabCompletionItems(String listName, Iterable<String> items);
-
-    Set<String> getTabCompletionItems(String listName);
 }

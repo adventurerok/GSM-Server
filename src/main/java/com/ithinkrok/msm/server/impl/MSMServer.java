@@ -6,25 +6,23 @@ import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
 import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
+import com.ithinkrok.msm.server.Server;
+import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.auth.LoginHandler;
 import com.ithinkrok.msm.server.auth.PasswordManager;
+import com.ithinkrok.msm.server.command.CommandHandler;
 import com.ithinkrok.msm.server.command.RegisterServerCommand;
 import com.ithinkrok.msm.server.console.ConsoleHandler;
 import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.data.PlayerIdentifier;
-import com.ithinkrok.msm.server.minecraft.MinecraftLoginHandler;
-import com.ithinkrok.msm.server.Server;
-import com.ithinkrok.msm.server.ServerListener;
-import com.ithinkrok.msm.server.command.CommandInfo;
-import com.ithinkrok.msm.server.event.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
+import com.ithinkrok.msm.server.minecraft.MinecraftLoginHandler;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.event.CustomEventExecutor;
-import com.ithinkrok.util.event.CustomEventHandler;
 import com.ithinkrok.util.event.CustomListener;
 import com.ithinkrok.util.lang.LanguageLookup;
 import com.ithinkrok.util.lang.MultipleLanguageLookup;
@@ -62,10 +60,6 @@ public class MSMServer implements Server {
 
     private final Map<CustomListener, HashSet<String>> listeners = new ConcurrentHashMap<>();
 
-    private final Map<String, CommandInfo> commandMap = new ConcurrentHashMap<>();
-
-    private final Map<String, CommandInfo> commandAliasMap = new ConcurrentHashMap<>();
-
     private final Map<String, PermissionInfo> permissionMap = new ConcurrentHashMap<>();
 
     private final Map<PlayerIdentifier, Player<?>> quittingPlayers = new ConcurrentHashMap<>();
@@ -74,13 +68,9 @@ public class MSMServer implements Server {
 
     private final Map<String, LoginHandler> loginHandlerMap = new ConcurrentHashMap<>();
 
-    /**
-     * Maps tab-completion list names to the set of items they contain. A copy of this list is maintained on every
-     * client for tab-completion.
-     */
-    private final Map<String, Set<String>> tabCompletionLists = new ConcurrentHashMap<>();
-
     private final DirectoryWatcher directoryWatcher;
+
+    private final CommandHandler commandHandler = new MSMCommandHandler(Collections.emptyList());
 
     private final String restartScript;
     private Channel channel;
@@ -96,7 +86,7 @@ public class MSMServer implements Server {
         //Add the ServerLoginProtocol and the registerserver command
         PasswordManager passwordManager = new PasswordManager(Paths.get("passwords.dat"));
         protocolToPluginMap.put("MSMLogin", new ServerLoginProtocol(passwordManager, loginHandlerMap));
-        registerCommand(RegisterServerCommand.createCommandInfo(passwordManager));
+        commandHandler.registerCommand(RegisterServerCommand.createCommandInfo(passwordManager));
 
         loginHandlerMap.put("minecraft", new MinecraftLoginHandler());
 
@@ -166,25 +156,7 @@ public class MSMServer implements Server {
         return null;
     }
 
-    @CustomEventHandler
-    public boolean executeCommand(MSMCommandEvent event) {
-        event.setHandled(false);
 
-        CommandInfo commandInfo = getCommand(event.getCommand().getCommand());
-        if(commandInfo == null) {
-            event.getCommandSender().sendMessage("Unknown MSM command: " + event.getCommand().getCommand());
-            return false;
-        }
-
-        CustomEventExecutor.executeEvent(event, commandInfo.getCommandListener());
-
-        if(!event.isValidCommand()) {
-            event.getCommandSender().sendMessage("Usage: " + commandInfo.getUsage());
-            return false;
-        }
-
-        return true;
-    }
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
@@ -265,28 +237,7 @@ public class MSMServer implements Server {
         listeners.remove(listener);
     }
 
-    @Override
-    public void registerCommand(CommandInfo command) {
-        commandMap.put(command.getName(), command);
 
-        commandAliasMap.put(command.getName(), command);
-
-        for (String alias : command.getAliases()) {
-            commandAliasMap.put(alias, command);
-        }
-    }
-
-    @Override
-    public CommandInfo getCommand(String name) {
-        if (name == null) return null;
-
-        return commandAliasMap.get(name);
-    }
-
-    @Override
-    public Collection<CommandInfo> getRegisteredCommands() {
-        return commandMap.values();
-    }
 
     @Override
     public Collection<PermissionInfo> getRegisteredPermissions() {
@@ -493,5 +444,10 @@ public class MSMServer implements Server {
 
     public void setConsoleHandler(ConsoleHandler consoleHandler) {
         this.consoleHandler = consoleHandler;
+    }
+
+    @Override
+    public CommandHandler getCommandHandler() {
+        return commandHandler;
     }
 }

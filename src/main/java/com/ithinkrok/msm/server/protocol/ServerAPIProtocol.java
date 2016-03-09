@@ -3,12 +3,13 @@ package com.ithinkrok.msm.server.protocol;
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.util.ConfigUtils;
 import com.ithinkrok.msm.server.*;
+import com.ithinkrok.msm.server.command.CommandHandler;
 import com.ithinkrok.msm.server.data.Ban;
 import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.data.PlayerIdentifier;
 import com.ithinkrok.msm.server.Server;
-import com.ithinkrok.msm.server.event.MSMCommandEvent;
+import com.ithinkrok.msm.server.event.command.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.event.minecraftserver.ClientCommandEvent;
 import com.ithinkrok.msm.server.event.minecraftserver.ClientConnectEvent;
@@ -52,7 +53,8 @@ public class ServerAPIProtocol implements ServerListener {
     private void sendCommandsPacket(Server server, Channel channel) {
         Config payload = new MemoryConfig();
 
-        List<Config> commands = ConfigUtils.collectionToConfigList(server.getRegisteredCommands());
+        CommandHandler commandHandler = server.getCommandHandler();
+        List<Config> commands = ConfigUtils.collectionToConfigList(commandHandler.getRegisteredCommands());
         payload.set("commands", commands);
         payload.set("mode", "RegisterCommands");
 
@@ -234,7 +236,8 @@ public class ServerAPIProtocol implements ServerListener {
 
         PlayerCommandEvent commandEvent = new PlayerCommandEvent(player, command);
 
-        if (!minecraftClient.getConnectedTo().executeCommand(commandEvent)) return;
+        CommandHandler commandHandler = minecraftClient.getConnectedTo().getCommandHandler();
+        if (!commandHandler.executeCommand(commandEvent)) return;
 
         if (!commandEvent.isHandled()) {
             player.sendMessage("This command does not support players");
@@ -255,7 +258,8 @@ public class ServerAPIProtocol implements ServerListener {
 
         MSMCommandEvent commandEvent = new ClientCommandEvent(minecraftClient, command);
 
-        if (!minecraftClient.getConnectedTo().executeCommand(commandEvent)) return;
+        CommandHandler commandHandler = minecraftClient.getConnectedTo().getCommandHandler();
+        if (!commandHandler.executeCommand(commandEvent)) return;
 
         if (!commandEvent.isHandled()) {
             commandEvent.getCommandSender().sendMessage("This command does not support minecraft consoles");

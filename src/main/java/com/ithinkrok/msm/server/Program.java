@@ -62,7 +62,8 @@ public class Program {
 
         CommandInfo stopInfo = new CommandInfo("mstop", stopConfig, new StopCommand());
 
-        server.registerCommand(stopInfo);
+        CommandHandler commandHandler = server.getCommandHandler();
+        commandHandler.registerCommand(stopInfo);
 
         Config restartConfig = new MemoryConfig();
         stopConfig.set("usage", "/<command>");
@@ -71,10 +72,10 @@ public class Program {
 
         CommandInfo restartInfo = new CommandInfo("mrestart", restartConfig, new RestartCommand());
 
-        server.registerCommand(restartInfo);
+        commandHandler.registerCommand(restartInfo);
 
-        server.registerCommand(ExecCommand.createCommandInfo());
-        server.registerCommand(LoadCommand.createCommandInfo());
+        commandHandler.registerCommand(ExecCommand.createCommandInfo());
+        commandHandler.registerCommand(LoadCommand.createCommandInfo());
     }
 
 
