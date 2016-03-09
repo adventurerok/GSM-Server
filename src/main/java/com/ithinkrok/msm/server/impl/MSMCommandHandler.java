@@ -112,6 +112,10 @@ public class MSMCommandHandler implements CommandHandler {
 
         set.removeAll(items);
 
+        if(set.isEmpty()) {
+            tabCompletionSets.remove(setName);
+        }
+
         TabCompletionSetModifiedEvent event =
                 new TabCompletionSetModifiedEvent(setName, TabCompletionSetModifiedEvent.ModifyMode.REMOVE, items);
 
@@ -139,5 +143,10 @@ public class MSMCommandHandler implements CommandHandler {
                 new TabCompletionSetModifiedEvent(setName, TabCompletionSetModifiedEvent.ModifyMode.SET, itemsCopy);
 
         CustomEventExecutor.executeEvent(event, tabSetModifiedListeners);
+    }
+
+    @Override
+    public Set<String> getTabCompletionSetNames() {
+        return tabCompletionSets.keySet();
     }
 }

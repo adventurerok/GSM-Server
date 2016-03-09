@@ -38,6 +38,27 @@ public class ServerAPIProtocol implements ServerListener {
     public void connectionOpened(Connection connection, Channel channel) {
         sendPermissionsPacket(connection.getConnectedTo(), channel);
         sendCommandsPacket(connection.getConnectedTo(), channel);
+        sendTabCompletionPacket(connection.getConnectedTo(), channel);
+    }
+
+    private void sendTabCompletionPacket(Server connectedTo, Channel channel) {
+        Config payload = new MemoryConfig();
+
+        payload.set("mode", "TabSets");
+
+        Config tabSets = new MemoryConfig();
+
+        CommandHandler commandHandler = connectedTo.getCommandHandler();
+
+        for(String setName : commandHandler.getTabCompletionSetNames()) {
+            Set<String> tabSet = commandHandler.getTabCompletionItems(setName);
+
+            tabSets.set(setName, tabSet);
+        }
+
+        payload.set("tab_sets", tabSets);
+
+        channel.write(payload);
     }
 
     private void sendPermissionsPacket(Server server, Channel channel) {

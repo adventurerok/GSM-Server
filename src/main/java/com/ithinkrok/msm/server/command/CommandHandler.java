@@ -34,4 +34,6 @@ public interface CommandHandler {
     Set<String> getTabCompletionItems(String listName);
 
     void setTabCompletionItems(String setName, Set<String> items);
+
+    Set<String> getTabCompletionSetNames();
 }
