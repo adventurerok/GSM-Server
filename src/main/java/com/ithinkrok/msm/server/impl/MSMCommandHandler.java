@@ -92,7 +92,7 @@ public class MSMCommandHandler implements CommandHandler {
             set = tabCompletionSets.get(setName);
         }
 
-        set.addAll(items);
+        if(!set.addAll(items)) return;
 
         TabCompletionSetModifiedEvent event =
                 new TabCompletionSetModifiedEvent(setName, TabCompletionSetModifiedEvent.ModifyMode.ADD, items);
@@ -110,7 +110,7 @@ public class MSMCommandHandler implements CommandHandler {
 
         if (set == null) return;
 
-        set.removeAll(items);
+        if(!set.removeAll(items)) return;
 
         if(set.isEmpty()) {
             tabCompletionSets.remove(setName);
