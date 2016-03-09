@@ -9,8 +9,7 @@ import com.ithinkrok.util.event.CustomEventHandler;
 import com.ithinkrok.util.event.CustomListener;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 /**
  * Created by paul on 06/03/16.
@@ -25,6 +24,16 @@ public class LoadCommand implements CustomListener {
         config.set("usage", "/<command> [servers to include]");
         config.set("description", "Check the load");
         config.set("permission", "msmserver.load");
+
+        List<Config> tabCompletion = new ArrayList<>();
+
+        Config allServers = new MemoryConfig();
+        allServers.set("pattern", ".*");
+        allServers.set("values", Collections.singletonList("#gsmServers"));
+
+        tabCompletion.add(allServers);
+
+        config.set("tab_complete", tabCompletion);
 
         return new ServerCommandInfo("mload", config, new LoadCommand());
     }
