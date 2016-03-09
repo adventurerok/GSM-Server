@@ -12,6 +12,9 @@ import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomEventHandler;
 import com.ithinkrok.util.event.CustomListener;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -19,18 +22,44 @@ import java.util.regex.Pattern;
  */
 public class ExecCommand implements CustomListener {
 
+    public static ServerCommandInfo createCommandInfo() {
+        Config config = new MemoryConfig();
+
+        config.set("usage", "/<command> <server> <server command...>");
+        config.set("description", "Execute a command on a minecraft server");
+        config.set("permission", "msmserver.exec");
+
+        List<Config> tabCompletion = new ArrayList<>();
+
+        Config allServers = new MemoryConfig();
+        allServers.set("pattern", "");
+        allServers.set("values", Collections.singletonList("#gsmServers"));
+
+        tabCompletion.add(allServers);
+
+        Config allNames = new MemoryConfig();
+        allNames.set("pattern", ".+");
+        allNames.set("values", Collections.singletonList("#gsmPlayers"));
+
+        tabCompletion.add(allNames);
+
+        config.set("tab_complete", tabCompletion);
+
+        return new ServerCommandInfo("mexec", config, new ExecCommand());
+    }
+
     @CustomEventHandler
     public void onCommand(MSMCommandEvent event) {
         event.setHandled(true);
 
-        if(!event.getCommand().hasArg(1)) {
+        if (!event.getCommand().hasArg(1)) {
             event.setValidCommand(false);
             return;
         }
 
         String serverName = event.getCommand().getStringArg(0, "");
 
-        if(serverName.startsWith("/") && serverName.endsWith("/")) {
+        if (serverName.startsWith("/") && serverName.endsWith("/")) {
             serverName = serverName.substring(1, serverName.length() - 1);
 
             Pattern pattern;
@@ -41,13 +70,13 @@ public class ExecCommand implements CustomListener {
                 return;
             }
 
-            for(Client<?> server : event.getMSMServer().getClients()) {
-                if(!pattern.matcher(server.getName()).matches()) continue;
-                if(!server.isConnected()) continue;
+            for (Client<?> server : event.getMSMServer().getClients()) {
+                if (!pattern.matcher(server.getName()).matches()) continue;
+                if (!server.isConnected()) continue;
 
                 execCommand(server, event);
             }
-        } else{
+        } else {
             Client<?> server = event.getMSMServer().getClient(serverName);
 
             if (server == null || !server.isConnected()) {
@@ -62,7 +91,7 @@ public class ExecCommand implements CustomListener {
     private void execCommand(Client<?> server, MSMCommandEvent event) {
         Connection connection = server.getConnection();
 
-        if(connection == null) {
+        if (connection == null) {
             event.getCommandSender().sendMessage("Minecraft server not connected: " + server.getName());
             return;
         }
@@ -75,12 +104,12 @@ public class ExecCommand implements CustomListener {
 
         Config sender = new MemoryConfig();
 
-        if(event instanceof PlayerCommandEvent) {
+        if (event instanceof PlayerCommandEvent) {
             sender.set("type", "player");
             sender.set("uuid", ((PlayerCommandEvent) event).getPlayer().getUUID());
-        } else if(event instanceof ConsoleCommandEvent) {
+        } else if (event instanceof ConsoleCommandEvent) {
             sender.set("type", "msm_console");
-        } else if(event instanceof ClientCommandEvent) {
+        } else if (event instanceof ClientCommandEvent) {
             sender.set("type", "minecraft");
             sender.set("name", ((ClientCommandEvent) event).getClient().getName());
         } else {
@@ -90,20 +119,10 @@ public class ExecCommand implements CustomListener {
         payload.set("sender", sender);
 
         //Allows use of vanilla commands
-        if(event.getCommand().getBooleanParam("console", false) || event.getCommand().getBooleanParam("c", false)) {
+        if (event.getCommand().getBooleanParam("console", false) || event.getCommand().getBooleanParam("c", false)) {
             payload.set("console", true);
         }
 
         channel.write(payload);
-    }
-
-    public static ServerCommandInfo createCommandInfo() {
-        Config config = new MemoryConfig();
-
-        config.set("usage", "/<command> <server> <server command...>");
-        config.set("description", "Execute a command on a minecraft server");
-        config.set("permission", "msmserver.exec");
-
-        return new ServerCommandInfo("mexec", config, new ExecCommand());
     }
 }
