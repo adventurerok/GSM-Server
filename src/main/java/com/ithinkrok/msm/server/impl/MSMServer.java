@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server.impl;
 
-import com.ithinkrok.msm.common.ClientInfo;
+import com.ithinkrok.msm.common.*;
 import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
@@ -17,17 +17,21 @@ import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.msm.server.data.Player;
 import com.ithinkrok.msm.server.data.PlayerIdentifier;
 import com.ithinkrok.msm.server.event.MSMEvent;
+import com.ithinkrok.msm.server.event.command.TabCompletionSetModifiedEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
 import com.ithinkrok.msm.server.minecraft.MinecraftLoginHandler;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.msm.server.protocol.ServerLoginProtocol;
 import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomEventExecutor;
+import com.ithinkrok.util.event.CustomEventHandler;
 import com.ithinkrok.util.event.CustomListener;
 import com.ithinkrok.util.lang.LanguageLookup;
 import com.ithinkrok.util.lang.MultipleLanguageLookup;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
+import io.netty.channel.Channel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -70,7 +74,7 @@ public class MSMServer implements Server {
 
     private final DirectoryWatcher directoryWatcher;
 
-    private final CommandHandler commandHandler = new MSMCommandHandler(Collections.emptyList());
+    private final CommandHandler commandHandler;
 
     private final String restartScript;
     private Channel channel;
@@ -82,6 +86,8 @@ public class MSMServer implements Server {
         this.port = config.getInt("port", 30824);
 
         this.restartScript = config.getString("restart_script");
+
+        commandHandler = new MSMCommandHandler(Collections.singletonList(new TabCompletionClientUpdater()));
 
         //Add the ServerLoginProtocol and the registerserver command
         PasswordManager passwordManager = new PasswordManager(Paths.get("passwords.dat"));
@@ -449,5 +455,29 @@ public class MSMServer implements Server {
     @Override
     public CommandHandler getCommandHandler() {
         return commandHandler;
+    }
+
+    private class TabCompletionClientUpdater implements CustomListener {
+
+        @CustomEventHandler
+        public void onTabCompletionSetModified(TabCompletionSetModifiedEvent event) {
+            if(getClients().isEmpty()) return;
+
+            Config payload = new MemoryConfig();
+            payload.set("mode", "TabSet");
+
+            payload.set("set_name", event.getSetName());
+            payload.set("modify_mode", event.getModifyMode().toString());
+            payload.set("change", event.getModification());
+
+            for(Client<?> client : getClients()) {
+                if(!client.isConnected()) continue;
+
+                com.ithinkrok.msm.common.Channel apiChannel = client.getConnection().getChannel("MSMAPI");
+                if(apiChannel == null) continue;
+
+                apiChannel.write(payload);
+            }
+        }
     }
 }
