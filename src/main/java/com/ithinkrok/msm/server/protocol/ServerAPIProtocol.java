@@ -34,6 +34,7 @@ public class ServerAPIProtocol implements ServerListener {
 
     public static final String TABSET_GSM_PLAYERS = "gsmPlayers";
     public static final String TABSET_GSM_GAMES = "gsmGames";
+    public static final String TABSET_GSM_SERVERS = "gsmServers";
 
     private final Logger log = LogManager.getLogger(ServerAPIProtocol.class);
 
@@ -45,6 +46,8 @@ public class ServerAPIProtocol implements ServerListener {
 
         CommandHandler commandHandler = connection.getConnectedTo().getCommandHandler();
         commandHandler.addTabCompletionItems(TABSET_GSM_GAMES, connection.getClient().getType());
+
+        commandHandler.addTabCompletionItems(TABSET_GSM_SERVERS, connection.getClient().getName());
     }
 
     private void sendPermissionsPacket(Server server, Channel channel) {
@@ -101,6 +104,8 @@ public class ServerAPIProtocol implements ServerListener {
 
         CommandHandler commandHandler = connection.getConnectedTo().getCommandHandler();
         commandHandler.removeTabCompletionItems(TABSET_GSM_PLAYERS, playerNames);
+
+        commandHandler.removeTabCompletionItems(TABSET_GSM_SERVERS, connection.getClient().getName());
     }
 
     @Override
