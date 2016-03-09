@@ -1,7 +1,7 @@
 package com.ithinkrok.msm.server.impl;
 
 import com.ithinkrok.msm.server.command.CommandHandler;
-import com.ithinkrok.msm.server.command.CommandInfo;
+import com.ithinkrok.msm.server.command.ServerCommandInfo;
 import com.ithinkrok.msm.server.event.command.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.command.TabCompletionSetModifiedEvent;
 import com.ithinkrok.util.event.CustomEventExecutor;
@@ -18,9 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MSMCommandHandler implements CommandHandler {
 
 
-    private final Map<String, CommandInfo> commandMap = new ConcurrentHashMap<>();
+    private final Map<String, ServerCommandInfo> commandMap = new ConcurrentHashMap<>();
 
-    private final Map<String, CommandInfo> commandAliasMap = new ConcurrentHashMap<>();
+    private final Map<String, ServerCommandInfo> commandAliasMap = new ConcurrentHashMap<>();
 
     /**
      * Maps tab-completion list names to the set of items they contain. A copy of this list is maintained on every
@@ -35,7 +35,7 @@ public class MSMCommandHandler implements CommandHandler {
     }
 
     @Override
-    public void registerCommand(CommandInfo command) {
+    public void registerCommand(ServerCommandInfo command) {
         commandMap.put(command.getName(), command);
 
         commandAliasMap.put(command.getName(), command);
@@ -46,14 +46,14 @@ public class MSMCommandHandler implements CommandHandler {
     }
 
     @Override
-    public CommandInfo getCommand(String name) {
+    public ServerCommandInfo getCommand(String name) {
         if (name == null) return null;
 
         return commandAliasMap.get(name);
     }
 
     @Override
-    public Collection<CommandInfo> getRegisteredCommands() {
+    public Collection<ServerCommandInfo> getRegisteredCommands() {
         return commandMap.values();
     }
 
@@ -61,7 +61,7 @@ public class MSMCommandHandler implements CommandHandler {
     public boolean executeCommand(MSMCommandEvent event) {
         event.setHandled(false);
 
-        CommandInfo commandInfo = getCommand(event.getCommand().getCommand());
+        ServerCommandInfo commandInfo = getCommand(event.getCommand().getCommand());
         if (commandInfo == null) {
             event.getCommandSender().sendMessage("Unknown MSM command: " + event.getCommand().getCommand());
             return false;

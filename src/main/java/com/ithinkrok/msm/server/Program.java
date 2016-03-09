@@ -60,7 +60,7 @@ public class Program {
         stopConfig.set("description", "Stops the MSM server");
         stopConfig.set("permission", "msmserver.stop");
 
-        CommandInfo stopInfo = new CommandInfo("mstop", stopConfig, new StopCommand());
+        ServerCommandInfo stopInfo = new ServerCommandInfo("mstop", stopConfig, new StopCommand());
 
         CommandHandler commandHandler = server.getCommandHandler();
         commandHandler.registerCommand(stopInfo);
@@ -70,7 +70,7 @@ public class Program {
         stopConfig.set("description", "Stops the MSM server");
         stopConfig.set("permission", "msmserver.restart");
 
-        CommandInfo restartInfo = new CommandInfo("mrestart", restartConfig, new RestartCommand());
+        ServerCommandInfo restartInfo = new ServerCommandInfo("mrestart", restartConfig, new RestartCommand());
 
         commandHandler.registerCommand(restartInfo);
 

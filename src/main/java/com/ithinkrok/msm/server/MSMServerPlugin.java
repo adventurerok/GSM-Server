@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server;
 
-import com.ithinkrok.msm.server.command.CommandInfo;
+import com.ithinkrok.msm.server.command.ServerCommandInfo;
 import com.ithinkrok.msm.server.event.player.PlayerCommandEvent;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
@@ -35,7 +35,7 @@ public abstract class MSMServerPlugin {
     @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
     private boolean enabled = false;
 
-    private Map<String, CommandInfo> commands;
+    private Map<String, ServerCommandInfo> commands;
 
     private List<PermissionInfo> permissions;
 
@@ -103,9 +103,9 @@ public abstract class MSMServerPlugin {
         return new HashMap<>();
     }
 
-    public Map<String, CommandInfo> getCommands() {
+    public Map<String, ServerCommandInfo> getCommands() {
         if (commands == null) {
-            Map<String, CommandInfo> commands = new ConcurrentHashMap<>();
+            Map<String, ServerCommandInfo> commands = new ConcurrentHashMap<>();
 
             Config commandConfigs = pluginYml.getConfigOrEmpty("commands");
 
@@ -114,7 +114,7 @@ public abstract class MSMServerPlugin {
             for (String commandName : commandConfigs.getKeys(false)) {
                 Config commandConfig = commandConfigs.getConfigOrNull(commandName);
 
-                CommandInfo commandInfo = new CommandInfo(commandName, commandConfig, listener);
+                ServerCommandInfo commandInfo = new ServerCommandInfo(commandName, commandConfig, listener);
 
                 commands.put(commandName, commandInfo);
             }

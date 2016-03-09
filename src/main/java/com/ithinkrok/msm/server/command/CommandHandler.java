@@ -11,11 +11,11 @@ import java.util.Set;
  */
 public interface CommandHandler {
 
-    void registerCommand(CommandInfo command);
+    void registerCommand(ServerCommandInfo command);
 
-    CommandInfo getCommand(String name);
+    ServerCommandInfo getCommand(String name);
 
-    Collection<CommandInfo> getRegisteredCommands();
+    Collection<ServerCommandInfo> getRegisteredCommands();
 
     boolean executeCommand(MSMCommandEvent commandEvent);
 

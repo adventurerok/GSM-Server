@@ -42,13 +42,13 @@ public class RegisterServerCommand implements CustomListener {
         event.getCommandSender().sendMessage("Registered server " + serverName + " successfully!");
     }
 
-    public static CommandInfo createCommandInfo(PasswordManager passwordManager) {
+    public static ServerCommandInfo createCommandInfo(PasswordManager passwordManager) {
         Config config = new MemoryConfig();
 
         config.set("usage", "/<command> <server> <password...>");
         config.set("description", "Register a server");
         config.set("permission", "msmserver.registerserver");
 
-        return new CommandInfo("registerserver", config, new RegisterServerCommand(passwordManager));
+        return new ServerCommandInfo("registerserver", config, new RegisterServerCommand(passwordManager));
     }
 }

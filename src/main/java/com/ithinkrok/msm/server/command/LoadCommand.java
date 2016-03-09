@@ -19,14 +19,14 @@ public class LoadCommand implements CustomListener {
 
     private final DecimalFormat formatter = new DecimalFormat("0.000");
 
-    public static CommandInfo createCommandInfo() {
+    public static ServerCommandInfo createCommandInfo() {
         Config config = new MemoryConfig();
 
         config.set("usage", "/<command> [servers to include]");
         config.set("description", "Check the load");
         config.set("permission", "msmserver.load");
 
-        return new CommandInfo("mload", config, new LoadCommand());
+        return new ServerCommandInfo("mload", config, new LoadCommand());
     }
 
     @CustomEventHandler

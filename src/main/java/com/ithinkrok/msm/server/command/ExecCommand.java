@@ -97,13 +97,13 @@ public class ExecCommand implements CustomListener {
         channel.write(payload);
     }
 
-    public static CommandInfo createCommandInfo() {
+    public static ServerCommandInfo createCommandInfo() {
         Config config = new MemoryConfig();
 
         config.set("usage", "/<command> <server> <server command...>");
         config.set("description", "Execute a command on a minecraft server");
         config.set("permission", "msmserver.exec");
 
-        return new CommandInfo("mexec", config, new ExecCommand());
+        return new ServerCommandInfo("mexec", config, new ExecCommand());
     }
 }
