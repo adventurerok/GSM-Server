@@ -179,7 +179,7 @@ public class ServerAPIProtocol implements ServerListener {
         if(!addTabCompletion) return (T) player;
 
         CommandHandler commandHandler = minecraftClient.getConnectedTo().getCommandHandler();
-        commandHandler.addTabCompletionItems(TABSET_GSM_PLAYERS);
+        commandHandler.addTabCompletionItems(TABSET_GSM_PLAYERS, player.getName());
 
         return (T) player;
     }
