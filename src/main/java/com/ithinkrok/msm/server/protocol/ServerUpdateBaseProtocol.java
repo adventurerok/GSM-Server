@@ -179,12 +179,34 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
 
     @Override
     public void connectionClosed(Connection connection) {
-
+        //Remove our details on the versions of the resources this client has
+        clientResources.remove(connection.getClient().getName());
     }
 
     @Override
     public void packetRecieved(Connection connection, Channel channel, Config payload) {
 
+        String mode = payload.getString("mode");
+        if(mode == null) return;
+
+        switch (mode) {
+            case "ResourceInfo":
+                handleResourceInfo(connection, payload);
+        }
+    }
+
+    private void handleResourceInfo(Connection connection, Config payload) {
+        Map<String, Instant> clientResources = new ConcurrentHashMap<>();
+
+        Config versions = payload.getConfigOrEmpty("versions");
+
+        for(String name : versions.getKeys(true)) {
+            clientResources.put(name, Instant.ofEpochMilli(versions.getLong(name)));
+        }
+
+        this.clientResources.put(connection.getClient().getName(), clientResources);
+
+        //TODO check updates
     }
 
     @Override
