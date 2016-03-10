@@ -13,9 +13,9 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -38,39 +38,56 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
     private final Map<String, Map<String, Instant>> clientResources = new ConcurrentHashMap<>();
 
     private final Map<Path, Future<?>> modifiedPaths = new ConcurrentHashMap<>();
-
-    private Server server;
     private final Path serverResourcePath;
+    private Server server;
 
     public ServerUpdateBaseProtocol(Path serverResourcePath) {
         this.serverResourcePath = serverResourcePath;
 
-        if(!Files.exists(serverResourcePath)) {
+        if (!Files.exists(serverResourcePath)) {
             try {
                 Files.createDirectories(serverResourcePath);
             } catch (IOException e) {
                 log.warn("Failed to create missing updated resource directory", e);
-                return;
             }
         }
+    }
+
+    @Override
+    public void serverStarted(Server server) {
+        this.server = server;
+
+        server.getDirectoryWatcher().registerListener(serverResourcePath, this);
 
         updateResourceVersions(serverResourcePath);
     }
 
     private void updateResourceVersions(Path serverResourcePath) {
-        //TODO symlinks
+        Set<FileVisitOption> options = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
 
-        try(DirectoryStream<Path> directoryStream = Files.newDirectoryStream(serverResourcePath)) {
-            for(Path path : directoryStream) {
-                updateResource(path);
-            }
+        try {
+            Files.walkFileTree(serverResourcePath, options, Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    server.getDirectoryWatcher().registerListener(dir, ServerUpdateBaseProtocol.this);
+
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    updateResource(file);
+
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         } catch (IOException e) {
-            log.warn("Failed to do full resource updates directory check", e);
+            log.warn("Failed to walk file tree", e);
         }
     }
 
     /**
-     *
      * @param path The path of the resource or resource config to update
      * @return If the resource or resource config was updated
      * @throws IOException If an error occurs while reading the resource info
@@ -78,14 +95,14 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
     private boolean updateResource(Path path) throws IOException {
         Config config = getResourceConfig(path);
 
-        if(config == null) {
+        if (config == null) {
             //Ensure that this resource does not have a provided config.
 
             String fileName = path.getFileName().toString();
             String configName = fileName + ".0";
             Path configPath = path.getParent().resolve(configName);
 
-            if(Files.exists(configPath)){
+            if (Files.exists(configPath)) {
                 return false;
             }
 
@@ -97,56 +114,16 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
         return true;
     }
 
-    private void updateResourceFromConfig(Path configPath, Config config) throws IOException {
-        ServerResource resource = new ServerResource();
-
-        resource.name = config.getString("resource_name");
-        resource.path = serverResourcePath.resolve(config.getString("resource_path"));
-
-        Instant modified = getModifiedInstant(resource.path);
-        if(modified == null) return;
-
-        resource.modified = modified;
-
-        serverResources.put(configPath, resource);
-
-        //TODO update client versions
-    }
-
-    private void resourceModified(Path resourcePath) throws IOException {
-        if(updateResource(resourcePath)) return;
-
-        for(Map.Entry<Path, ServerResource> resourceEntry : serverResources.entrySet()) {
-            if(!resourceEntry.getValue().path.equals(resourcePath)) continue;
-
-            updateResource(resourceEntry.getKey());
-        }
-    }
-
-    protected Instant getModifiedInstant(Path path) throws IOException {
-        return Files.getLastModifiedTime(path).toInstant();
-    }
-
-    protected Config getDefaultResourceConfig(Path path) {
-        Config config = new MemoryConfig();
-
-        String fileName = path.getFileName().toString();
-        config.set("resource_name", fileName);
-        config.set("resource_path", path.toString());
-
-        return config;
-    }
-
     private Config getResourceConfig(Path path) throws IOException {
         String fileName = path.getFileName().toString().toLowerCase();
 
         int dotIndex = fileName.lastIndexOf('.');
-        if(dotIndex < 0) return null;
+        if (dotIndex < 0) return null;
 
         String extension = fileName.substring(dotIndex + 1, fileName.length());
-        if(extension.isEmpty()) return null;
+        if (extension.isEmpty()) return null;
 
-        try{
+        try {
             //Check the extension is an integer. This means it is a config file for a resource
             //noinspection ResultOfMethodCallIgnored
             Integer.parseInt(extension);
@@ -160,6 +137,46 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
         }
     }
 
+    protected Config getDefaultResourceConfig(Path path) {
+        Config config = new MemoryConfig();
+
+        String fileName = path.getFileName().toString();
+        config.set("resource_name", fileName);
+        config.set("resource_path", path.toString());
+
+        return config;
+    }
+
+    private void updateResourceFromConfig(Path configPath, Config config) throws IOException {
+        ServerResource resource = new ServerResource();
+
+        resource.name = config.getString("resource_name");
+        resource.path = serverResourcePath.resolve(config.getString("resource_path"));
+
+        Instant modified = getModifiedInstant(resource.path);
+        if (modified == null) return;
+
+        resource.modified = modified;
+
+        serverResources.put(configPath, resource);
+
+        //TODO update client versions
+    }
+
+    protected Instant getModifiedInstant(Path path) throws IOException {
+        return Files.getLastModifiedTime(path).toInstant();
+    }
+
+    @Override
+    public void serverStopped(Server server) {
+
+    }
+
+    @Override
+    public void connectionOpened(Connection connection, Channel channel) {
+
+    }
+
     @Override
     public void connectionClosed(Connection connection) {
 
@@ -171,45 +188,27 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
     }
 
     @Override
-    public void connectionOpened(Connection connection, Channel channel) {
-
-    }
-
-    @Override
-    public void serverStopped(Server server) {
-
-    }
-
-    @Override
-    public void serverStarted(Server server) {
-        this.server = server;
-
-        //TODO listen in subdirectories
-        server.getDirectoryWatcher().registerListener(serverResourcePath, this);
-    }
-
-    @Override
     public void fileChanged(Path changed, WatchEvent.Kind<?> event) {
-        if(Files.isDirectory(changed) && event == StandardWatchEventKinds.ENTRY_CREATE) {
+        if (Files.isDirectory(changed) && event == StandardWatchEventKinds.ENTRY_CREATE) {
             server.getDirectoryWatcher().registerListener(changed, this);
-        } else if(event == StandardWatchEventKinds.ENTRY_DELETE) {
+        } else if (event == StandardWatchEventKinds.ENTRY_DELETE) {
             server.getDirectoryWatcher().unregisterAllListeners(changed);
 
             //Remove all resources that start with this resource path
             //If this is a directory, it removes all resources in this directory or subdirectories.
             //If this is a file, it removes this resource.
             Iterator<Map.Entry<Path, ServerResource>> iterator = serverResources.entrySet().iterator();
-            while(iterator.hasNext()) {
+            while (iterator.hasNext()) {
                 Map.Entry<Path, ServerResource> next = iterator.next();
 
-                if(next.getKey().startsWith(changed)) {
+                if (next.getKey().startsWith(changed)) {
                     log.info("Removing resource " + next.getKey() + " as it's directory was deleted");
                     iterator.remove();
                 }
             }
         }
 
-        if(Files.isDirectory(changed)) return;
+        if (Files.isDirectory(changed)) return;
 
         //Wait 5 seconds before reading the change to allow time for file to be fully uploaded.
         Future<?> oldFuture = modifiedPaths.get(changed);
@@ -225,6 +224,16 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
         }, 5, TimeUnit.SECONDS);
 
         modifiedPaths.put(changed, newFuture);
+    }
+
+    private void resourceModified(Path resourcePath) throws IOException {
+        if (updateResource(resourcePath)) return;
+
+        for (Map.Entry<Path, ServerResource> resourceEntry : serverResources.entrySet()) {
+            if (!resourceEntry.getValue().path.equals(resourcePath)) continue;
+
+            updateResource(resourceEntry.getKey());
+        }
     }
 
     private static class ServerResource {
