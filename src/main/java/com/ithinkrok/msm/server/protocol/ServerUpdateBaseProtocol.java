@@ -330,14 +330,14 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
         }
 
         private boolean allowInstall(Client<?> client) {
-            if (!config.contains("install_criteria")) return false;
+            if (!config.contains("install_criteria")) return config.getBoolean("install", false);
 
             Config installCriteria = config.getConfigOrNull("install_criteria");
             return checkCriteria(installCriteria, client);
         }
 
         private boolean allowUpdate(Client<?> client) {
-            if (!config.contains("update_criteria")) return true;
+            if (!config.contains("update_criteria")) return config.getBoolean("update", true);
 
             Config updateCriteria = config.getConfigOrNull("update_criteria");
             return checkCriteria(updateCriteria, client);
