@@ -167,6 +167,8 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
     }
 
     protected Instant getModifiedInstant(Path path) throws IOException {
+        if(!Files.exists(path)) return null;
+
         return Files.getLastModifiedTime(path).toInstant();
     }
 
