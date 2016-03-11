@@ -143,7 +143,7 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
 
         String fileName = path.getFileName().toString();
         config.set("resource_name", fileName);
-        config.set("resource_path", path.toString());
+        config.set("resource_path", serverResourcePath.relativize(path).toString());
 
         return config;
     }
