@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by paul on 10/03/16.
  */
-public abstract class ServerUpdateBaseProtocol implements ServerListener, DirectoryListener {
+public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListener {
 
     private static final Logger log = LogManager.getLogger(ServerUpdateBaseProtocol.class);
     protected final String protocolName;
