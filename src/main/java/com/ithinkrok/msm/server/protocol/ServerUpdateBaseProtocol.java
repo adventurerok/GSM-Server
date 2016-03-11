@@ -361,18 +361,21 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
             Config payload = new MemoryConfig();
 
             payload.set("mode", "ResourceUpdate");
-            payload.set("part", 0);
-            payload.set("partCount", 1);
 
             payload.set("resource", name);
             payload.set("version", modified.toEpochMilli());
 
+            byte[] bytes;
             try {
-                payload.set("bytes", Files.readAllBytes(path));
+                bytes = Files.readAllBytes(path);
             } catch (IOException e) {
                 log.warn("Failed to read updated resource", e);
                 return false;
             }
+
+            payload.set("bytes", bytes);
+            payload.set("index", 0);
+            payload.set("length", bytes.length);
 
             channel.write(payload);
             return true;
