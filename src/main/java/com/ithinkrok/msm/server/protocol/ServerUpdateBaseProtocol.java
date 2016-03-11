@@ -27,20 +27,16 @@ import java.util.concurrent.TimeUnit;
 public abstract class ServerUpdateBaseProtocol implements ServerListener, DirectoryListener {
 
     private static final Logger log = LogManager.getLogger(ServerUpdateBaseProtocol.class);
-
+    protected final String protocolName;
     /**
      * A map of resource config paths to resources.
      */
     private final Map<Path, ServerResource> serverResources = new ConcurrentHashMap<>();
-
     /**
      * A map of client names to maps of resource names to resource versions.
      */
     private final Map<String, Map<String, Instant>> clientResources = new ConcurrentHashMap<>();
-
     private final Map<Path, Future<?>> modifiedPaths = new ConcurrentHashMap<>();
-
-    protected final String protocolName;
     private final Path serverResourcePath;
     private Server server;
 
@@ -111,7 +107,7 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
             }
 
             config = getDefaultResourceConfig(path);
-            if(config == null) return false;
+            if (config == null) return false;
         }
 
         updateResourceFromConfig(path, config);
@@ -174,6 +170,54 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
         return Files.getLastModifiedTime(path).toInstant();
     }
 
+    private void updateResourcesForAllClients(String resourceName) {
+        for (String clientName : clientResources.keySet()) {
+            Client<?> client = server.getClient(clientName);
+
+            if (client == null) continue;
+
+            updateResourcesForClient(client, resourceName);
+        }
+    }
+
+    private void updateResourcesForClient(Client<?> client, String resourceName) {
+        if (!client.isConnected()) return;
+
+        Map<String, ServerResource> updates = getUpdatableResourcesForClient(client, resourceName);
+
+        Channel channel;
+        try {
+            channel = client.getConnection().getChannel(protocolName);
+        } catch (Exception e) {
+            log.warn("Client disconnected during update", e);
+            return;
+        }
+
+        for (ServerResource update : updates.values()) {
+            update.install(channel);
+        }
+    }
+
+    private Map<String, ServerResource> getUpdatableResourcesForClient(Client<?> client, String resourceName) {
+        Map<String, Instant> clientVersions = this.clientResources.get(client.getName());
+
+        Map<String, ServerResource> updates = new HashMap<>();
+
+        //Find the most recent resources that apply to the client
+        //Only one resource per resource name
+        for (ServerResource resource : serverResources.values()) {
+            if (resourceName != null && !resourceName.equals(resource.name)) continue;
+
+            if (!resource.applies(client, clientVersions)) continue;
+
+            ServerResource other = updates.get(resource.name);
+            if (other != null && resource.modified.isBefore(other.modified)) continue;
+
+            updates.put(resource.name, resource);
+        }
+        return updates;
+    }
+
     @Override
     public void serverStopped(Server server) {
 
@@ -194,7 +238,7 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
     public void packetRecieved(Connection connection, Channel channel, Config payload) {
 
         String mode = payload.getString("mode");
-        if(mode == null) return;
+        if (mode == null) return;
 
         switch (mode) {
             case "ResourceInfo":
@@ -207,61 +251,13 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
 
         Config versions = payload.getConfigOrEmpty("versions");
 
-        for(String name : versions.getKeys(true)) {
+        for (String name : versions.getKeys(true)) {
             clientResources.put(name, Instant.ofEpochMilli(versions.getLong(name)));
         }
 
         this.clientResources.put(client.getName(), clientResources);
 
         updateResourcesForClient(client, null);
-    }
-
-    private void updateResourcesForAllClients(String resourceName) {
-        for(String clientName : clientResources.keySet()) {
-            Client<?> client = server.getClient(clientName);
-
-            if(client == null) continue;
-
-            updateResourcesForClient(client, resourceName);
-        }
-    }
-
-    private void updateResourcesForClient(Client<?> client, String resourceName) {
-        if(!client.isConnected()) return;
-
-        Map<String, ServerResource> updates = getUpdatableResourcesForClient(client, resourceName);
-
-        Channel channel;
-        try {
-            channel = client.getConnection().getChannel(protocolName);
-        } catch (Exception e) {
-            log.warn("Client disconnected during update", e);
-            return;
-        }
-
-        for(ServerResource update : updates.values()) {
-            update.install(channel);
-        }
-    }
-
-    private Map<String, ServerResource> getUpdatableResourcesForClient(Client<?> client, String resourceName) {
-        Map<String, Instant> clientVersions = this.clientResources.get(client.getName());
-
-        Map<String, ServerResource> updates = new HashMap<>();
-
-        //Find the most recent resources that apply to the client
-        //Only one resource per resource name
-        for(ServerResource resource : serverResources.values()) {
-            if(resourceName != null && !resourceName.equals(resource.name)) continue;
-
-            if(!resource.applies(client, clientVersions)) continue;
-
-            ServerResource other = updates.get(resource.name);
-            if(other != null && resource.modified.isBefore(other.modified)) continue;
-
-            updates.put(resource.name, resource);
-        }
-        return updates;
     }
 
     @Override
@@ -324,7 +320,41 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
         public boolean applies(Client<?> client, Map<String, Instant> clientVersions) {
             Instant clientVersion = clientVersions.get(name);
 
-            return clientVersion != null && clientVersion.isBefore(modified);
+            if (clientVersion == null) {
+                return allowInstall(client);
+            } else if (clientVersion.isBefore(modified)) {
+                return allowUpdate(client);
+            } else {
+                return false;
+            }
+        }
+
+        private boolean allowInstall(Client<?> client) {
+            if (!config.contains("install_criteria")) return false;
+
+            Config installCriteria = config.getConfigOrNull("install_criteria");
+            return checkCriteria(installCriteria, client);
+        }
+
+        private boolean allowUpdate(Client<?> client) {
+            if (!config.contains("update_criteria")) return true;
+
+            Config updateCriteria = config.getConfigOrNull("update_criteria");
+            return checkCriteria(updateCriteria, client);
+        }
+
+        private boolean checkCriteria(Config criteria, Client<?> client) {
+            if (criteria.contains("server_name")) {
+                String nameRegex = criteria.getString("server_name");
+                if (!client.getName().matches(nameRegex)) return false;
+            }
+
+            if (criteria.contains("server_type")) {
+                String typeRegex = criteria.getString("server_type");
+                if (!client.getType().matches(typeRegex)) return false;
+            }
+
+            return true;
         }
 
         public boolean install(Channel channel) {
