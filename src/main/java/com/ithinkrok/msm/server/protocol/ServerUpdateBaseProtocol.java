@@ -5,6 +5,7 @@ import com.ithinkrok.msm.common.util.io.DirectoryListener;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
+import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.config.YamlConfigIO;
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class ServerUpdateBaseProtocol implements ServerListener, DirectoryListener {
 
-    private final Logger log = LogManager.getLogger(ServerUpdateBaseProtocol.class);
+    private static final Logger log = LogManager.getLogger(ServerUpdateBaseProtocol.class);
 
     /**
      * A map of resource config paths to resources.
@@ -38,10 +39,13 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
     private final Map<String, Map<String, Instant>> clientResources = new ConcurrentHashMap<>();
 
     private final Map<Path, Future<?>> modifiedPaths = new ConcurrentHashMap<>();
+
+    protected final String protocolName;
     private final Path serverResourcePath;
     private Server server;
 
-    public ServerUpdateBaseProtocol(Path serverResourcePath) {
+    public ServerUpdateBaseProtocol(String protocolName, Path serverResourcePath) {
+        this.protocolName = protocolName;
         this.serverResourcePath = serverResourcePath;
 
         if (!Files.exists(serverResourcePath)) {
@@ -107,6 +111,7 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
             }
 
             config = getDefaultResourceConfig(path);
+            if(config == null) return false;
         }
 
         updateResourceFromConfig(path, config);
@@ -158,9 +163,11 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
 
         resource.modified = modified;
 
+        resource.config = config;
+
         serverResources.put(configPath, resource);
 
-        //TODO update client versions
+        updateResourcesForAllClients(resource.name);
     }
 
     protected Instant getModifiedInstant(Path path) throws IOException {
@@ -191,11 +198,11 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
 
         switch (mode) {
             case "ResourceInfo":
-                handleResourceInfo(connection, payload);
+                handleResourceInfo(connection.getClient(), payload);
         }
     }
 
-    private void handleResourceInfo(Connection connection, Config payload) {
+    private void handleResourceInfo(Client<?> client, Config payload) {
         Map<String, Instant> clientResources = new ConcurrentHashMap<>();
 
         Config versions = payload.getConfigOrEmpty("versions");
@@ -204,9 +211,57 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
             clientResources.put(name, Instant.ofEpochMilli(versions.getLong(name)));
         }
 
-        this.clientResources.put(connection.getClient().getName(), clientResources);
+        this.clientResources.put(client.getName(), clientResources);
 
-        //TODO check updates
+        updateResourcesForClient(client, null);
+    }
+
+    private void updateResourcesForAllClients(String resourceName) {
+        for(String clientName : clientResources.keySet()) {
+            Client<?> client = server.getClient(clientName);
+
+            if(client == null) continue;
+
+            updateResourcesForClient(client, resourceName);
+        }
+    }
+
+    private void updateResourcesForClient(Client<?> client, String resourceName) {
+        if(!client.isConnected()) return;
+
+        Map<String, ServerResource> updates = getUpdatableResourcesForClient(client, resourceName);
+
+        Channel channel;
+        try {
+            channel = client.getConnection().getChannel(protocolName);
+        } catch (Exception e) {
+            log.warn("Client disconnected during update", e);
+            return;
+        }
+
+        for(ServerResource update : updates.values()) {
+            update.install(channel);
+        }
+    }
+
+    private Map<String, ServerResource> getUpdatableResourcesForClient(Client<?> client, String resourceName) {
+        Map<String, Instant> clientVersions = this.clientResources.get(client.getName());
+
+        Map<String, ServerResource> updates = new HashMap<>();
+
+        //Find the most recent resources that apply to the client
+        //Only one resource per resource name
+        for(ServerResource resource : serverResources.values()) {
+            if(resourceName != null && !resourceName.equals(resource.name)) continue;
+
+            if(!resource.applies(client, clientVersions)) continue;
+
+            ServerResource other = updates.get(resource.name);
+            if(other != null && resource.modified.isBefore(other.modified)) continue;
+
+            updates.put(resource.name, resource);
+        }
+        return updates;
     }
 
     @Override
@@ -258,10 +313,39 @@ public abstract class ServerUpdateBaseProtocol implements ServerListener, Direct
         }
     }
 
-    private static class ServerResource {
+    protected static class ServerResource {
         String name;
         Path path;
 
         Instant modified;
+
+        Config config;
+
+        public boolean applies(Client<?> client, Map<String, Instant> clientVersions) {
+            Instant clientVersion = clientVersions.get(name);
+
+            return clientVersion != null && clientVersion.isBefore(modified);
+        }
+
+        public boolean install(Channel channel) {
+            Config payload = new MemoryConfig();
+
+            payload.set("mode", "ResourceUpdate");
+            payload.set("part", 0);
+            payload.set("partCount", 1);
+
+            payload.set("resource", name);
+            payload.set("version", modified.toEpochMilli());
+
+            try {
+                payload.set("bytes", Files.readAllBytes(path));
+            } catch (IOException e) {
+                log.warn("Failed to read updated resource", e);
+                return false;
+            }
+
+            channel.write(payload);
+            return true;
+        }
     }
 }
