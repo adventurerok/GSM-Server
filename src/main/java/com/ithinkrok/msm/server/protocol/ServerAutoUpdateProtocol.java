@@ -1,11 +1,5 @@
 package com.ithinkrok.msm.server.protocol;
 
-import com.ithinkrok.msm.common.Channel;
-import com.ithinkrok.msm.common.util.io.DirectoryListener;
-import com.ithinkrok.msm.server.Connection;
-import com.ithinkrok.msm.server.minecraft.MinecraftClient;
-import com.ithinkrok.msm.server.Server;
-import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.util.FIleUtil;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
@@ -14,217 +8,44 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.nio.file.*;
-import java.time.Instant;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Created by paul on 05/02/16.
  */
-public class ServerAutoUpdateProtocol implements ServerListener, DirectoryListener {
+public class ServerAutoUpdateProtocol extends ServerUpdateBaseProtocol {
 
     private final Logger log = LogManager.getLogger(ServerAutoUpdateProtocol.class);
 
-    private final Map<String, ServerVersionInfo> updatesMap = new ConcurrentHashMap<>();
-    private final Map<MinecraftClient, Map<String, Instant>> clientVersionsMap = new ConcurrentHashMap<>();
 
-    private final Path updatedPluginsPath;
-    private final Map<Path, Future<?>> modifiedPaths = new ConcurrentHashMap<>();
-    private Server server;
-
-    public ServerAutoUpdateProtocol(Path updatedPluginsPath) {
-        this.updatedPluginsPath = updatedPluginsPath;
-
-        if (!Files.exists(updatedPluginsPath)) {
-            try {
-                Files.createDirectories(updatedPluginsPath);
-            } catch (IOException e) {
-                log.warn("Failed to create missing updated plugins directory", e);
-                return;
-            }
-        }
-
-        updatePluginVersions(updatedPluginsPath);
+    public ServerAutoUpdateProtocol(Path serverResourcePath) {
+        super("MSMAutoUpdate", serverResourcePath);
     }
 
-    private void updatePluginVersions(Path updatedPluginsPath) {
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(updatedPluginsPath, "**.jar")) {
-            for (Path pluginPath : directoryStream) {
-                updatePluginVersion(pluginPath);
-            }
-        } catch (IOException e) {
-            log.warn("Failed to do full plugin updates folder check", e);
-        }
-    }
+    @Override
+    protected Config getDefaultResourceConfig(Path path) {
+        if(!path.getFileName().toString().toLowerCase().endsWith(".jar")) return null;
 
-    private void updatePluginVersion(Path pluginPath) {
+        Config config = super.getDefaultResourceConfig(path);
 
-        try (FileSystem jarFile = FIleUtil.createZipFileSystem(pluginPath)) {
+        try (FileSystem jarFile = FIleUtil.createZipFileSystem(path)) {
             Path pluginYmlPath = jarFile.getPath("/plugin.yml");
 
-            if (!Files.exists(pluginYmlPath)) return;
+            if (!Files.exists(pluginYmlPath)) return null;
 
             Config pluginYml = YamlConfigIO.loadToConfig(pluginYmlPath, new MemoryConfig('/'));
 
             String name = pluginYml.getString("name");
-            if (name == null) return;
+            if (name == null) return null;
 
-            Instant dateModified = Files.getLastModifiedTime(pluginPath).toInstant();
-
-            ServerVersionInfo versionInfo = updatesMap.get(name);
-
-            if (versionInfo == null) versionInfo = new ServerVersionInfo();
-            else if (!versionInfo.pluginPath.equals(pluginPath)) {
-
-                //Skip if we already have a more up to date version of this plugin with a different path.
-                if (versionInfo.dateModified.isAfter(dateModified)) return;
-            }
-
-            versionInfo.dateModified = dateModified;
-            versionInfo.pluginPath = pluginPath;
-
-            updatesMap.put(name, versionInfo);
-
-            checkUpdates(name);
+            config.set("resource_name", name);
         } catch (IOException e) {
-            log.warn("Failed to update version info for plugin: " + pluginPath, e);
-        }
-    }
-
-    private void checkUpdates(String pluginName) {
-        for (MinecraftClient minecraftClient : clientVersionsMap.keySet()) {
-            if (!minecraftClient.isConnected()) continue;
-
-            checkUpdate(minecraftClient, pluginName);
-        }
-    }
-
-    private void checkUpdate(MinecraftClient minecraftClient, String pluginName) {
-        if (!updatesMap.containsKey(pluginName)) return;
-
-        Map<String, Instant> clientVersions = clientVersionsMap.get(minecraftClient);
-        if (clientVersions == null || !clientVersions.containsKey(pluginName)) return;
-
-        ServerVersionInfo serverVersionInfo = updatesMap.get(pluginName);
-
-        Instant serverVersion = serverVersionInfo.dateModified;
-        Instant clientVersion = clientVersions.get(pluginName);
-
-        if (!clientVersion.isBefore(serverVersion)) return;
-
-        clientVersions.put(pluginName, serverVersion);
-
-        log.info("Updating plugin \"" + pluginName + "\" on bukkit/spigot server: " + minecraftClient);
-        doUpdate(minecraftClient.getConnection().getChannel("MSMAutoUpdate"), pluginName, serverVersionInfo.pluginPath);
-    }
-
-    private void doUpdate(Channel channel, String plugin, Path pluginPath) {
-        Config payload = new MemoryConfig();
-
-        payload.set("mode", "PluginInstall");
-        payload.set("name", plugin);
-        payload.set("append", false);
-        payload.set("final", true);
-
-        try {
-            payload.set("bytes", Files.readAllBytes(pluginPath));
-        } catch (IOException e) {
-            log.warn("Failed to read plugin update file: " + pluginPath, e);
-            return;
+            log.warn("Failed to update version info for plugin: " + path, e);
+            return null;
         }
 
-        channel.write(payload);
-    }
-
-    @Override
-    public void serverStarted(Server server) {
-        this.server = server;
-
-        server.getDirectoryWatcher().registerListener(updatedPluginsPath, this);
-    }
-
-    @Override
-    public void connectionOpened(Connection connection, Channel channel) {
-
-    }
-
-    @Override
-    public void connectionClosed(Connection connection) {
-        if (!(connection.getClient() instanceof MinecraftClient)) return;
-
-        clientVersionsMap.remove(connection.getClient());
-    }
-
-    @Override
-    public void packetRecieved(Connection connection, Channel channel, Config payload) {
-
-        String mode = payload.getString("mode");
-        if (mode == null) return;
-
-        switch (mode) {
-            case "PluginInfo":
-                handlePluginInfo(connection, payload);
-                break;
-        }
-    }
-
-    private void handlePluginInfo(Connection connection, Config payload) {
-        Map<String, Instant> newPlugins = new ConcurrentHashMap<>();
-
-        for (Config pluginInfo : payload.getConfigList("plugins")) {
-            String name = pluginInfo.getString("name");
-
-            Instant modified = Instant.ofEpochMilli(pluginInfo.getLong("modified"));
-
-            newPlugins.put(name, modified);
-
-            log.trace("Client plugin: " + name + ", " + modified);
-        }
-
-        MinecraftClient minecraftClient = (MinecraftClient) connection.getClient();
-
-        clientVersionsMap.put(minecraftClient, newPlugins);
-
-        //Check for plugin updates. This cannot be done in the loop above as it uses the clientVersionsMap
-        for (String pluginName : newPlugins.keySet()) {
-            checkUpdate(minecraftClient, pluginName);
-        }
-    }
-
-    @Override
-    public void fileChanged(Path changed, WatchEvent.Kind<?> event) {
-        if (Files.isDirectory(changed) || !changed.toString().toLowerCase().endsWith(".jar")) return;
-
-        if (event == StandardWatchEventKinds.ENTRY_DELETE) {
-            Iterator<ServerVersionInfo> versionInfoIterator = updatesMap.values().iterator();
-
-            while (versionInfoIterator.hasNext()) {
-                ServerVersionInfo versionInfo = versionInfoIterator.next();
-
-                if (versionInfo.pluginPath.equals(changed)) versionInfoIterator.remove();
-            }
-
-            updatePluginVersions(updatedPluginsPath);
-            return;
-        }
-
-        Future<?> oldFuture = modifiedPaths.get(changed);
-        if (oldFuture != null) oldFuture.cancel(false);
-
-        Future<?> newFuture = server.scheduleAsync(() -> {
-            updatePluginVersion(changed);
-            modifiedPaths.remove(changed);
-        }, 5, TimeUnit.SECONDS);
-
-        modifiedPaths.put(changed, newFuture);
-    }
-
-    private static class ServerVersionInfo {
-        private Instant dateModified;
-        private Path pluginPath;
+        return config;
     }
 }
