@@ -49,6 +49,16 @@ public interface Client<T extends Player<?>> extends Messagable {
      */
     double getAllocatedRam();
 
+    /**
+     * Returns a measure of how well the server is performing, with 1.0 being maximum performance, and 0.0 being
+     * minimum performance.
+     *
+     * For minecraft servers, this should return tps/20
+     *
+     * @return The performance of the server, 1.0 indicating max performance (no issues), 0.0 indicating not performing.
+     */
+    double getPerformance();
+
     Collection<String> getSupportedProtocols();
 
     default String getName(){

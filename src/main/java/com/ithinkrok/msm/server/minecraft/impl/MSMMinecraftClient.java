@@ -129,6 +129,11 @@ public class MSMMinecraftClient implements MinecraftClient {
     }
 
     @Override
+    public double getPerformance() {
+        return getTPS() / 20d;
+    }
+
+    @Override
     public Collection<String> getSupportedProtocols() {
         return supportedProtocols;
     }
