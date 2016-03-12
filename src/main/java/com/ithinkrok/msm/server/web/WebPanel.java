@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Created by paul on 12/03/16.
@@ -25,20 +26,25 @@ public class WebPanel extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
-        String uri = session.getUri();
-        if(uri.startsWith("/")) {
-            uri = uri.substring(1);
+        Path uriPath = getUriPath(session);
+
+        if(uriPath.getNameCount() > 1 && uriPath.getName(0).toString().equals("api")) {
+            return serveApi(session, uriPath.getName(0).relativize(uriPath));
         }
 
-        if(uri.isEmpty()) {
-            uri = "index.html";
-        }
+        return serveFile(session, uriPath);
+    }
 
-        Path file = webPath.resolve(uri);
+    private Response serveApi(IHTTPSession session, Path path) {
+        String message = "You are using the API";
+
+        return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, message);
+    }
+
+    public Response serveFile(IHTTPSession session, Path uriPath) {
+        Path file = webPath.resolve(uriPath);
 
         if(!Files.exists(file)) return super.serve(session);
-
-
 
         try {
             String type = Files.probeContentType(file);
@@ -48,5 +54,18 @@ public class WebPanel extends NanoHTTPD {
         } catch (IOException ignored) {
             return super.serve(session);
         }
+    }
+
+    public Path getUriPath(IHTTPSession session) {
+        String uri = session.getUri();
+        if(uri.startsWith("/")) {
+            uri = uri.substring(1);
+        }
+
+        if(uri.isEmpty()) {
+            uri = "index.html";
+        }
+
+        return Paths.get(uri);
     }
 }
