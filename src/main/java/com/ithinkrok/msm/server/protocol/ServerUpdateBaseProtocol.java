@@ -7,6 +7,7 @@ import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.InvalidConfigException;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.config.YamlConfigIO;
 import org.apache.logging.log4j.LogManager;
@@ -137,8 +138,11 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
             config.set("resource_path", relativePath);
             return config;
         } catch (NumberFormatException ignored) {
-            return null;
+        } catch (InvalidConfigException e) {
+            log.info("Invalid resource config at " + path, e);
         }
+
+        return null;
     }
 
     protected Config getDefaultResourceConfig(Path path) {
