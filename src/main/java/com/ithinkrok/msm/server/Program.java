@@ -7,6 +7,7 @@ import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.msm.server.minecraft.ServerMinecraftRequestProtocol;
 import com.ithinkrok.msm.server.protocol.ServerAPIProtocol;
 import com.ithinkrok.msm.server.protocol.ServerAutoUpdateProtocol;
+import com.ithinkrok.msm.server.web.WebPanel;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.config.YamlConfigIO;
@@ -45,6 +46,13 @@ public class Program {
         } catch (IOException e) {
             log.error("Failed to create console reader. Console input will be disabled", e);
             return;
+        }
+
+        WebPanel webPanel = new WebPanel(server);
+        try {
+            webPanel.start();
+        } catch (IOException e) {
+            log.warn("Failed to start web panel", e);
         }
 
         ConsoleHandler consoleHandler = new ConsoleHandler(server, reader);
