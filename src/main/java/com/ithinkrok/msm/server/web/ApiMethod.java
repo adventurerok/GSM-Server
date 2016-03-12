@@ -1,4 +1,4 @@
-package com.ithinkrok.msm.server.web.api;
+package com.ithinkrok.msm.server.web;
 
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.util.config.Config;

@@ -1,6 +1,9 @@
 package com.ithinkrok.msm.server.web;
 
 import com.ithinkrok.msm.server.Server;
+import com.ithinkrok.msm.server.web.api.ClientNamesMethod;
+import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.JsonConfigIO;
 import fi.iki.elonen.NanoHTTPD;
 
 import java.io.IOException;
@@ -8,6 +11,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by paul on 12/03/16.
@@ -18,10 +23,18 @@ public class WebPanel extends NanoHTTPD {
 
     private final Path webPath;
 
+    private final Map<String, ApiMethod> apiMethodMap = new ConcurrentHashMap<>();
+
     public WebPanel(Server server, Path webPath) {
         super(8091);
         this.server = server;
         this.webPath = webPath;
+
+        loadApiMethods();
+    }
+
+    private void loadApiMethods() {
+        apiMethodMap.put("client_names", new ClientNamesMethod());
     }
 
     @Override
@@ -36,9 +49,21 @@ public class WebPanel extends NanoHTTPD {
     }
 
     private Response serveApi(IHTTPSession session, Path path) {
-        String message = "You are using the API";
+        String pathName = path.toString();
 
-        return newFixedLengthResponse(Response.Status.OK, NanoHTTPD.MIME_PLAINTEXT, message);
+        ApiMethod method = apiMethodMap.get(pathName);
+
+        String message;
+
+        if(method != null) {
+            Config config = method.call(session, server);
+
+            message = JsonConfigIO.dumpConfig(config);
+        } else {
+            message = "{}";
+        }
+
+        return newFixedLengthResponse(Response.Status.OK, "application/json", message);
     }
 
     public Response serveFile(IHTTPSession session, Path uriPath) {
