@@ -20,8 +20,8 @@ public class ServerAutoUpdateProtocol extends ServerUpdateBaseProtocol {
     private final Logger log = LogManager.getLogger(ServerAutoUpdateProtocol.class);
 
 
-    public ServerAutoUpdateProtocol(Path serverResourcePath) {
-        super("MSMAutoUpdate", serverResourcePath);
+    public ServerAutoUpdateProtocol(String name, Path serverResourcePath) {
+        super(name, serverResourcePath);
     }
 
     @Override

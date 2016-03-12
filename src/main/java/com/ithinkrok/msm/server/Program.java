@@ -90,7 +90,8 @@ public class Program {
         Map<String, ServerListener> listenerMap = new HashMap<>();
 
         //Add all default protocols (except MSMLogin)
-        listenerMap.put("MSMAutoUpdate", new ServerAutoUpdateProtocol(Paths.get("updates/bukkit_plugins")));
+        listenerMap.put("BukkitPluginUpdate", new ServerAutoUpdateProtocol("BukkitPluginUpdate",
+                Paths.get("updates/bukkit_plugins")));
         listenerMap.put("MSMAPI", new ServerAPIProtocol());
         listenerMap.put("MinecraftRequest", new ServerMinecraftRequestProtocol());
 
