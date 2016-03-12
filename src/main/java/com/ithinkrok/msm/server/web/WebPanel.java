@@ -2,6 +2,7 @@ package com.ithinkrok.msm.server.web;
 
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.web.api.ClientNamesMethod;
+import com.ithinkrok.msm.server.web.api.ClientResourceUsageMethod;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.JsonConfigIO;
 import fi.iki.elonen.NanoHTTPD;
@@ -35,6 +36,7 @@ public class WebPanel extends NanoHTTPD {
 
     private void loadApiMethods() {
         apiMethodMap.put("client_names", new ClientNamesMethod());
+        apiMethodMap.put("client/resource_usage", new ClientResourceUsageMethod());
     }
 
     @Override
@@ -59,6 +61,8 @@ public class WebPanel extends NanoHTTPD {
             Config config = method.call(session, server);
 
             message = JsonConfigIO.dumpConfig(config);
+
+            if(message == null) message = "{}";
         } else {
             message = "{}";
         }
