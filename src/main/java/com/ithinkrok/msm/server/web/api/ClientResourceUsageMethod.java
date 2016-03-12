@@ -27,6 +27,7 @@ public class ClientResourceUsageMethod implements ApiMethod {
         result.set("ram_used", client.getRamUsage());
         result.set("ram_max", client.getMaxRam());
         result.set("ram_allocated", client.getAllocatedRam());
+        result.set("performance", client.getPerformance());
 
         return result;
     }
