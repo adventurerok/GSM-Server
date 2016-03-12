@@ -4,6 +4,7 @@ import com.ithinkrok.msm.server.Server;
 import fi.iki.elonen.NanoHTTPD;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -37,8 +38,13 @@ public class WebPanel extends NanoHTTPD {
 
         if(!Files.exists(file)) return super.serve(session);
 
+
+
         try {
-            return newChunkedResponse(Response.Status.OK, NanoHTTPD.MIME_HTML, Files.newInputStream(file));
+            String type = Files.probeContentType(file);
+            InputStream input = Files.newInputStream(file);
+
+            return newChunkedResponse(Response.Status.OK, type, input);
         } catch (IOException ignored) {
             return super.serve(session);
         }
