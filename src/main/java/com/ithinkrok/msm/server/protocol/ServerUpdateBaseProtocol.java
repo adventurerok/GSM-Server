@@ -312,7 +312,6 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
     }
 
     private void resourceModified(Path resourcePath) throws IOException {
-        log.info(resourcePath);
         if (updateResource(resourcePath)) return;
 
         for (Map.Entry<Path, ServerResource> resourceEntry : serverResources.entrySet()) {
