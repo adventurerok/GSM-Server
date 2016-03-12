@@ -48,7 +48,7 @@ public class Program {
             return;
         }
 
-        WebPanel webPanel = new WebPanel(server);
+        WebPanel webPanel = new WebPanel(server, Paths.get("web"));
         try {
             webPanel.start();
         } catch (IOException e) {
