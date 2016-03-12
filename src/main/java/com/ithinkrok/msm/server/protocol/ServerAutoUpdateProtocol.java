@@ -26,7 +26,13 @@ public class ServerAutoUpdateProtocol extends ServerUpdateBaseProtocol {
 
     @Override
     protected Config getDefaultResourceConfig(Path path) {
-        if(!path.getFileName().toString().toLowerCase().endsWith(".jar")) return null;
+        if(!path.getFileName().toString().toLowerCase().endsWith(".jar")) {
+            Config config = super.getDefaultResourceConfig(path);
+
+            config.set("resource_name", "other:" + config.get("resource_name"));
+
+            return config;
+        }
 
         Config config = super.getDefaultResourceConfig(path);
 
@@ -40,7 +46,7 @@ public class ServerAutoUpdateProtocol extends ServerUpdateBaseProtocol {
             String name = pluginYml.getString("name");
             if (name == null) return null;
 
-            config.set("resource_name", name);
+            config.set("resource_name", "plugin:" + name);
         } catch (IOException e) {
             log.warn("Failed to update version info for plugin: " + path, e);
             return null;
