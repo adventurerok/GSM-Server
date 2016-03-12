@@ -131,7 +131,10 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
 
             Config config = YamlConfigIO.loadToConfig(path, new MemoryConfig());
 
-            config.set("resource_name", fileName.substring(0, dotIndex));
+            Path fullPath = path.getParent().resolve(fileName.substring(0, dotIndex));
+            Path relativePath = serverResourcePath.relativize(fullPath);
+
+            config.set("resource_path", relativePath);
             return config;
         } catch (NumberFormatException ignored) {
             return null;
@@ -154,10 +157,7 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
         resource.name = config.getString("resource_name");
         resource.path = serverResourcePath.resolve(config.getString("resource_path"));
 
-        Instant modified = getModifiedInstant(resource.path);
-        if (modified == null) return;
-
-        resource.modified = modified;
+        resource.modified = getModifiedInstant(resource.path);
 
         resource.config = config;
 
@@ -167,7 +167,10 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
     }
 
     protected Instant getModifiedInstant(Path path) throws IOException {
-        if(!Files.exists(path)) return null;
+        if(!Files.exists(path)){
+            log.info("Skipping resource " + path + " as it does not exist");
+            return null;
+        }
 
         return Files.getLastModifiedTime(path).toInstant();
     }
@@ -195,8 +198,11 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
             return;
         }
 
+        Map<String, Instant> clientVersions = clientResources.get(client.getName());
         for (ServerResource update : updates.values()) {
             update.install(channel);
+            clientVersions.put(update.name, update.modified);
+            log.info("Updated resource " + update.name + " for client " + client.getName());
         }
     }
 
@@ -208,6 +214,9 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
         //Find the most recent resources that apply to the client
         //Only one resource per resource name
         for (ServerResource resource : serverResources.values()) {
+            //The resource is currently missing
+            if(resource.modified == null) continue;
+
             if (resourceName != null && !resourceName.equals(resource.name)) continue;
 
             if (!resource.applies(client, clientVersions)) continue;
@@ -277,10 +286,11 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
                 Map.Entry<Path, ServerResource> next = iterator.next();
 
                 if (next.getKey().startsWith(changed)) {
-                    log.info("Removing resource " + next.getKey() + " as it's directory was deleted");
+                    log.info("Removing resource " + next.getKey() + " as it was deleted");
                     iterator.remove();
                 }
             }
+            return;
         }
 
         if (Files.isDirectory(changed)) return;
@@ -302,6 +312,7 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
     }
 
     private void resourceModified(Path resourcePath) throws IOException {
+        log.info(resourcePath);
         if (updateResource(resourcePath)) return;
 
         for (Map.Entry<Path, ServerResource> resourceEntry : serverResources.entrySet()) {
