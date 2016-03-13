@@ -1,7 +1,6 @@
 package com.ithinkrok.msm.server.event.minecraftserver;
 
 import com.ithinkrok.msm.server.data.Client;
-import com.ithinkrok.msm.server.minecraft.MinecraftClient;
 import com.ithinkrok.msm.server.event.MSMEvent;
 
 /**

@@ -1,7 +1,6 @@
 package com.ithinkrok.msm.server.console;
 
 import com.google.common.base.Charsets;
-import com.ithinkrok.util.config.Config;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;

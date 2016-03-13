@@ -6,8 +6,6 @@ import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.Packet;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.data.Client;
-import com.ithinkrok.msm.server.minecraft.MinecraftClient;
-import com.ithinkrok.msm.server.minecraft.impl.MSMMinecraftClient;
 import com.ithinkrok.util.config.Config;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;

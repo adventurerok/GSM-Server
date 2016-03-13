@@ -4,10 +4,7 @@ import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.common.MinecraftClientType;
 import com.ithinkrok.msm.server.data.Client;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by paul on 05/02/16.

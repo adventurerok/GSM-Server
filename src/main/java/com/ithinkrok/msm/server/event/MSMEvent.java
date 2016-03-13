@@ -1,7 +1,7 @@
 package com.ithinkrok.msm.server.event;
 
-import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.msm.server.Server;
+import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.util.event.CustomEvent;
 
 /**

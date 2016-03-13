@@ -2,7 +2,6 @@ package com.ithinkrok.msm.server.protocol;
 
 import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.common.ClientInfo;
-import com.ithinkrok.msm.common.MinecraftClientInfo;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.auth.LoginHandler;
