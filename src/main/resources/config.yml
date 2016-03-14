@@ -1,0 +1,13 @@
+
+# The TCP port for the server
+port: 30824
+
+# The path to the restart script
+# restart_script: './restart.sh'
+
+# Database config
+#database:
+#  username: "username"
+#  driver: "com.mysql.jdbc.Driver"
+#  password: "password"
+#  url: "jdbc:mysql://localhost:3306/gsm"
