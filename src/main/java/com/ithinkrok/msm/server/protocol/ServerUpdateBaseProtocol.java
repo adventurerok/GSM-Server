@@ -148,8 +148,7 @@ public class ServerUpdateBaseProtocol implements ServerListener, DirectoryListen
     protected Config getDefaultResourceConfig(Path path) {
         Config config = new MemoryConfig();
 
-        String fileName = path.getFileName().toString();
-        config.set("resource_name", fileName);
+        config.set("resource_name", serverResourcePath.relativize(path).toString());
         config.set("resource_path", serverResourcePath.relativize(path).toString());
 
         return config;
