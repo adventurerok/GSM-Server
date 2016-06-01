@@ -5,7 +5,7 @@ import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
-import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
+import com.ithinkrok.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.auth.LoginHandler;

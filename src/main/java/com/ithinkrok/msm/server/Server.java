@@ -1,6 +1,6 @@
 package com.ithinkrok.msm.server;
 
-import com.ithinkrok.msm.common.util.io.DirectoryWatcher;
+import com.ithinkrok.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.command.CommandHandler;
 import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.msm.server.data.Player;
