@@ -4,6 +4,7 @@ import com.ithinkrok.msm.server.command.*;
 import com.ithinkrok.msm.server.console.ConsoleHandler;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.msm.server.impl.MSMServer;
+import com.ithinkrok.msm.server.listener.ClientDownListener;
 import com.ithinkrok.msm.server.minecraft.ServerMinecraftRequestProtocol;
 import com.ithinkrok.msm.server.protocol.ServerAPIProtocol;
 import com.ithinkrok.msm.server.protocol.ServerAutoUpdateProtocol;
@@ -32,10 +33,13 @@ public class Program {
     public static void main(String[] args) {
         log.info("Starting MSM Server");
 
-        MSMServer server = load();
+        Config config = loadConfig();
+
+        MSMServer server = load(config);
 
         log.info("Supported protocols: " + server.getAvailableProtocols());
 
+        registerCustomListeners(server, config);
         registerDefaultCommands(server);
 
         server.start();
@@ -60,6 +64,16 @@ public class Program {
         server.setConsoleHandler(consoleHandler);
 
         consoleHandler.runConsole();
+    }
+
+    private static void registerCustomListeners(Server server, Config config) {
+        if(!config.contains("scripts")) return;
+
+        Config scriptsConfig = config.getConfigOrEmpty("scripts");
+
+        if(scriptsConfig.contains("client_down")) {
+            server.registerListener(new ClientDownListener(scriptsConfig.getConfigOrEmpty("client_down")));
+        }
     }
 
     private static void registerDefaultCommands(Server server) {
@@ -88,7 +102,7 @@ public class Program {
 
 
 
-    private static MSMServer load() {
+    private static MSMServer load(Config config) {
         MSMPluginLoader pluginLoader = new MSMPluginLoader();
 
         log.info("Loading plugins...");
@@ -103,7 +117,7 @@ public class Program {
         listenerMap.put("MSMAPI", new ServerAPIProtocol());
         listenerMap.put("MinecraftRequest", new ServerMinecraftRequestProtocol());
 
-        MSMServer server = new MSMServer(loadConfig(), listenerMap);
+        MSMServer server = new MSMServer(config, listenerMap);
 
         for(MSMServerPlugin plugin : plugins) {
             plugin.setServer(server);
