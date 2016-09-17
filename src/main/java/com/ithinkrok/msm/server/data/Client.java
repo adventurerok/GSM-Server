@@ -102,4 +102,17 @@ public interface Client<T extends Player<?>> extends Messagable {
     ClientInfo getClientInfo();
 
     T createPlayer(Config config);
+
+    /**
+     * Schedules a restart of this client
+     *
+     * @param delayMs The number of milliseconds the client should wait before restarting
+     * @param maxRestartPlayers If more than this number of players are on the client, the client will wait until
+     *                          this number of players or less are on the server before restarting
+     */
+    void scheduleRestart(int delayMs, int maxRestartPlayers);
+
+    void setRestartScheduled();
+
+    boolean isRestartScheduled();
 }

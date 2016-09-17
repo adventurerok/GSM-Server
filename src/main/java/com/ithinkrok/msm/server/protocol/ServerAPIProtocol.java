@@ -151,8 +151,15 @@ public class ServerAPIProtocol implements ServerListener {
                 return;
             case "ConsoleCommand":
                 handleConsoleCommand(connection.getClient(), payload);
+                return;
+            case "RestartScheduled":
+                handleRestartScheduled(connection.getClient());
 
         }
+    }
+
+    private void handleRestartScheduled(Client<?> client) {
+        client.setRestartScheduled();
     }
 
     @SuppressWarnings("unchecked")

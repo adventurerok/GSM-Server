@@ -40,6 +40,8 @@ public class MSMMinecraftClient implements MinecraftClient {
 
     private double maxRam;
 
+    private boolean restartScheduled;
+
     public MSMMinecraftClient(MinecraftClientInfo serverInfo, MSMServer server) {
         this.serverInfo = serverInfo;
         this.server = server;
@@ -181,6 +183,21 @@ public class MSMMinecraftClient implements MinecraftClient {
         getAPIChannel().write(payload);
     }
 
+    @Override
+    public void scheduleRestart(int delayMs, int maxRestartPlayers) {
+        Channel channel = getAPIChannel();
+        if(channel == null) return;
+
+        setRestartScheduled();
+
+        Config payload = new MemoryConfig();
+        payload.set("delay_ms", delayMs);
+        payload.set("max_players", maxRestartPlayers);
+        payload.set("mode", "Restart");
+
+        channel.write(payload);
+    }
+
     private Channel getAPIChannel() {
         if (connection == null) return null;
         return connection.getChannel("MSMAPI");
@@ -289,5 +306,15 @@ public class MSMMinecraftClient implements MinecraftClient {
     @Override
     public LanguageLookup getLanguageLookup() {
         return server.getLanguageLookup();
+    }
+
+    @Override
+    public boolean isRestartScheduled() {
+        return restartScheduled;
+    }
+
+    @Override
+    public void setRestartScheduled() {
+        this.restartScheduled = true;
     }
 }
