@@ -72,6 +72,7 @@ public class Program {
         Config scriptsConfig = config.getConfigOrEmpty("scripts");
 
         if(scriptsConfig.contains("client_down")) {
+            log.info("Registered the client down listener");
             server.registerListener(new ClientDownListener(scriptsConfig.getConfigOrEmpty("client_down")));
         }
     }
