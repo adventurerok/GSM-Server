@@ -78,29 +78,13 @@ public class Program {
     }
 
     private static void registerDefaultCommands(Server server) {
-        Config stopConfig = new MemoryConfig();
-        stopConfig.set("usage", "/<command>");
-        stopConfig.set("description", "Stops the MSM server");
-        stopConfig.set("permission", "msmserver.stop");
-
-        ServerCommandInfo stopInfo = new ServerCommandInfo("mstop", stopConfig, new StopCommand());
-
         CommandHandler commandHandler = server.getCommandHandler();
-        commandHandler.registerCommand(stopInfo);
 
-        Config restartConfig = new MemoryConfig();
-        stopConfig.set("usage", "/<command>");
-        stopConfig.set("description", "Stops the MSM server");
-        stopConfig.set("permission", "msmserver.restart");
-
-        ServerCommandInfo restartInfo = new ServerCommandInfo("mrestart", restartConfig, new RestartCommand());
-
-        commandHandler.registerCommand(restartInfo);
-
+        commandHandler.registerCommand(StopCommand.createCommandInfo());
+        commandHandler.registerCommand(RestartCommand.createCommandInfo());
         commandHandler.registerCommand(ExecCommand.createCommandInfo());
         commandHandler.registerCommand(LoadCommand.createCommandInfo());
     }
-
 
 
     private static MSMServer load(Config config) {

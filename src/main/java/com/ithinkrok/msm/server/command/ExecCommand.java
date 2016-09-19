@@ -25,7 +25,7 @@ public class ExecCommand implements CustomListener {
     public static ServerCommandInfo createCommandInfo() {
         Config config = new MemoryConfig();
 
-        config.set("usage", "/<command> <server> <server command...>");
+        config.set("usage", "/<command> <server/pattern> <server command...>");
         config.set("description", "Execute a command on a minecraft server");
         config.set("permission", "msmserver.exec");
 

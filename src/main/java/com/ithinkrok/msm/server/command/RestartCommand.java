@@ -4,9 +4,14 @@ import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.msm.server.event.command.MSMCommandEvent;
 import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.util.command.CustomCommand;
+import com.ithinkrok.util.config.Config;
+import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomEventHandler;
 import com.ithinkrok.util.event.CustomListener;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -14,11 +19,30 @@ import java.util.regex.Pattern;
  */
 public class RestartCommand implements CustomListener {
 
+    public static ServerCommandInfo createCommandInfo() {
+        Config config = new MemoryConfig();
+        config.set("usage", "/<command> [server/pattern]");
+        config.set("description", "Restarts the MSM server or some servers connected to it");
+        config.set("permission", "msmserver.restart");
+
+        List<Config> tabCompletion = new ArrayList<>();
+
+        Config allServers = new MemoryConfig();
+        allServers.set("pattern", "");
+        allServers.set("values", Collections.singletonList("#gsmServers"));
+
+        tabCompletion.add(allServers);
+
+        config.set("tab_complete", tabCompletion);
+
+        return new ServerCommandInfo("mrestart", config, new RestartCommand());
+    }
+
     @CustomEventHandler
     public void onCommand(MSMCommandEvent event) {
-        CustomCommand command = event.getCommand();
-
         event.setHandled(true);
+
+        CustomCommand command = event.getCommand();
 
         if(command.getArgumentCount() == 0) {
             event.getCommandSender().sendMessage("Restarting server");
