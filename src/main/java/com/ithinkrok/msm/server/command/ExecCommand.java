@@ -80,7 +80,7 @@ public class ExecCommand implements CustomListener {
             Client<?> server = event.getMSMServer().getClient(serverName);
 
             if (server == null || !server.isConnected()) {
-                event.getCommandSender().sendMessage("Unknown minecraft server: " + serverName);
+                event.getCommandSender().sendMessage("Unknown server: " + serverName);
                 return;
             }
 
