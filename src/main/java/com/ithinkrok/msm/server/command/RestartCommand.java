@@ -18,6 +18,8 @@ public class RestartCommand implements CustomListener {
     public void onCommand(MSMCommandEvent event) {
         CustomCommand command = event.getCommand();
 
+        event.setHandled(true);
+
         if(command.getArgumentCount() == 0) {
             event.getCommandSender().sendMessage("Restarting server");
             ((MSMServer) event.getMSMServer()).restart();
