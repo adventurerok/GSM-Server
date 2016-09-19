@@ -25,7 +25,7 @@ public class ClientDownListener implements CustomListener {
 
     public ClientDownListener(Config config) {
         command = config.getString("command");
-        timeDown = config.getInt("time", 180);
+        timeDown = config.getInt("time", 30);
     }
 
     @CustomEventHandler
@@ -40,6 +40,8 @@ public class ClientDownListener implements CustomListener {
 
         private final Server server;
         private final String clientName;
+
+        private int counter = 0;
 
         public ClientDownScriptRunnable(Server server, String clientName) {
             this.server = server;
@@ -63,8 +65,12 @@ public class ClientDownListener implements CustomListener {
                 logger.warn("Failed to call the client down script for " + clientName, e);
             }
 
+            int nextTime = timeDown << counter;
+
             //Reschedule us to make sure the server is up in five minutes
-            server.scheduleAsync(this, timeDown, TimeUnit.SECONDS);
+            server.scheduleAsync(this, nextTime, TimeUnit.SECONDS);
+
+            if(counter < 3) ++counter;
         }
     }
 }
