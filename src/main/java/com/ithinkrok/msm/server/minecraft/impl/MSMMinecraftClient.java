@@ -96,7 +96,12 @@ public class MSMMinecraftClient implements MinecraftClient {
     public void setConnection(Connection connection) {
         this.connection = connection;
 
-        if (connection != null) setSupportedProtocols(connection.getSupportedProtocols());
+        if (connection != null){
+            //If the server reconnected it just restarted
+            restartScheduled = false;
+
+            setSupportedProtocols(connection.getSupportedProtocols());
+        }
     }
 
     public MinecraftPlayer removePlayer(UUID playerUUID) {
