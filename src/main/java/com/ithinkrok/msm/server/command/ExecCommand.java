@@ -4,9 +4,11 @@ import com.ithinkrok.msm.common.Channel;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.data.Client;
 import com.ithinkrok.msm.server.event.command.ConsoleCommandEvent;
+import com.ithinkrok.msm.server.event.command.ExternalCommandEvent;
 import com.ithinkrok.msm.server.event.command.MSMCommandEvent;
 import com.ithinkrok.msm.server.event.minecraftserver.ClientCommandEvent;
 import com.ithinkrok.msm.server.event.player.PlayerCommandEvent;
+import com.ithinkrok.msm.server.external.ExternalCommandSender;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomEventHandler;
@@ -112,6 +114,9 @@ public class ExecCommand implements CustomListener {
         } else if (event instanceof ClientCommandEvent) {
             sender.set("type", "minecraft");
             sender.set("name", ((ClientCommandEvent) event).getClient().getName());
+        } else if(event instanceof ExternalCommandEvent) {
+            sender.set("type", "external");
+            sender.set("name", ((ExternalCommandSender)event.getCommandSender()).getExternal().getName());
         } else {
             sender.set("type", "unknown");
         }

@@ -1,6 +1,7 @@
 package com.ithinkrok.msm.server.protocol;
 
 import com.ithinkrok.msm.common.Channel;
+import com.ithinkrok.msm.server.external.External;
 import com.ithinkrok.util.config.ConfigUtils;
 import com.ithinkrok.msm.server.Connection;
 import com.ithinkrok.msm.server.Server;
@@ -23,6 +24,7 @@ import com.ithinkrok.msm.server.minecraft.impl.MSMMinecraftClient;
 import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
+import com.ithinkrok.util.lang.Messagable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -154,6 +156,9 @@ public class ServerAPIProtocol implements ServerListener {
                 return;
             case "RestartScheduled":
                 handleRestartScheduled(connection.getClient());
+                return;
+            case "ExternalMessage":
+                handleExternalMessage(connection.getConnectedTo(), payload);
 
         }
     }
@@ -260,6 +265,17 @@ public class ServerAPIProtocol implements ServerListener {
         String message = payload.getString("message");
 
         log.info("[Command] " + message);
+    }
+
+    private void handleExternalMessage(Server connectedTo, Config payload) {
+        String name = payload.getString("name");
+        External external = connectedTo.getExternal(name);
+
+        String message = payload.getString("message");
+
+        if(external instanceof Messagable) {
+            ((Messagable) external).sendMessage(message);
+        }
     }
 
     private void handleMinecraftConsoleMessage(Server connectedTo, Config payload) {

@@ -3,7 +3,6 @@ package com.ithinkrok.msm.server.event.command;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.external.ExternalCommandSender;
 import com.ithinkrok.util.command.CustomCommand;
-import com.ithinkrok.util.command.CustomCommandSender;
 
 /**
  * Created by paul on 21/09/16.
@@ -32,7 +31,7 @@ public class ExternalCommandEvent implements MSMCommandEvent {
     }
 
     @Override
-    public CustomCommandSender getCommandSender() {
+    public ExternalCommandSender getCommandSender() {
         return sender;
     }
 
