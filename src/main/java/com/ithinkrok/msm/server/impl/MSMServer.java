@@ -255,6 +255,11 @@ public class MSMServer implements Server {
     }
 
     @Override
+    public PermissionInfo getRegisteredPermission(String name) {
+        return permissionMap.get(name);
+    }
+
+    @Override
     public void registerPermission(PermissionInfo permission) {
         permissionMap.put(permission.getName(), permission);
     }

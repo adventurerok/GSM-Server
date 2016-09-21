@@ -1,7 +1,10 @@
 package com.ithinkrok.msm.server.external;
 
+import com.ithinkrok.msm.common.command.CommandInfo;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.event.command.ExternalCommandEvent;
+import com.ithinkrok.msm.server.permission.PermissionDefault;
+import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.lang.LanguageLookup;
@@ -102,8 +105,22 @@ public class DiscordChat implements ExternalChat {
 
             text = text.substring(1);
 
-            CustomCommand command = new CustomCommand(text);
             ExternalCommandSender sender = new DiscordCommandSender(DiscordChat.this, event.getMessage().getChannel());
+            CustomCommand command = new CustomCommand(text);
+
+            CommandInfo commandInfo = connectedTo.getCommandHandler().getCommand(command.getCommand());
+
+            if(commandInfo != null && commandInfo.getPermission() != null && !commandInfo.getPermission().isEmpty()) {
+                PermissionInfo permission = connectedTo.getRegisteredPermission(commandInfo.getPermission());
+
+                if(permission == null || permission.getDefaultValue() == PermissionDefault.FALSE || permission
+                        .getDefaultValue() == PermissionDefault.OP) {
+
+                    sender.sendMessage("This command requires permissions, and Discord does not support permissions");
+
+                    return;
+                }
+            }
 
             ExternalCommandEvent commandEvent = new ExternalCommandEvent(sender, command);
 

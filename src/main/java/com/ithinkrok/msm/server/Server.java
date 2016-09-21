@@ -66,6 +66,8 @@ public interface Server extends Messagable, LanguageLookup {
 
     Collection<PermissionInfo> getRegisteredPermissions();
 
+    PermissionInfo getRegisteredPermission(String name);
+
     void registerPermission(PermissionInfo permission);
 
     void broadcast(String message);
