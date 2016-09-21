@@ -26,13 +26,15 @@ public class DiscordChat implements ExternalChat, IListener<ReadyEvent> {
 
     private final IDiscordClient client;
 
-    private final String generalChannelName;
+    private final String inviteCode;
+    private final String generalChannelID;
 
     private IChannel generalChannel;
 
     public DiscordChat(Server connectedTo, Config config) throws DiscordException {
         this.connectedTo = connectedTo;
-        this.generalChannelName = config.getString("channel");
+        this.inviteCode = config.getString("invite_code", null);
+        this.generalChannelID = config.getString("channel");
 
         ClientBuilder clientBuilder = new ClientBuilder();
         clientBuilder.withToken(config.getString("token"));
@@ -52,7 +54,7 @@ public class DiscordChat implements ExternalChat, IListener<ReadyEvent> {
 
     @Override
     public void sendMessageNoPrefix(String message) {
-        if(generalChannel == null) return;
+        if (generalChannel == null) return;
 
         try {
             generalChannel.sendMessage(message);
@@ -68,6 +70,19 @@ public class DiscordChat implements ExternalChat, IListener<ReadyEvent> {
 
     @Override
     public void handle(ReadyEvent event) {
-        generalChannel = client.getChannelByID(generalChannelName);
+        if (inviteCode != null) {
+            try {
+                client.getInviteForCode(inviteCode).accept();
+            } catch (DiscordException | RateLimitException e) {
+                log.warn("Failed to accept discord invite", e);
+            }
+        }
+
+        generalChannel = client.getChannelByID(generalChannelID);
+    }
+
+    @Override
+    public String getName() {
+        return "discord";
     }
 }

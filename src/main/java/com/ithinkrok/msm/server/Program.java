@@ -2,6 +2,7 @@ package com.ithinkrok.msm.server;
 
 import com.ithinkrok.msm.server.command.*;
 import com.ithinkrok.msm.server.console.ConsoleHandler;
+import com.ithinkrok.msm.server.external.DiscordChat;
 import com.ithinkrok.msm.server.impl.MSMPluginLoader;
 import com.ithinkrok.msm.server.impl.MSMServer;
 import com.ithinkrok.msm.server.listener.ClientDownListener;
@@ -15,6 +16,7 @@ import com.ithinkrok.util.config.YamlConfigIO;
 import jline.console.ConsoleReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import sx.blah.discord.util.DiscordException;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -41,6 +43,7 @@ public class Program {
 
         registerCustomListeners(server, config);
         registerDefaultCommands(server);
+        registerExternals(server, config);
 
         server.start();
 
@@ -64,6 +67,24 @@ public class Program {
         server.setConsoleHandler(consoleHandler);
 
         consoleHandler.runConsole();
+    }
+
+    private static void registerExternals(MSMServer server, Config config) {
+        if(!config.contains("external")) return;
+
+        Config externalConfig = config.getConfigOrEmpty("external");
+
+        if(externalConfig.contains("discord")) {
+            Config discordConfig = externalConfig.getConfigOrEmpty("discord");
+
+            try {
+                DiscordChat chat = new DiscordChat(server, discordConfig);
+
+                server.addExternal(chat);
+            } catch (DiscordException e) {
+                log.warn("Failed to create DiscordChat", e);
+            }
+        }
     }
 
     private static void registerCustomListeners(Server server, Config config) {

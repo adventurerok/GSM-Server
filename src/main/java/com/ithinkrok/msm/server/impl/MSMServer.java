@@ -5,6 +5,8 @@ import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
+import com.ithinkrok.msm.server.external.External;
+import com.ithinkrok.msm.server.external.ExternalChat;
 import com.ithinkrok.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
@@ -71,6 +73,8 @@ public class MSMServer implements Server {
     private final MultipleLanguageLookup languageLookup = new MultipleLanguageLookup();
 
     private final Map<String, LoginHandler> loginHandlerMap = new ConcurrentHashMap<>();
+
+    private final Map<String, External> externalMap = new ConcurrentHashMap<>();
 
     private final DirectoryWatcher directoryWatcher;
 
@@ -458,6 +462,34 @@ public class MSMServer implements Server {
     @Override
     public CommandHandler getCommandHandler() {
         return commandHandler;
+    }
+
+    @Override
+    public void addExternal(External external) {
+        if(externalMap.containsKey(external.getName())) {
+            throw new IllegalStateException("We already have an external with that name");
+        }
+
+        externalMap.put(external.getName(), external);
+    }
+
+    @Override
+    public External getExternal(String name) {
+        return externalMap.get(name);
+    }
+
+    @Override
+    public Collection<External> getExternals() {
+        return externalMap.values();
+    }
+
+    @Override
+    public void broadcastExternalChat(String message) {
+        for(External e : getExternals()) {
+            if(e instanceof ExternalChat) {
+                ((ExternalChat) e).sendMessage(message);
+            }
+        }
     }
 
     private class TabCompletionClientUpdater implements CustomListener {

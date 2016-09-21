@@ -1,5 +1,7 @@
 package com.ithinkrok.msm.server;
 
+import com.ithinkrok.msm.server.external.DiscordChat;
+import com.ithinkrok.msm.server.external.External;
 import com.ithinkrok.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.command.CommandHandler;
 import com.ithinkrok.msm.server.data.Client;
@@ -74,5 +76,11 @@ public interface Server extends Messagable, LanguageLookup {
 
     CommandHandler getCommandHandler();
 
+    void addExternal(External external);
 
+    External getExternal(String name);
+
+    Collection<External> getExternals();
+
+    void broadcastExternalChat(String message);
 }

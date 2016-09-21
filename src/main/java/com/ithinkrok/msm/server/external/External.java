@@ -12,4 +12,5 @@ public interface External {
      */
     Server getConnectedTo();
 
+    String getName();
 }
