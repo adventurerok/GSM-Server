@@ -1,6 +1,8 @@
 package com.ithinkrok.msm.server.external;
 
 import com.ithinkrok.msm.server.Server;
+import com.ithinkrok.msm.server.event.command.ExternalCommandEvent;
+import com.ithinkrok.util.command.CustomCommand;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.lang.LanguageLookup;
 import org.apache.logging.log4j.LogManager;
@@ -9,6 +11,7 @@ import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventDispatcher;
 import sx.blah.discord.api.events.IListener;
+import sx.blah.discord.handle.impl.events.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.util.DiscordException;
@@ -18,7 +21,7 @@ import sx.blah.discord.util.RateLimitException;
 /**
  * Created by paul on 21/09/16.
  */
-public class DiscordChat implements ExternalChat, IListener<ReadyEvent> {
+public class DiscordChat implements ExternalChat {
 
     private static final Logger log = LogManager.getLogger(DiscordChat.class);
 
@@ -42,7 +45,8 @@ public class DiscordChat implements ExternalChat, IListener<ReadyEvent> {
         client = clientBuilder.build();
 
         EventDispatcher dispatcher = client.getDispatcher();
-        dispatcher.registerListener(this);
+        dispatcher.registerListener(new ReadyEventListener());
+        dispatcher.registerListener(new MessageRecievedEventListener());
 
         client.login();
     }
@@ -50,6 +54,11 @@ public class DiscordChat implements ExternalChat, IListener<ReadyEvent> {
     @Override
     public Server getConnectedTo() {
         return connectedTo;
+    }
+
+    @Override
+    public String getName() {
+        return "discord";
     }
 
     @Override
@@ -68,21 +77,43 @@ public class DiscordChat implements ExternalChat, IListener<ReadyEvent> {
         return connectedTo.getLanguageLookup();
     }
 
-    @Override
-    public void handle(ReadyEvent event) {
-        if (inviteCode != null) {
-            try {
-                client.getInviteForCode(inviteCode).accept();
-            } catch (DiscordException | RateLimitException e) {
-                log.warn("Failed to accept discord invite", e);
+    private class ReadyEventListener implements IListener<ReadyEvent> {
+        @Override
+        public void handle(ReadyEvent event) {
+            if (inviteCode != null) {
+                try {
+                    client.getInviteForCode(inviteCode).accept();
+                } catch (DiscordException | RateLimitException e) {
+                    log.warn("Failed to accept discord invite", e);
+                }
+            }
+
+            generalChannel = client.getChannelByID(generalChannelID);
+        }
+    }
+
+    private class MessageRecievedEventListener implements IListener<MessageReceivedEvent> {
+
+        @Override
+        public void handle(MessageReceivedEvent event) {
+            String text = event.getMessage().getContent();
+
+            if(text == null || !text.startsWith("!")) return;
+
+            text = text.substring(1);
+
+            CustomCommand command = new CustomCommand(text);
+            ExternalCommandSender sender = new DiscordCommandSender(DiscordChat.this, event.getMessage().getChannel());
+
+            ExternalCommandEvent commandEvent = new ExternalCommandEvent(sender, command);
+
+            if(!connectedTo.getCommandHandler().executeCommand(commandEvent)) return;
+
+            if(!commandEvent.isHandled()) {
+                sender.sendMessage("This command does not support Discord");
             }
         }
-
-        generalChannel = client.getChannelByID(generalChannelID);
     }
 
-    @Override
-    public String getName() {
-        return "discord";
-    }
+
 }
