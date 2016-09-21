@@ -13,6 +13,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <repositories>
+        <!--For Discord4J-->
+        <repository> <!-- This repo fixes issues with transitive dependencies -->
+            <id>jcenter</id>
+            <url>http://jcenter.bintray.com</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>com.ithinkrok.gsm</groupId>
@@ -89,6 +101,16 @@
             <artifactId>HikariCP</artifactId>
             <version>2.4.3</version>
         </dependency>
+
+        <!--Discord 4J-->
+
+        <dependency>
+            <groupId>com.github.austinv11</groupId>
+            <artifactId>Discord4j</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+
+        <!--Test Dependencies-->
 
         <dependency>
             <groupId>junit</groupId>
