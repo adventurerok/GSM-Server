@@ -5,9 +5,6 @@ import com.ithinkrok.msm.common.handler.MSMFrameDecoder;
 import com.ithinkrok.msm.common.handler.MSMFrameEncoder;
 import com.ithinkrok.msm.common.handler.MSMPacketDecoder;
 import com.ithinkrok.msm.common.handler.MSMPacketEncoder;
-import com.ithinkrok.msm.server.external.External;
-import com.ithinkrok.msm.server.external.ExternalChat;
-import com.ithinkrok.util.io.DirectoryWatcher;
 import com.ithinkrok.msm.server.Server;
 import com.ithinkrok.msm.server.ServerListener;
 import com.ithinkrok.msm.server.auth.LoginHandler;
@@ -21,6 +18,8 @@ import com.ithinkrok.msm.server.data.PlayerIdentifier;
 import com.ithinkrok.msm.server.event.MSMEvent;
 import com.ithinkrok.msm.server.event.command.TabCompletionSetModifiedEvent;
 import com.ithinkrok.msm.server.event.player.PlayerQuitEvent;
+import com.ithinkrok.msm.server.external.External;
+import com.ithinkrok.msm.server.external.ExternalChat;
 import com.ithinkrok.msm.server.minecraft.MinecraftLoginHandler;
 import com.ithinkrok.msm.server.permission.PermissionInfo;
 import com.ithinkrok.msm.server.protocol.ServerAPIProtocol;
@@ -30,6 +29,7 @@ import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.event.CustomEventExecutor;
 import com.ithinkrok.util.event.CustomEventHandler;
 import com.ithinkrok.util.event.CustomListener;
+import com.ithinkrok.util.io.DirectoryWatcher;
 import com.ithinkrok.util.lang.LanguageLookup;
 import com.ithinkrok.util.lang.MultipleLanguageLookup;
 import io.netty.bootstrap.ServerBootstrap;
@@ -81,13 +81,14 @@ public class MSMServer implements Server {
     private final CommandHandler commandHandler;
 
     private final String restartScript;
+    public static final int DEFAULT_PORT = 30824;
     private Channel channel;
 
     private boolean stopped = false;
     private ConsoleHandler consoleHandler;
 
     public MSMServer(Config config, Map<String, ? extends ServerListener> listeners) {
-        this.port = config.getInt("port", 30824);
+        this.port = config.getInt("port", DEFAULT_PORT);
 
         this.restartScript = config.getString("restart_script");
 
@@ -143,7 +144,7 @@ public class MSMServer implements Server {
     @Override
     public Player<?> getPlayer(PlayerIdentifier identifier) {
         for (Client<?> minecraftServer : minecraftServerMap.values()) {
-            if(!minecraftServer.getType().equals(identifier.getClientType())) continue;
+            if (!minecraftServer.getType().equals(identifier.getClientType())) continue;
 
             Player<?> player = minecraftServer.getPlayer(identifier.getUuid());
 
@@ -156,7 +157,7 @@ public class MSMServer implements Server {
     @Override
     public Player<?> getPlayer(String clientType, String name) {
         for (Client<?> minecraftServer : minecraftServerMap.values()) {
-            if(!minecraftServer.getType().equals(clientType)) continue;
+            if (!minecraftServer.getType().equals(clientType)) continue;
 
             Player<?> player = minecraftServer.getPlayer(name);
 
@@ -165,7 +166,6 @@ public class MSMServer implements Server {
 
         return null;
     }
-
 
 
     @Override
@@ -199,7 +199,6 @@ public class MSMServer implements Server {
     public <V> ScheduledFuture<V> scheduleAsync(Callable<V> callable, long delay, TimeUnit unit) {
         return scheduleOnService(callable, delay, unit, asyncThreadExecutor);
     }
-
 
 
     @Override
@@ -248,7 +247,6 @@ public class MSMServer implements Server {
     }
 
 
-
     @Override
     public Collection<PermissionInfo> getRegisteredPermissions() {
         return permissionMap.values();
@@ -281,6 +279,39 @@ public class MSMServer implements Server {
         languageLookup.addLanguageLookup(lookup);
     }
 
+    @Override
+    public CommandHandler getCommandHandler() {
+        return commandHandler;
+    }
+
+    @Override
+    public void addExternal(External external) {
+        if (externalMap.containsKey(external.getName())) {
+            throw new IllegalStateException("We already have an external with that name");
+        }
+
+        externalMap.put(external.getName(), external);
+    }
+
+    @Override
+    public External getExternal(String name) {
+        return externalMap.get(name);
+    }
+
+    @Override
+    public Collection<External> getExternals() {
+        return externalMap.values();
+    }
+
+    @Override
+    public void broadcastExternalChat(String message) {
+        for (External e : getExternals()) {
+            if (e instanceof ExternalChat) {
+                ((ExternalChat) e).sendMessage(message);
+            }
+        }
+    }
+
     private <V> ScheduledFuture<V> scheduleOnService(Callable<V> callable, long delay, TimeUnit unit,
                                                      ScheduledExecutorService service) {
         return service.schedule(() -> {
@@ -291,23 +322,6 @@ public class MSMServer implements Server {
                 return null;
             }
         }, delay, unit);
-    }
-
-    public void stop() {
-        if(stopped) return;
-        stopped = true;
-
-        consoleHandler.setStopped(true);
-
-        if(channel != null) channel.close();
-
-        try {
-            Thread.sleep(100L);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        System.exit(0);
     }
 
     public void restart() {
@@ -329,6 +343,23 @@ public class MSMServer implements Server {
         }
 
         stop();
+    }
+
+    public void stop() {
+        if (stopped) return;
+        stopped = true;
+
+        consoleHandler.setStopped(true);
+
+        if (channel != null) channel.close();
+
+        try {
+            Thread.sleep(100L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.exit(0);
     }
 
     public void addQuittingPlayer(Player<?> quitting) {
@@ -464,44 +495,11 @@ public class MSMServer implements Server {
         this.consoleHandler = consoleHandler;
     }
 
-    @Override
-    public CommandHandler getCommandHandler() {
-        return commandHandler;
-    }
-
-    @Override
-    public void addExternal(External external) {
-        if(externalMap.containsKey(external.getName())) {
-            throw new IllegalStateException("We already have an external with that name");
-        }
-
-        externalMap.put(external.getName(), external);
-    }
-
-    @Override
-    public External getExternal(String name) {
-        return externalMap.get(name);
-    }
-
-    @Override
-    public Collection<External> getExternals() {
-        return externalMap.values();
-    }
-
-    @Override
-    public void broadcastExternalChat(String message) {
-        for(External e : getExternals()) {
-            if(e instanceof ExternalChat) {
-                ((ExternalChat) e).sendMessage(message);
-            }
-        }
-    }
-
     private class TabCompletionClientUpdater implements CustomListener {
 
         @CustomEventHandler
         public void onTabCompletionSetModified(TabCompletionSetModifiedEvent event) {
-            if(getClients().isEmpty()) return;
+            if (getClients().isEmpty()) return;
 
             Config payload = new MemoryConfig();
             payload.set("mode", "TabSet");
@@ -510,11 +508,11 @@ public class MSMServer implements Server {
             payload.set("modify_mode", event.getModifyMode().toString());
             payload.set("change", event.getModification());
 
-            for(Client<?> client : getClients()) {
-                if(!client.isConnected()) continue;
+            for (Client<?> client : getClients()) {
+                if (!client.isConnected()) continue;
 
                 com.ithinkrok.msm.common.Channel apiChannel = client.getConnection().getChannel("MSMAPI");
-                if(apiChannel == null) continue;
+                if (apiChannel == null) continue;
 
                 apiChannel.write(payload);
             }
