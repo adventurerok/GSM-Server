@@ -430,8 +430,10 @@ public class MSMServer implements Server {
             });
 
             this.channel = future.channel();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.fatal("Exception when starting the server", e);
+
+            System.exit(1);
         }
 
         for (ServerListener protocol : protocolToPluginMap.values()) {
