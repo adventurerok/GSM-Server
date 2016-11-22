@@ -14,6 +14,8 @@ import com.ithinkrok.util.command.CustomCommandSender;
 import com.ithinkrok.util.config.Config;
 import com.ithinkrok.util.config.MemoryConfig;
 import com.ithinkrok.util.lang.LanguageLookup;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by paul on 05/02/16.
  */
 public class MSMMinecraftClient implements MinecraftClient {
+
+    private static final Logger log = LogManager.getLogger(MSMMinecraftClient.class);
 
     private final MinecraftClientInfo serverInfo;
     private final MSMServer server;
@@ -172,6 +176,16 @@ public class MSMMinecraftClient implements MinecraftClient {
 
     @Override
     public void messagePlayers(String message, Collection<? extends Player<?>> players) {
+        if(message == null) {
+            log.info("attempted to send null message. See debug for stack trace");
+
+            try {
+                throw new RuntimeException("Null message");
+            } catch (RuntimeException e) {
+                log.debug("stack track", e);
+            }
+            return;
+        }
         if (getAPIChannel() == null) return;
         List<String> playerUUIDs = new ArrayList<>();
 
